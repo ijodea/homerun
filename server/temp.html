@@ -115,33 +115,27 @@
     <script>
         function updateTime() {
             const now = new Date();
-            document.getElementById('currentTime').textContent = `현재 시간: ${now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
-        }
-
-        function updateBestTransport() {
-            const now = new Date();
-            const hour = now.getHours();
-            let bestTransport;
-
-            if (hour >= 7 && hour < 22) {
-                bestTransport = "기흥역 셔틀버스";
-            } else if (hour >= 22 && hour < 23) {
-                bestTransport = "명지대역 셔틀버스 + 에버라인";
-            } else if (hour >= 23 || hour < 5) {
-                bestTransport = "택시";
-            } else {
-                bestTransport = "광역버스";
-            }
-
-            document.getElementById('bestTransport').textContent = bestTransport;
+            // document.getElementById('currentTime').textContent = `현재 시간: ${now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
         }
 
         function fetchNextBusTime() {
             fetch('http://localhost:8000/api/nextbus')
                 .then(response => response.json())
                 .then(data => {
-                    if (data.nextBusTime) {
-                        document.getElementById('nextBusTime').textContent = `다음 셔틀버스 시간: ${data.nextBusTime}`;
+                    const now = new Date();
+                    const hour = now.getHours();
+                    let bestTransport;
+
+                    if (hour >= 23 || hour < 5) {
+                        bestTransport = "택시";
+                    } else {
+                        bestTransport = data.nextBusName;
+                    }
+
+                    document.getElementById('bestTransport').textContent = bestTransport;
+
+                    if (data.nextBusName && data.nextBusTime !== null) {
+                        document.getElementById('nextBusTime').textContent = `${data.nextBusName} 출발까지 남은 시간: ${data.nextBusTime}분`;
                     } else {
                         document.getElementById('nextBusTime').textContent = data.message;
                     }
@@ -150,6 +144,17 @@
                     console.error('Error fetching next bus time:', error);
                     document.getElementById('nextBusTime').textContent = '버스 시간을 가져오는 중 오류가 발생했습니다.';
                 });
+        }
+
+        function updateBestTransport() {
+            // 이 함수는 택시 선택 시간대만 처리하고,
+            // 나머지 시간대는 fetchNextBusTime에서 처리합니다.
+            const now = new Date();
+            const hour = now.getHours();
+
+            if (hour >= 23 || hour < 5) {
+                document.getElementById('bestTransport').textContent = "택시";
+            }
         }
 
         setInterval(updateTime, 1000);
