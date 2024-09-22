@@ -1,25 +1,21 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import MainPage from "./mainPage.js"; // MainPage를 부모 컴포넌트로 사용
+import InfoPage from "./infoPage.js";
+import TaxiPage from "./taxiPage.js";
 
-const App = () => {
-  const [data, setData] = useState(null);
-
-  useEffect(() => {
-    axios
-      .get("http://localhost:8000/api")
-      .then((response) => {
-        setData(response.data.message);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
-
+function App() {
   return (
-    <div>
-      <h1>{data}</h1>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainPage />}>
+      
+          <Route path="/info" element={<InfoPage />} />
+          <Route path="/taxi" element={<TaxiPage />} />
+        </Route>
+      </Routes>
+    </Router>
   );
-};
+}
 
 export default App;
