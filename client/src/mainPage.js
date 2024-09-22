@@ -43,7 +43,7 @@ const TaxiBtn = styled(Link)`
 const Container = styled.div`
     display: flex;
     flex-direction: column;   
-    justify-content: flex-start; /* 위쪽 정렬 */
+    justify-content: flex-start; 
     align-items: center;       
     height: 100vh;  
     margin-top: 25px;          
@@ -55,9 +55,9 @@ const MainPage = () => {
     useEffect(() => {
         const timer = setInterval(() => {
             setCurrentTime(new Date().toLocaleTimeString());
-        }, 1000); // 1초마다 업데이트
+        }, 1000); 
 
-        return () => clearInterval(timer); // 컴포넌트 언마운트 시 타이머 정리
+        return () => clearInterval(timer); 
     }, []);
 
     return (
@@ -69,7 +69,7 @@ const MainPage = () => {
                 <div className="card">
                     <div className="card-header">현재 가장 효율적인 교통 수단</div>
                     <div className="card-body">기흥역 셔틀버스</div>
-                    <div className="time">현재 시간: {currentTime}</div> {/* 현재 시간을 표시 */} 
+                    <div className="time">현재 시간: {currentTime}</div> 
                 </div>
             </Container>
             <div>

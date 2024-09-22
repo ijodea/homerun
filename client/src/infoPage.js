@@ -5,7 +5,7 @@ import "./App.css";
 
 function InfoPage(){
     return (
-        <div>InfoPage</div>
+        <div>infoPage</div>
         
     );
 }

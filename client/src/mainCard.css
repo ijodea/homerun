@@ -1,8 +1,8 @@
 .card {
-    background: white; /* 본문 배경색 */
+    background: white; 
     border: 1px solid #ddd;
     border-radius: 8px;
-    padding: 0; /* 패딩 제거 */
+    padding: 0; 
     margin: 16px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.3s;
@@ -13,24 +13,24 @@
 }
 
 .card-header {
-    background-color: #007bff; /* 헤더 배경색 */
-    color: white; /* 텍스트 색상 */
-    padding: 10px 160px 10px 160px; /* 패딩 추가 */
-    border-radius: 8px 8px 0 0; /* 상단 모서리 둥글게 */
+    background-color: #007bff; 
+    color: white; 
+    padding: 10px 160px 10px 160px; 
+    border-radius: 8px 8px 0 0; 
     text-align: left;
 }
 
 .card-body {
-    margin: 10px; /* 여백 추가 */
-    color: #666; /* 텍스트 색상 */
+    margin: 10px; 
+    color: #666; 
     text-align: left;
     font-size: 20px;
     font-weight: bold;
 }
 
 .time{
-    margin: 10px; /* 여백 추가 */
-    color: #666; /* 텍스트 색상 */
+    margin: 10px; 
+    color: #666; 
     text-align: left;
     font-size: 15px;
 }
