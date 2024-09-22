@@ -4,7 +4,7 @@ import "./App.css";
 
 function TaxiPage(){
     return(
-        <div>TaxiPage</div>
+        <div>Taxi</div>
     )
 }
 

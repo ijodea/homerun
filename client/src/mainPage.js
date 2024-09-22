@@ -7,20 +7,20 @@ import InfoPage from "./infoPage";
 
 const H3 = styled(Link)`
     color: #007bff;
-    display: inline-block; /* 인라인 블록 형태로 변경 */
+    display: inline-block; 
     margin-left: 6%;
-    margin-right: 70%; /* 버튼과의 간격 조정 */
+    margin-right: 70%; 
     text-decoration: none;
     font-weight: bold;
-    margin-top: 10px; /* 위쪽 여백 */
+    margin-top: 10px; 
 `;
 
 const InfoBtn = styled(Link)`
-    display: inline-block; /* 인라인 블록 형태로 변경 */
-    margin-right: 20px; /* 버튼 간의 간격 조정 */
+    display: inline-block; 
+    margin-right: 20px; 
     color: grey;
     text-decoration: none;
-    margin-top: 20px; /* 위쪽 여백 */
+    margin-top: 20px; 
 
     &:hover {
         color: black; 
@@ -29,10 +29,10 @@ const InfoBtn = styled(Link)`
 `;
 
 const TaxiBtn = styled(Link)`
-    display: inline-block; /* 인라인 블록 형태로 변경 */
+    display: inline-block; 
     color: grey;
     text-decoration: none;
-    margin-top: 20px; /* 위쪽 여백 */
+    margin-top: 20px; 
 
     &:hover {
         color: black; 
