@@ -15,7 +15,7 @@ const giheungStationId = '228000696';
 
 // 버스 번호와 routeId를 매핑하는 객체
 const busRouteMap = {
-    '5005': '228000175',  //
+    '5005': '228000175',  //30
     '820': '228000012', //
     '5600': '228000184', //
     '5003A': '228000431',
@@ -46,7 +46,7 @@ async function getBusArrivalInfo(stationId, busNumbers) {
                 .filter(item => Object.values(busRouteMap).includes(item.routeId[0])) // 특정 버스 번호만 필터링
                 .map(item => ({
                     버스번호: Object.keys(busRouteMap).find(key => busRouteMap[key] === item.routeId[0]), // 버스 번호 찾기
-                    도착시간: `${item.predictTime1[0]}분 후 도착`, // 도착 예상 시간
+                    도착시간: `${item.predictTime1[0]}분 후 도착`, // 도착 예상 시간 + 기흥역까지 가는데 걸리는 시간
                     남은좌석수: item.remainSeatCnt1[0] === '-1' ? '정보 없음' : `${item.remainSeatCnt1[0]}석 남음`
                 }));
             console.log('필터링된 버스 정보:', filteredBusInfo);
