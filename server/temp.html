@@ -32,6 +32,28 @@
             background-color: #0056b3;
             border-color: #0056b3;
         }
+        .bus-info{
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            width: 50%;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .bus-info h2{
+            background-color: #3f51b5;
+            color: white;
+            padding: 10px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .bus-info p{
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
     </style>
 </head>
 <body>
@@ -65,6 +87,9 @@
                         <h2 class="card-title" id="bestTransport">로딩 중...</h2>
                         <p class="card-text" id="currentTime"></p>
                         <p class="card-text" id="nextBusTime">셔틀버스 정보를 가져오는 중...</p>
+                        <p class="card-text" id="nextBusSeats">좌석 정보를 가져오는 중...</p>
+                        <p class="card-text" id="wideBusTime">광역버스 정보를 가져오는 중...</p> <!-- 광역버스 도착시간 -->
+                        <p class="card-text" id="wideBusSeats">광역버스 좌석 정보를 가져오는 중...</p> <!-- 광역버스 남은 좌석 -->
                     </div>
                 </div>
             </div>
@@ -117,8 +142,9 @@
             const now = new Date();
             // document.getElementById('currentTime').textContent = `현재 시간: ${now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
         }
-
+        //셔틀버스와 광역버스 정보를 모두 받아오는 함수로 수정
         function fetchNextBusTime() {
+            //1. 셔틀버스 정보 가져오기
             fetch('http://localhost:8000/api/nextbus')
                 .then(response => response.json())
                 .then(data => {
@@ -136,6 +162,12 @@
 
                     if (data.nextBusName && data.nextBusTime !== null) {
                         document.getElementById('nextBusTime').textContent = `${data.nextBusName} 출발까지 남은 시간: ${data.nextBusTime}분`;
+
+                        if (data.remainSeatCnt !== undefined) {
+                            document.getElementById('nextBusSeats').textContent = `남은 좌석 수: ${data.remainSeatCnt}`;
+                        } else {
+                            document.getElementById('nextBusSeats').textContent = '좌석 정보 없음';
+                        }
                     } else {
                         document.getElementById('nextBusTime').textContent = data.message;
                     }
@@ -143,8 +175,31 @@
                 .catch(error => {
                     console.error('Error fetching next bus time:', error);
                     document.getElementById('nextBusTime').textContent = '버스 시간을 가져오는 중 오류가 발생했습니다.';
+                    document.getElementById('nextBusSeats').textContent = '좌석 정보를 가져오는 중 오류가 발생했습니다.';
+                });
+            // 2. 광역버스 정보 가져오기
+        fetch('http://localhost:8000/api/mju-to-giheung')
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        // 가장 첫 번째 광역버스 정보를 표시
+                        const wideBus = data[0];
+                        document.getElementById('wideBusTime').textContent = `${wideBus.버스번호} 출발까지 남은 시간: ${wideBus.도착시간}`;
+                        document.getElementById('wideBusSeats').textContent = `남은 좌석 수: ${wideBus.남은좌석수}`;
+                    } else {
+                        document.getElementById('wideBusTime').textContent = data.message || '광역버스 정보를 가져올 수 없습니다.';
+                        document.getElementById('wideBusSeats').textContent = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching wide bus info:', error);
+                    document.getElementById('wideBusTime').textContent = '광역버스 정보를 가져오는 중 오류가 발생했습니다.';
+                    document.getElementById('wideBusSeats').textContent = '좌석 정보를 가져오는 중 오류가 발생했습니다.';
                 });
         }
+
+        
+        
 
         function updateBestTransport() {
             // 이 함수는 택시 선택 시간대만 처리하고,
