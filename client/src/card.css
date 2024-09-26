@@ -1,11 +1,18 @@
+.card-container {
+    display: flex;             
+    justify-content: center;   
+    align-items: center; 
+}
+
 .card {
     background: white; 
     border: 1px solid #ddd;
     border-radius: 8px;
     padding: 0; 
-    margin: 16px;
+    margin: 10px 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.3s;
+    width: 500px;
 }
 
 .card:hover {
@@ -13,10 +20,12 @@
 }
 
 .card-header {
+    text-align: center;
     background-color: #007bff; 
     color: white; 
-    padding: 10px 160px 10px 160px; 
+    padding: 10px 20px; 
     border-radius: 8px 8px 0 0; 
+    margin: 0px;
     text-align: left;
 }
 
@@ -26,11 +35,5 @@
     text-align: left;
     font-size: 20px;
     font-weight: bold;
-}
-
-.time{
-    margin: 10px; 
-    color: #666; 
-    text-align: left;
-    font-size: 15px;
+    margin-bottom: 0;
 }

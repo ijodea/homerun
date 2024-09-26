@@ -2,17 +2,19 @@ import React, { useState, useEffect } from "react";
 import { Link, Outlet } from "react-router-dom";
 import styled from "styled-components";
 import "./App.css";
-import './mainCard.css';
-import InfoPage from "./infoPage";
+import './card.css';
 
-const H3 = styled(Link)`
+const Homerun = styled(Link)`
     color: #007bff;
     display: inline-block; 
-    margin-left: 6%;
-    margin-right: 70%; 
+    margin: 10px 70% 50px 6%;
     text-decoration: none;
     font-weight: bold;
-    margin-top: 10px; 
+    transition: transform 0.3s ease, color 0.3s ease;
+
+    &:hover {
+        transform: scale(1.01);
+    }
 `;
 
 const InfoBtn = styled(Link)`
@@ -40,13 +42,11 @@ const TaxiBtn = styled(Link)`
     }
 `;
 
-const Container = styled.div`
-    display: flex;
-    flex-direction: column;   
-    justify-content: flex-start; 
-    align-items: center;       
-    height: 100vh;  
-    margin-top: 25px;          
+const Time = styled.div`
+    margin: 10px; 
+    color: #666; 
+    text-align: left;
+    font-size: 15px;
 `;
 
 const MainPage = () => {
@@ -62,16 +62,17 @@ const MainPage = () => {
 
     return (
         <div>
-            <H3 to="/">Homerun</H3>
+            <Homerun to="/">Homerun</Homerun>
             <InfoBtn to="/info">정보</InfoBtn>
             <TaxiBtn to="/taxi">택시</TaxiBtn>
-            <Container>
-                <div className="card">
-                    <div className="card-header">현재 가장 효율적인 교통 수단</div>
-                    <div className="card-body">기흥역 셔틀버스</div>
-                    <div className="time">현재 시간: {currentTime}</div> 
+
+            <div className="card-container">
+            <div className="card">
+                <div className="card-header">현재 가장 효율적인 교통 수단</div>
+                <div className="card-body">기흥역 셔틀버스</div>
+                <Time>현재 시간: {currentTime}</Time> 
                 </div>
-            </Container>
+                </div>
             <div>
                 <Outlet />
             </div>
