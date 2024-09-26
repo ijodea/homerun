@@ -186,30 +186,30 @@ app.get("/api/nextbus", (req, res) => {
   }
 });
 
-// API 엔드포인트: 명지대 -> 기흥역 버스 도착시간 및 남은 좌석 수
-app.get("/api/mju-to-giheung", async (req, res) => {
-  const busNumbers = ["5005", "820", "5600", "5003A", "5003B"]; // 추적할 버스 번호
-  try {
-    const busInfo = await getBusArrivalInfo(
-      myeongjiUniversityStationId,
-      busNumbers
-    );
-    res.json(busInfo);
-  } catch (error) {
-    res.status(500).json({ message: "Error retrieving bus information" });
-  }
-});
+// // API 엔드포인트: 명지대 -> 기흥역 버스 도착시간 및 남은 좌석 수
+// app.get("/api/mju-to-giheung", async (req, res) => {
+//   const busNumbers = ["5005", "820", "5600", "5003A", "5003B"]; // 추적할 버스 번호
+//   try {
+//     const busInfo = await getBusArrivalInfo(
+//       myeongjiUniversityStationId,
+//       busNumbers
+//     );
+//     res.json(busInfo);
+//   } catch (error) {
+//     res.status(500).json({ message: "Error retrieving bus information" });
+//   }
+// });
 
-// API 엔드포인트: 기흥역 -> 명지대
-app.get("/api/giheung-to-mju", async (req, res) => {
-  const busNumbers = ["5005", "820", "5600", "5003A", "5003B"]; // 추적할 버스 번호
-  try {
-    const busInfo = await getBusArrivalInfo(giheungStationId, busNumbers);
-    res.json(busInfo);
-  } catch (error) {
-    res.status(500).json({ message: "Error retrieving bus information" });
-  }
-});
+// // API 엔드포인트: 기흥역 -> 명지대
+// app.get("/api/giheung-to-mju", async (req, res) => {
+//   const busNumbers = ["5005", "820", "5600", "5003A", "5003B"]; // 추적할 버스 번호
+//   try {
+//     const busInfo = await getBusArrivalInfo(giheungStationId, busNumbers);
+//     res.json(busInfo);
+//   } catch (error) {
+//     res.status(500).json({ message: "Error retrieving bus information" });
+//   }
+// });
 
 app.listen(8000, () => {
   console.log("Server is running on port 8000");
