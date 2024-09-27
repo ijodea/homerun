@@ -145,7 +145,7 @@
         //셔틀버스와 광역버스 정보를 모두 받아오는 함수로 수정
         function fetchNextBusTime() {
             //1. 셔틀버스 정보 가져오기
-            fetch('http://localhost:8000/api/nextbus')
+            fetch('') //'http://localhost:8000/api/nextbus'
                 .then(response => response.json())
                 .then(data => {
                     const now = new Date();
@@ -213,8 +213,8 @@
         }
 
         setInterval(updateTime, 1000);
-        setInterval(updateBestTransport, 60000);
-        setInterval(fetchNextBusTime, 60000); // 1분마다 갱신
+        setInterval(updateBestTransport, 600000);
+        setInterval(fetchNextBusTime, 600000); // 1분마다 갱신
 
         updateTime();
         updateBestTransport();
