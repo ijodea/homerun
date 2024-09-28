@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 const CardContainer = styled.div`
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     margin: 20px 0;
 `;
@@ -15,56 +16,96 @@ const Card = styled(Link)`
     padding: 20px;
     margin: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    width: 300px;
+    flex: 1 1 calc(33.33% - 20px); // 최대 3개 카드가 한 줄에 배치되도록 설정
     text-decoration: none;
     color: black;
     transition: box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; // 내용이 늘어나더라도 카드의 모양을 유지
+    height: 200px; // 카드 높이를 고정하여 통일
+    max-height: 200px; // 최대 높이 제한
+    min-height: 200px; // 최소 높이 제한
 
     &:hover {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         background-color: #f7f7f7;
+    }
+
+    @media (max-width: 768px) {
+        flex: 1 1 calc(50% - 20px); // 화면이 작아지면 최대 2개 카드가 한 줄에 배치
+    }
+
+    @media (max-width: 480px) {
+        flex: 1 1 100%; // 더 작은 화면에서는 카드가 1개씩 배치
     }
 `;
 
 const Title = styled.h2`
     text-align: center;
     color: #007bff;
+    font-size: 1.5em;
+    margin-bottom: 10px;
 `;
 
 const BusInfoMtoG = () => {
-    const [busInfo, setBusInfo] = useState([]); // 버스 정보를 저장할 상태
-    const [loading, setLoading] = useState(true); // 로딩 상태
-    const [error, setError] = useState(null); // 에러 상태
+    const [busInfo, setBusInfo] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const fetchBusleInfo = async () => {
+    const fetchBusInfo = async () => {
         try {
             const response = await fetch('http://localhost:8000/api/mju-to-giheung');
-            console.log('API Response:', response); // 응답 객체 로그
 
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
 
             const data = await response.json();
-            if (Array.isArray(busInfo)) {
-                // 버스 정보가 배열일 때 처리
-                console.log("Received bus info:", busInfo);
-            } else {
-                // 배열이 아닐 경우 처리
-                console.log("Received data is not an array:", busInfo);
-            }
-            setBusInfo(data); // 받은 데이터를 상태에 저장
+            console.log('API JSON Data:', data);
+
+            const filteredBusInfo = data.map((bus) => ({
+                busNumber: bus.버스번호 || '정보 없음',
+                arrivalTime: bus.도착시간 || '정보 없음',
+                remainingSeats: bus.남은좌석수 || '정보 없음',
+                type: 'bus', // 버스 타입 추가
+            }));
+
+            console.log("Filtered bus info:", filteredBusInfo);
+            setBusInfo(filteredBusInfo);
         } catch (error) {
             console.error('Error fetching bus information:', error);
             setError("버스 정보를 불러오는 데 문제가 발생했습니다.");
         } finally {
-            setLoading(false); // 로딩 종료
+            setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchBusleInfo();
+        fetchBusInfo();
     }, []);
+
+    // 출발시간 기준 정렬 함수
+ // 출발시간 기준 정렬 함수
+const sortCards = (cards) => {
+    return cards.sort((a, b) => {
+        const parseArrivalTime = (arrivalTime) => {
+            const timeRegex = /(\d+)\s*분\s*후\s*도착/;
+            const match = timeRegex.exec(arrivalTime);
+            if (match) {
+                const minutes = parseInt(match[1], 10);
+                return Date.now() + minutes * 60 * 1000; // 현재 시간 + 남은 시간
+            }
+            return Infinity; // 정보 없음 처리
+        };
+
+        const aArrivalTime = parseArrivalTime(a.arrivalTime);
+        const bArrivalTime = parseArrivalTime(b.arrivalTime);
+
+        // 도착 시간이 빠른 순으로 정렬
+        return aArrivalTime - bArrivalTime; 
+    });
+};
 
     if (loading) {
         return <div>Loading...</div>;
@@ -74,74 +115,37 @@ const BusInfoMtoG = () => {
         return <div>Error: {error}</div>;
     }
 
+    const shuttleInfo = [
+        { type: 'shuttle', busNumber: '-', arrivalTime: '정보 없음', remainingSeats: '-' },
+    ];
+
+    // 버스 정보와 셔틀 정보를 합쳐서 정렬
+    const sortedInfo = sortCards([...busInfo, ...shuttleInfo]);
+
     return (
         <CardContainer>
-            <Card to="/busDetail">
-                <Title>버스 정보</Title>
-                <ul>
-                    {busInfo.length > 0 ? (
-                        busInfo.map((bus) => (
-                            <li key={bus.busNumber}>
+            {sortedInfo.map((info, index) => (
+                <Card key={index} to="/busDetail">
+                    <Title>{info.type === 'shuttle' ? '셔틀 정보' : '버스 정보'}</Title>
+                    <div style={{ flex: "1", display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
+                        <ul>
+                            <li>
                                 <div style={{ textAlign: "left" }}>
-                                    <strong>버스 번호:</strong> {bus.busNumber}
+                                    <strong>버스 번호:</strong> {info.busNumber}
                                 </div>
                                 <div style={{ textAlign: "left" }}>
-                                    <strong>도착 시간:</strong> {bus.arrivalTime}
+                                    <strong>도착 시간:</strong> {info.arrivalTime}
                                 </div>
                                 <div style={{ textAlign: "left" }}>
-                                    <strong>남은 좌석 수:</strong> {bus.remainingSeats}
+                                    <strong>남은 좌석 수:</strong> {info.remainingSeats}
                                 </div>
                             </li>
-                        ))
-                    ) : (
-                        <li>
-                            <div style={{ textAlign: "left" }}>
-                                <strong>버스 번호:</strong> -
-                            </div>
-                            <div style={{ textAlign: "left" }}>
-                                <strong>도착 시간:</strong> 예정 없음
-                            </div>
-                            <div style={{ textAlign: "left" }}>
-                                <strong>남은 좌석 수:</strong> -
-                            </div>
-                        </li>
-                    )}
-                </ul>
-            </Card>
+                        </ul>
+                    </div>
+                </Card>
+            ))}
         </CardContainer>
     );
 };
 
-const ShuttleInfo = () => {
-    return (
-        <CardContainer>
-            <Card to="/shuttleDetail">
-                <Title>셔틀 정보</Title>
-                <ul>
-                    <li>
-                        <div style={{ textAlign: "left" }}>
-                            <strong>셔틀 시간:</strong> -
-                        </div>
-                        <div style={{ textAlign: "left" }}>
-                            <strong>도착 시간:</strong> 예정 없음
-                        </div>
-                        <div style={{ textAlign: "left" }}>
-                            <strong>남은 좌석 수:</strong> -
-                        </div>
-                    </li>
-                </ul>
-            </Card>
-        </CardContainer>
-    );
-};
-
-const InfoSection = () => {
-    return (
-        <div>
-            <BusInfoMtoG />
-            <ShuttleInfo />
-        </div>
-    );
-};
-
-export default InfoSection;
+export default BusInfoMtoG;
