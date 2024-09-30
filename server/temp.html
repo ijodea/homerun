@@ -177,8 +177,38 @@
                     document.getElementById('nextBusTime').textContent = '버스 시간을 가져오는 중 오류가 발생했습니다.';
                     document.getElementById('nextBusSeats').textContent = '좌석 정보를 가져오는 중 오류가 발생했습니다.';
                 });
+             // 가장 빠른 버스 정보를 가져오는 함수 추가
+             fetch('http://localhost:8000/api/fastest-bus')  // /api/fastest-bus 엔드포인트 호출
+                .then(response => response.json())
+                .then(data => {
+                    // 기흥역 -> 명지대 입구 방향
+                    if (data.fastestToMyeongji) {
+                        document.getElementById('nextBusTime').textContent = `기흥역 -> 명지대: ${data.fastestToMyeongji.버스번호}, 도착까지 남은 시간: ${data.fastestToMyeongji.도착시간}`;
+                        document.getElementById('nextBusSeats').textContent = `남은 좌석 수: ${data.fastestToMyeongji.남은좌석수}`;
+                    } else {
+                        document.getElementById('nextBusTime').textContent = '기흥역 -> 명지대: 이용 가능한 버스가 없습니다.';
+                        document.getElementById('nextBusSeats').textContent = '';
+                    }
+
+                    // 명지대 -> 기흥역 방향
+                    if (data.fastestToGiheung) {
+                        document.getElementById('wideBusTime').textContent = `명지대 -> 기흥역: ${data.fastestToGiheung.버스번호}, 도착까지 남은 시간: ${data.fastestToGiheung.도착시간}`;
+                        document.getElementById('wideBusSeats').textContent = `남은 좌석 수: ${data.fastestToGiheung.남은좌석수}`;
+                    } else {
+                        document.getElementById('wideBusTime').textContent = '명지대 -> 기흥역: 이용 가능한 버스가 없습니다.';
+                        document.getElementById('wideBusSeats').textContent = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching fastest bus info:', error);
+                    document.getElementById('nextBusTime').textContent = '기흥역 -> 명지대 버스 정보를 가져오는 중 오류 발생.';
+                    document.getElementById('nextBusSeats').textContent = '';
+                    document.getElementById('wideBusTime').textContent = '명지대 -> 기흥역 버스 정보를 가져오는 중 오류 발생.';
+                    document.getElementById('wideBusSeats').textContent = '';
+                });
+        }
             // 2. 광역버스 정보 가져오기
-        fetch('http://localhost:8000/api/mju-to-giheung')
+        /*fetch('http://localhost:8000/api/mju-to-giheung')
                 .then(response => response.json())
                 .then(data => {
                     if (Array.isArray(data)) {
@@ -196,7 +226,7 @@
                     document.getElementById('wideBusTime').textContent = '광역버스 정보를 가져오는 중 오류가 발생했습니다.';
                     document.getElementById('wideBusSeats').textContent = '좌석 정보를 가져오는 중 오류가 발생했습니다.';
                 });
-        }
+        }*/
 
         
         
