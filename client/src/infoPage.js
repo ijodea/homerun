@@ -39,56 +39,56 @@ const Card = styled(Link)`
     @media (max-width: 480px) {
         flex: 1 1 100%;
     }
-`;
+`; // 버스 정보들
 
 const Title = styled.h2`
     text-align: center;
     color: #007bff;
     font-size: 1.5em;
     margin-bottom: 10px;
-`;
+`; // 카드 제목
 
 const DirectionSelect = styled.select`
     margin: 20px;
     padding: 10px;
     font-size: 1em;
-`;
+`; // 방향 설정
 
 const Info = () => {
-    const [busInfo, setBusInfo] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [busInfo, setBusInfo] = useState([]); // 버스 정보 저장
+    const [loading, setLoading] = useState(true); // 데이터 로딩중?
+    const [error, setError] = useState(null); // 에러남
     const [direction, setDirection] = useState("mju-to-giheung"); // 기본 방향
 
     const fetchBusInfo = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/api/${direction}`);
+            const response = await fetch(`http://localhost:8000/api/${direction}`); // API 주소
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error('Network response was not ok'); // 네트워크 오류
             }
-            const data = await response.json();
+            const data = await response.json(); // json 형식 변환
             const filteredBusInfo = data.map((bus) => ({
                 busNumber: bus.버스번호 || '정보 없음',
                 arrivalTime: bus.도착시간 || '정보 없음',
                 remainingSeats: bus.남은좌석수 || '정보 없음',
                 type: 'bus',
-            }));
+            })); // busInfo 저장
             setBusInfo(filteredBusInfo);
         } catch (error) {
-            setError("버스 정보를 불러오는 데 문제가 발생했습니다.");
+            setError("버스 정보를 불러오는 데 문제가 발생했습니다."); // 에러
         } finally {
-            setLoading(false);
+            setLoading(false); // 로딩 끝
         }
-    };
+    }; // 버스 정보 가져오기
 
     useEffect(() => {
         fetchBusInfo();
-    }, [direction]);
+    }, [direction]); // 방향 전환 시 버스 정보 가져오기
 
     const handleDirectionChange = (event) => {
         setDirection(event.target.value);
         setLoading(true);
-    };
+    }; // 방향 설정, 데이터 가져오기
 
     const sortCards = (cards) => {
         return cards.sort((a, b) => {
@@ -106,21 +106,21 @@ const Info = () => {
             const bArrivalTime = parseArrivalTime(b.arrivalTime);
             return aArrivalTime - bArrivalTime; 
         });
-    };
+    }; // 정보 카드들 배열(도착시간 기준)
 
     if (loading) {
         return <div>Loading...</div>;
-    }
+    } // 로딩중
 
     if (error) {
         return <div>Error: {error}</div>;
-    }
+    } // 에러남
 
     const shuttleInfo = [
         { type: 'shuttle', busNumber: '-', arrivalTime: '정보 없음', remainingSeats: '-' },
-    ];
+    ]; // 셔틀 배열
 
-    const sortedInfo = sortCards([...busInfo, ...shuttleInfo]);
+    const sortedInfo = sortCards([...busInfo, ...shuttleInfo]); // 카드 순서
 
     return (
         <>
@@ -151,7 +151,7 @@ const Info = () => {
                 ))}
             </CardContainer>
         </>
-    );
+    ); // 랜더링 리턴
 };
 
 export default Info;
