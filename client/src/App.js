@@ -1,25 +1,26 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import MainPage from "./mainPage.js"; 
+import InfoPage from "./infoPage.js";
+import TaxiPage from "./taxiPage.js";
+import TaxiGroup from "./taxiGroup.js";
+import BusDetail from "./busDetail.js"; // DetailPage 추가
+import ShuttleDetail from "./shuttleDetail.js";   // DetailBus 추가
 
-const App = () => {
-  const [data, setData] = useState(null);
-
-  useEffect(() => {
-    axios
-      .get("http://localhost:8000/api")
-      .then((response) => {
-        setData(response.data.message);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
-
-  return (
-    <div>
-      <h1>{data}</h1>
-    </div>
-  );
-};
+function App() {
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<MainPage />}>
+                    <Route path="info" element={<InfoPage />} />
+                    <Route path="taxi" element={<TaxiPage />} />
+                </Route>
+                <Route path="taxiGroup" element={<TaxiGroup />} />
+                <Route path="/busDetail" element={<BusDetail />} />
+                <Route path="/shuttleDetail" element={<ShuttleDetail />} />
+            </Routes>
+        </Router>
+    );
+}
 
 export default App;
