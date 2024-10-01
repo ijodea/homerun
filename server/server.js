@@ -167,6 +167,17 @@ function compare(time) {
     return [null, null];
   }
 }
+//수정
+// 가장 빠른 버스를 선택하는 함수
+function getFastestBus(busInfoList) {
+  if (busInfoList.length === 0) return null;
+
+  return busInfoList.reduce((fastest, currentBus) => {
+    const fastestTime = parseInt(fastest.도착시간.split('분')[0], 10);
+    const currentTime = parseInt(currentBus.도착시간.split('분')[0], 10);
+    return currentTime < fastestTime ? currentBus : fastest;
+  });
+}
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/temp.html");
@@ -185,6 +196,35 @@ app.get("/api/nextbus", (req, res) => {
     res.json({ message: "오늘은 더 이상 버스가 없습니다." });
   }
 });
+
+//(수정) 두 가지 방향의 API를 각각 호출하고, 그 결과를 비교한 후 가장 빠른 버스 정보를 반환
+app.get("/api/fastest-bus", async (req, res) => {
+  const busNumbers = ["5005", "820", "5600", "5003A", "5003B"];
+  
+  try {
+    // 기흥역 → 명지대
+    const toMyeongji = await getBusArrivalInfo(giheungStationId, busNumbers);
+    
+    // 명지대 → 기흥역
+    const toGiheung = await getBusArrivalInfo(myeongjiUniversityStationId, busNumbers);
+    
+    // 기흥역에서 명지대 입구로 가는 가장 빠른 버스 선택
+    const fastestToMyeongji = getFastestBus(toMyeongji);
+    
+    // 명지대 입구에서 기흥역으로 가는 가장 빠른 버스 선택
+    const fastestToGiheung = getFastestBus(toGiheung);
+
+    // 결과 반환
+    res.json({
+      fastestToMyeongji: fastestToMyeongji || { message: "No buses available to Myeongji University" },
+      fastestToGiheung: fastestToGiheung || { message: "No buses available to Giheung Station" }
+    });
+  } catch (error) {
+    console.error("Error fetching bus information:", error);
+    res.status(500).json({ message: "Error retrieving bus information" });
+  }
+});
+
 
 // API 엔드포인트: 명지대 -> 기흥역 버스 도착시간 및 남은 좌석 수
 app.get("/api/mju-to-giheung", async (req, res) => {
