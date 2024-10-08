@@ -10,8 +10,8 @@ const CardContainer = styled.div`
 `;
 
 const Card = styled.div`
-    background: white;
-    border: 6px solid ${({ type }) => (type === 'shuttle' ? '#001C4A' : '#C00305')};
+    background: white; /* 카드 배경색을 흰색으로 설정 */
+    border: 6px solid ${(props) => (props.type === 'shuttle' ? '#001C4A' : '#C00305')};
     border-radius: 8px;
     padding: 20px;
     margin: 10px;
@@ -19,18 +19,17 @@ const Card = styled.div`
     flex: 1 1 calc(33.33% - 20px);
     max-width: 300px;
     text-decoration: none;
-    color: black;
+    color: black; /* 기본 글자 색상 검정 */
     transition: box-shadow 0.3s;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: 200px;
-    max-height: 200px;
-    min-height: 200px;
+    height: 160px; /* 카드 높이 조정 */
+    max-height: 160px; /* 최대 카드 높이 조정 */
+    min-height: 160px; /* 최소 카드 높이 조정 */
 
     &:hover {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        background-color: #f7f7f7;
     }
 
     @media (max-width: 768px) {
@@ -44,7 +43,10 @@ const Card = styled.div`
 
 const Title = styled.h2`
     text-align: center;
-    color: #007bff;
+    color: white; /* 제목 글자 색상 흰색 */
+    background-color: ${(props) => (props.type === 'shuttle' ? '#001C4A' : '#C00305')}; /* 카드 유형에 따라 제목 배경색 설정 */
+    padding: 10px; /* 제목 주변 여백 */
+    border-radius: 4px; /* 둥글게 처리 */
     font-size: 1.5em;
     margin-bottom: 10px;
 `;
@@ -56,13 +58,13 @@ const InfoItem = styled.div`
 
 const Info = () => {
     const [busInfo, setBusInfo] = useState([]);
+    const [shuttleInfo, setShuttleInfo] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { direction } = useOutletContext(); // 방향 가져오기
 
     const fetchBusInfo = async () => {
         try {
-            console.log("Fetching bus info for direction:", direction); // 확인용 로그
             const response = await fetch(`http://localhost:8000/api/${direction}`);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -82,13 +84,36 @@ const Info = () => {
         }
     };
 
+    const fetchShuttleInfo = async () => {
+        try {
+            const response = await fetch(`${direction}`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            const filteredShuttlesInfo = data.map((shuttle) => ({
+                busNumber: "셔틀",
+                arrivalTime: shuttle.도착시간 || '정보 없음',
+                remainingSeats: shuttle.남은좌석수 || '정보 없음',
+                type: 'shuttle',
+            }));
+            setShuttleInfo(filteredShuttlesInfo);
+        } catch (error) {
+            setShuttleInfo([{
+                busNumber: "셔틀",
+                arrivalTime: '정보 없음',
+                remainingSeats: '정보 없음',
+                type: 'shuttle',
+            }]); // 기본 셔틀 카드 추가
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchBusInfo();
-    }, [direction]); // direction 변경 시 fetchBusInfo 호출
-
-    const shuttleInfo = [
-        { type: 'shuttle', arrivalTime: '정보 없음', remainingSeats: '-', busNumber: '셔틀' },
-    ];
+        fetchShuttleInfo();
+    }, [direction]); // 방향 변경 시 정보 재호출
 
     const sortedInfo = [...busInfo, ...shuttleInfo]; // 셔틀 정보 추가
 
@@ -103,8 +128,8 @@ const Info = () => {
     return (
         <CardContainer>
             {sortedInfo.map((info, index) => (
-                <Card key={index} type={info.type}>
-                    <Title>{info.type === 'shuttle' ? info.busNumber : info.busNumber}</Title> 
+                <Card key={index} type={info.type}>  
+                    <Title type={info.type}>{info.type === 'shuttle' ? '셔틀' : `${info.busNumber}`}</Title> {/* type을 Title에 전달 */}
                     <div>
                         <InfoItem>
                             <strong>도착 시간:</strong> {info.arrivalTime}
