@@ -44,7 +44,7 @@ const MenuItem = styled(Link)`
     margin: 0 10px; /* 버튼 사이 여백 */
     flex-grow: 1; /* 버튼의 너비가 균등하게 분배되도록 설정 */
     border-radius: 5px;
-    background-color: ${(props) => (props.active ? "#005700" : "transparent")}; /* 활성화 색상 */
+    background-color: ${(props) => (props.active ? (props.isinfo ? "#005700" : "#fb9403" ): "transparent")}; /* 활성화 색상 */
     
     img {
         height: 40px; /* 이미지 크기 */
@@ -52,7 +52,7 @@ const MenuItem = styled(Link)`
     }
 
     &:hover {
-        background-color: ${(props) => (props.active ? "#005700" : "rgba(0, 0, 0, 0.1)")}; /* Hover 시 배경색 변경 */
+        background-color: ${(props) => (props.active ? (props.isinfo ? "#005700" : "#fb9403" ) : "rgba(0, 0, 0, 0.1)")}; /* Hover 시 배경색 변경 */
     }
 `;
 
@@ -85,7 +85,7 @@ const DirectionButton = styled.button`
     margin: 0 10px;
     border: 2px solid transparent; /* 기본 테두리 */
     border-radius: 5px;
-    background-color: ${(props) => (props.active ? "#005700" : "transparent")}; /* 활성화 색상 */
+    background-color: ${(props) => (props.active ? (props.dir ? "#F5A200" : "#001C4A") : "lightgrey")}; /* 활성화 색상 */
     
     img {
         height: 50px; /* 이미지 크기 증가 */
@@ -94,7 +94,7 @@ const DirectionButton = styled.button`
     }
 
     &:hover {
-        background-color: ${(props) => (props.active ? "#005700" : "transparent")}; /* Hover 시 배경색 */
+        background-color: ${(props) => (props.active ? (props.dir ? "#F5A200" : "#001C4A") : "rgba(0, 0, 0, 0.1)")}; /* Hover 시 배경색 */
     }
 `;
 
@@ -126,6 +126,7 @@ const MainPage = () => {
                 <MenuItem 
                     to={`/info?direction=${direction}`} 
                     active={location.pathname === "/info"} 
+                    isinfo={location.pathname === "/info"}
                 >
                     <img src={busInfoIcon} alt="Info" />
                     정보
@@ -133,6 +134,7 @@ const MainPage = () => {
                 <MenuItem 
                     to="/taxi" 
                     active={location.pathname === "/taxi"}
+                    isinfo={location.pathname === "/info"}
                 >
                     <img src={taxiIcon} alt="Taxi" />
                     택시
@@ -155,12 +157,14 @@ const MainPage = () => {
                     <DirectionButton 
                         onClick={() => handleDirectionChange("mju-to-giheung")} 
                         active={direction === "mju-to-giheung"}
+                        dir={direction === "giheung-to-mju"}
                     >
                         명지대행
                     </DirectionButton>
                     <DirectionButton 
                         onClick={() => handleDirectionChange("giheung-to-mju")} 
                         active={direction === "giheung-to-mju"}
+                        dir={direction === "giheung-to-mju"}
                     >
                         기흥역행
                     </DirectionButton>
