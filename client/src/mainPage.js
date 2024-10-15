@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import './App.css';
 import './card.css';
+import axios from 'axios';
 
 // 아이콘 파일 import
 import taxiIcon from './assets/Taxi.png';
