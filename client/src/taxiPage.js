@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Link } from "react-router-dom";
 import "./App.css";
 import "./card.css";
-
+import { useOutletContext } from "react-router-dom";
 
 const SelectText = styled.div`
     margin: 12px; 
@@ -48,7 +48,9 @@ const TaxiGroupBtn = styled(Link)`
 
 function TaxiPage() {
     const [selectedDirection, setSelectedDirection] = useState("방향 선택");
-
+    const { direction } = useOutletContext(); // 방향 가져오기
+    const dir = (direction === "/api/giheung-to-mju" ? "명지대행" : "기흥역행")
+    
     useEffect(() => {
         const savedDirection = localStorage.getItem("selectedDirection");
         if (savedDirection) {
@@ -66,9 +68,9 @@ function TaxiPage() {
     return (
         <div className="card-container">
             <div className="card">
-                <div className="card-header">택시 매칭</div>
+                    <div className="card-header">{dir}</div>
                 <SelectText>방향 선택:</SelectText>
-                <Select value={selectedDirection} onChange={handleSelectChange}>
+                <Select value={direction} onChange={handleSelectChange}>
                     <option value="학교 → 기흥역">학교 → 기흥역</option>
                     <option value="기흥역 → 학교">기흥역 → 학교</option>
                 </Select>
