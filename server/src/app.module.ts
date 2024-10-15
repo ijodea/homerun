@@ -23,6 +23,6 @@ import { join } from 'path';
     BusModule,
     ShuttleModule,
   ],
-}) 
+})
 
 export class AppModule {}

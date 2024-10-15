@@ -6,7 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 //이 모듈은 버스 정보 요청을 처리하기 위해 BusController와 비즈니스 로직을 구현하는 BusService를 포함
 //환경 변수를 관리하기 위해 ConfigModule을 가져온다.
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule.forRoot({isGlobal: true})],
   controllers: [BusController],
   providers: [BusService]
 })

@@ -5,16 +5,14 @@ import * as xml2js from 'xml2js';
 //주어진 정류장ID와 버스 번호를 사용하여 API에 요청하고, 응답받은 XML 데이터를 처리하여 필요한 정보 반환
 //버스 번호에 따른 도착 정보 필터링과 포맷팅을 수행하며, 필요한 경우 오류 처리도 포함
 @Injectable()
-export class BusService{
-  private readonly busRouteMap = {
-    5005: '228000175',
-    820: '228000012',
-    5600: '228000184',
-    '5003A': '228000431',
-    '5003B': '228000182',
-  };
+export class BusService {
+  private readonly busRouteMap: { [key: string]: string };
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {
+    // 환경 변수에서 busRouteMap을 불러와 객체로 변환
+    const busRouteMapString = this.configService.get<string>('BUS_ROUTE_MAP');
+    this.busRouteMap = JSON.parse(busRouteMapString);
+  }
 
   //주어진 정류장ID와 버스 번호 배열을 사용하여 해당 정류장에서 도착할 버스 정보를 가져오는 메서드
   async getBusArrivalInfo(stationId: string, busNumbers: string[]){
