@@ -5,259 +5,346 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>택시 위치 테스트</title>
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f0f2f5;
-        }
-
         .container {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
         }
 
-        button {
-            background-color: #4CAF50;
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .slider {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            margin: 0 10px;
+            background: #ccc;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .slider:before {
+            content: '';
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            left: 2px;
+            top: 2px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .slider.active {
+            background: #4CAF50;
+        }
+
+        .slider.active:before {
+            transform: translateX(30px);
+        }
+
+        .selected-area {
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .location-info {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .coordinate {
+            margin: 10px 0;
+        }
+
+        .send-button {
+            background: #4CAF50;
             color: white;
             border: none;
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
-            margin-bottom: 1rem;
+            margin: 10px 0;
         }
 
-        #location, #serverResponse {
-            margin-top: 1rem;
-            padding: 1rem;
-            border-radius: 5px;
-            background-color: #f8f9fa;
-            display: none;
+        .send-button:hover {
+            background: #45a049;
+        }
+
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .success {
+            background: #dff0d8;
+            border: 1px solid #d6e9c6;
+            color: #3c763d;
         }
 
         .error {
-            color: #dc3545;
-            margin-top: 1rem;
+            background: #f2dede;
+            border: 1px solid #ebccd1;
+            color: #a94442;
             display: none;
         }
 
-        /* 토글 스위치 스타일 */
-        .toggle-container {
-            margin: 1rem 0;
-            padding: 1rem;
-            background-color: #f8f9fa;
+        .group-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e7f3fe;
             border-radius: 5px;
         }
 
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-            margin: 0 10px;
+        .user-id {
+            margin: 20px 0;
         }
 
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
+        .user-id input {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            width: 200px;
         }
 
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
         }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #2196F3;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-
-        .area-labels {
-            margin-top: 0.5rem;
-            font-weight: bold;
-            color: #666;
-        }
-
-        .selected-area {
-            margin-top: 0.5rem;
-            font-weight: bold;
-            color: #2196F3;
-        }
-
-        #serverResponse {
-    margin-top: 1rem;
-    padding: 1rem;
-    border-radius: 5px;
-    text-align: left;
-}
-
-#serverResponse h3 {
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-}
-
-#serverResponse p {
-    margin: 0.5rem 0;
-}
     </style>
 </head>
 <body>
     <div class="container">
         <h1>택시 위치 테스트</h1>
-        
+
+        <div class="user-id">
+            <label for="userId">사용자 ID:</label>
+            <input type="text" id="userId" placeholder="사용자 ID를 입력하세요">
+        </div>
+
         <div class="toggle-container">
             <span>기흥역</span>
-            <label class="toggle-switch">
-                <input type="checkbox" id="areaToggle" onchange="updateSelectedArea()">
-                <span class="slider"></span>
-            </label>
+            <div class="slider" id="destinationToggle"></div>
             <span>명지대</span>
-            <div class="selected-area" id="selectedArea">
+            <div id="selectedArea" class="selected-area">
                 기흥역 방면
             </div>
         </div>
 
-        <button onclick="getAndSendLocation()">위치 전송하기</button>
-        <div id="location">
-            <p>위도: <span id="latitude"></span></p>
-            <p>경도: <span id="longitude"></span></p>
+        <div class="location-info" id="location">
+            <div class="coordinate">위도: <span id="latitude">-</span></div>
+            <div class="coordinate">경도: <span id="longitude">-</span></div>
         </div>
-        <div id="serverResponse"></div>
+
+        <button class="send-button" onclick="sendLocation()">위치 전송하기</button>
+
+        <div id="serverResponse" class="response"></div>
         <div id="error" class="error"></div>
     </div>
 
     <script>
-        function updateSelectedArea() {
-            const toggle = document.getElementById('areaToggle');
-            const selectedArea = document.getElementById('selectedArea');
-            selectedArea.textContent = (toggle.checked ? '명지대' : '기흥역') + ' 방면';
+        let isToggled = false;
+        const toggle = document.getElementById('destinationToggle');
+        const selectedArea = document.getElementById('selectedArea');
+        
+        toggle.addEventListener('click', () => {
+            isToggled = !isToggled;
+            toggle.classList.toggle('active');
+            selectedArea.textContent = isToggled ? '명지대 방면' : '기흥역 방면';
+        });
+
+        // 위치 정보 가져오기
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                showError('이 브라우저는 위치 정보를 지원하지 않습니다.');
+            }
         }
 
-        async function getAndSendLocation() {
-            const locationDiv = document.getElementById('location');
+        function showPosition(position) {
+            document.getElementById('latitude').textContent = position.coords.latitude;
+            document.getElementById('longitude').textContent = position.coords.longitude;
+        }
+
+        function showError(error) {
             const errorDiv = document.getElementById('error');
+            errorDiv.style.display = 'block';
+            
+            if (error.code) {
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorDiv.textContent = "위치 정보 접근이 거부되었습니다.";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorDiv.textContent = "위치 정보를 사용할 수 없습니다.";
+                        break;
+                    case error.TIMEOUT:
+                        errorDiv.textContent = "위치 정보 요청 시간이 초과되었습니다.";
+                        break;
+                    case error.UNKNOWN_ERROR:
+                        errorDiv.textContent = "알 수 없는 오류가 발생했습니다.";
+                        break;
+                }
+            } else {
+                errorDiv.textContent = error;
+            }
+        }
+
+        // 페이지 로드 시 위치 정보 가져오기
+        getLocation();
+
+        let currentGroupId = null;
+        let isPolling = false;
+
+        // 주기적으로 위치 업데이트 (10초마다)
+        setInterval(getLocation, 10000);
+
+        // 그룹 상태 확인 함수
+        async function checkGroupStatus(groupId) {
+            if (!groupId) return;
+            
+            try {
+                const response = await fetch(`http://localhost:8000/taxi/group/${groupId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+                updateGroupDisplay(result);
+            } catch (error) {
+                console.error('그룹 상태 확인 중 오류:', error);
+            }
+        }
+
+        // 그룹 상태 표시 업데이트
+        function updateGroupDisplay(groupData) {
             const responseDiv = document.getElementById('serverResponse');
-            const latitudeSpan = document.getElementById('latitude');
-            const longitudeSpan = document.getElementById('longitude');
-            const toggle = document.getElementById('areaToggle');
+            if (!responseDiv) return;
 
-            // 초기화
-            locationDiv.style.display = 'none';
-            errorDiv.style.display = 'none';
-            responseDiv.style.display = 'none';
+            responseDiv.innerHTML = `
+                <div class="success">
+                    <p><strong>그룹 상태 업데이트</strong></p>
+                    <div class="group-info">
+                        <p><strong>그룹 번호:</strong> ${groupData.groupId}</p>
+                        <p><strong>현재 인원:</strong> ${groupData.memberCount}/4</p>
+                        <p><strong>상태:</strong> ${groupData.isFull ? '매칭 완료!' : '매칭 중...'}</p>
+                    </div>
+                    ${groupData.isFull ? '<p class="matching-complete">매칭이 완료되었습니다! 그룹원들과 연락하세요.</p>' : ''}
+                </div>
+            `;
 
-            if (!navigator.geolocation) {
-                errorDiv.textContent = '이 브라우저에서는 위치 정보를 지원하지 않습니다.';
-                errorDiv.style.display = 'block';
+            // 매칭이 완료되면 폴링 중지
+            if (groupData.isFull) {
+                stopPolling();
+            }
+        }
+
+        // 폴링 시작
+        function startPolling(groupId) {
+            if (isPolling) return;
+            
+            currentGroupId = groupId;
+            isPolling = true;
+            
+            // 3초마다 그룹 상태 확인
+            const pollInterval = setInterval(() => {
+                if (!isPolling) {
+                    clearInterval(pollInterval);
+                    return;
+                }
+                checkGroupStatus(currentGroupId);
+            }, 3000);
+        }
+
+        // 폴링 중지
+        function stopPolling() {
+            isPolling = false;
+            currentGroupId = null;
+        }
+
+        async function sendLocation() {
+            const userId = document.getElementById('userId').value.trim();
+            if (!userId) {
+                showError('사용자 ID를 입력해주세요.');
                 return;
             }
 
+            const latitude = document.getElementById('latitude').textContent;
+            const longitude = document.getElementById('longitude').textContent;
+            
+            if (latitude === '-' || longitude === '-') {
+                showError('위치 정보를 가져오는 중입니다. 잠시 후 다시 시도해주세요.');
+                return;
+            }
+
+            const locationData = {
+                latitude: parseFloat(latitude),
+                longitude: parseFloat(longitude),
+                to: isToggled ? 'mju' : 'gh',
+                userId: userId
+            };
+
             try {
-                const position = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject, {
-                        enableHighAccuracy: true,
-                        timeout: 5000,
-                        maximumAge: 0
-                    });
+                const response = await fetch('http://localhost:8000/taxi/location', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(locationData),
                 });
 
-                const latitude = position.coords.latitude;
-                const longitude = position.coords.longitude;
-                const to = toggle.checked ? 'mju' : 'gh';
-
-                // 화면에 위치 표시
-                latitudeSpan.textContent = latitude;
-                longitudeSpan.textContent = longitude;
-                locationDiv.style.display = 'block';
-
-                // 서버로 위치 정보 전송
-                // 서버로 위치 정보 전송 부분을 수정
-                try {
-                    const response = await fetch('http://localhost:8000/taxi/location', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            latitude,
-                            longitude,
-                            to
-                        })
-                    });
-
-                    // 응답 받아서 처리하는 부분 추가
-                    const responseData = await response.json();
-                    responseDiv.innerHTML = `
-                        <h3>서버 응답:</h3>
-                        <p>상태: ${responseData.success ? '성공' : '실패'}</p>
-                        <p>메시지: ${responseData.message}</p>
-                        <p>위치 유효성: ${responseData.data.isValidLocation ? '유효함' : '유효하지 않음'}</p>
-                    `;
-                    responseDiv.style.display = 'block';
-
-                    // 성공/실패에 따라 스타일 변경
-                    responseDiv.style.backgroundColor = responseData.success ? '#d4edda' : '#f8d7da';
-                    responseDiv.style.color = responseData.success ? '#155724' : '#721c24';
-                    responseDiv.style.padding = '1rem';
-                    responseDiv.style.borderRadius = '5px';
-                    responseDiv.style.marginTop = '1rem';
-
-                } catch (error) {
-                    errorDiv.textContent = '서버 통신 중 오류가 발생했습니다: ' + error.message;
-                    errorDiv.style.display = 'block';
-                }
+                const result = await response.json();
+                const responseDiv = document.getElementById('serverResponse');
+                
+                // 에러 메시지 초기화
+                document.getElementById('error').style.display = 'none';
+                
+                // 응답 표시
+                responseDiv.innerHTML = `
+                    <div class="${result.success ? 'success' : 'error'}">
+                        <p><strong>상태:</strong> ${result.success ? '성공' : '실패'}</p>
+                        <p><strong>메시지:</strong> ${result.message}</p>
+                        ${result.data.group ? `
+                            <div class="group-info">
+                                <p><strong>그룹 번호:</strong> ${result.data.group.groupId}</p>
+                                <p><strong>현재 인원:</strong> ${result.data.group.memberCount}/4</p>
+                                <p><strong>상태:</strong> ${result.data.group.isFull ? '매칭 완료' : '매칭 중'}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
             } catch (error) {
-                let errorMessage;
-                if (error.code) {
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            errorMessage = '위치 정보 접근 권한이 거부되었습니다.';
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            errorMessage = '위치 정보를 사용할 수 없습니다.';
-                            break;
-                        case error.TIMEOUT:
-                            errorMessage = '위치 정보 요청 시간이 초과되었습니다.';
-                            break;
-                        default:
-                            errorMessage = '알 수 없는 오류가 발생했습니다.';
-                    }
+                console.error('Error details:', error);
+                const errorMessage = error.response ? 
+                    `서버 오류: ${error.response.status} ${error.response.statusText}` :
+                    '서버와 통신할 수 없습니다. 서버가 실행 중인지 확인해주세요.';
+                showError(errorMessage);
+                
+                // 에러 발생 시 상세 정보를 콘솔에 출력
+                if (error.response) {
+                    console.log('Error Response:', error.response);
+                } else if (error.request) {
+                    console.log('Error Request:', error.request);
                 } else {
-                    errorMessage = '오류가 발생했습니다: ' + error.message;
+                    console.log('Error Message:', error.message);
                 }
-                errorDiv.textContent = errorMessage;
-                errorDiv.style.display = 'block';
             }
         }
     </script>

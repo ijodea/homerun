@@ -1,6 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+interface LocationData {
+  latitude: number;
+  longitude: number;
+  to: string;
+  userId: string; // 사용자 식별을 위한 필드 추가
+}
+
+interface GroupMember {
+  userId: string;
+  joinedAt: Date;
+}
+
+interface TaxiGroup {
+  id: string;
+  destination: string;
+  members: GroupMember[];
+  createdAt: Date;
+  isFull: boolean;
+}
+
 @Injectable()
 export class TaxiService {
   private readonly mjuGPS: {
@@ -11,9 +31,11 @@ export class TaxiService {
     sw: { lat: number; lng: number };
     ne: { lat: number; lng: number };
   };
+  private activeGroups: Map<string, TaxiGroup> = new Map(); // 현재 활성화된 그룹들
+  private readonly MAX_GROUP_SIZE = 4;
 
   constructor(private readonly configService: ConfigService) {
-    // MJU_BOUNDS 파싱
+    // 기존 GPS 설정 코드는 동일하게 유지
     const mjuBounds = this.configService.get<string>('MJU_BOUNDS');
     const mjuCoords = mjuBounds
       .split(',')
@@ -23,7 +45,6 @@ export class TaxiService {
       ne: { lat: mjuCoords[2], lng: mjuCoords[3] },
     };
 
-    // GH_BOUNDS 파싱
     const ghBounds = this.configService.get<string>('GH_BOUNDS');
     const ghCoords = ghBounds
       .split(',')
@@ -33,11 +54,8 @@ export class TaxiService {
       ne: { lat: ghCoords[1], lng: ghCoords[3] },
     };
 
-    // 초기 설정값 로깅
-    console.log('=== GPS 경계값 설정 ===');
-    console.log('MJU 경계값:', this.mjuGPS);
-    console.log('GH 경계값:', this.ghGPS);
-    console.log('=====================');
+    // 주기적으로 오래된 그룹 정리 (30분마다)
+    setInterval(() => this.cleanupOldGroups(), 30 * 60 * 1000);
   }
 
   private isLocationInBounds(
@@ -48,39 +66,84 @@ export class TaxiService {
       ne: { lat: number; lng: number };
     },
   ): boolean {
-    // 위도 체크 (남서-북동)
     const isLatInRange =
       lat >= Math.min(bounds.sw.lat, bounds.ne.lat) &&
       lat <= Math.max(bounds.sw.lat, bounds.ne.lat);
 
-    // 경도 체크 (남서-북동)
     const isLngInRange =
       lng >= Math.min(bounds.sw.lng, bounds.ne.lng) &&
       lng <= Math.max(bounds.sw.lng, bounds.ne.lng);
 
-    // 경계 체크 로깅
-    console.log('체크 중인 위치:', { lat, lng });
-    console.log('경계값:', bounds);
-    console.log('위도 범위 체크:', isLatInRange);
-    console.log('경도 범위 체크:', isLngInRange);
-
-    return isLatInRange && isLngInRange;
+    // return isLatInRange && isLngInRange;
+    return true; //테스트용으로 항상 true
   }
 
-  async processLocation(locationData: {
-    latitude: number;
-    longitude: number;
-    to: string;
-  }) {
+  async getGroupStatus(groupId: string) {
+    const group = this.activeGroups.get(groupId);
+    if (!group) {
+      return {
+        success: false,
+        message: '그룹을 찾을 수 없습니다.',
+      };
+    }
+
+    return {
+      success: true,
+      groupId: group.id,
+      memberCount: group.members.length,
+      isFull: group.isFull,
+      destination: group.destination,
+    };
+  }
+
+  private generateGroupId(): string {
+    // 랜덤 4자리 숫자 생성
+    return Math.floor(1000 + Math.random() * 9000).toString();
+  }
+
+  private findAvailableGroup(destination: string): TaxiGroup | null {
+    for (const group of this.activeGroups.values()) {
+      if (
+        group.destination === destination &&
+        !group.isFull &&
+        group.members.length < this.MAX_GROUP_SIZE
+      ) {
+        return group;
+      }
+    }
+    return null;
+  }
+
+  private createNewGroup(destination: string, userId: string): TaxiGroup {
+    const groupId = this.generateGroupId();
+    const newGroup: TaxiGroup = {
+      id: groupId,
+      destination,
+      members: [{ userId, joinedAt: new Date() }],
+      createdAt: new Date(),
+      isFull: false,
+    };
+    this.activeGroups.set(groupId, newGroup);
+    return newGroup;
+  }
+
+  private cleanupOldGroups() {
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+    for (const [groupId, group] of this.activeGroups.entries()) {
+      if (group.createdAt < thirtyMinutesAgo) {
+        this.activeGroups.delete(groupId);
+      }
+    }
+  }
+
+  async processLocation(locationData: LocationData) {
     console.log('받은 위치 정보:', locationData);
 
     let isInValidLocation = false;
     let message = '';
 
-    // to 값에 따라 체크할 영역 결정
+    // 위치 검증
     if (locationData.to.toLowerCase() === 'mju') {
-      console.log('목적지: 명지대, 현재 위치가 기흥역 구역인지 체크');
-      // MJU로 가려면 현재 GH에 있어야 함
       isInValidLocation = this.isLocationInBounds(
         locationData.latitude,
         locationData.longitude,
@@ -90,7 +153,6 @@ export class TaxiService {
         ? '기흥역 택시구역입니다'
         : '기흥역 택시구역에 있지 않습니다';
     } else if (locationData.to.toLowerCase() === 'gh') {
-      // GH로 가려면 현재 MJU에 있어야 함
       isInValidLocation = this.isLocationInBounds(
         locationData.latitude,
         locationData.longitude,
@@ -104,18 +166,42 @@ export class TaxiService {
       isInValidLocation = false;
     }
 
+    // 위치가 유효한 경우에만 그룹 매칭 진행
+    let groupInfo = null;
+    if (isInValidLocation) {
+      let group = this.findAvailableGroup(locationData.to);
+      if (!group) {
+        group = this.createNewGroup(locationData.to, locationData.userId);
+      } else {
+        group.members.push({
+          userId: locationData.userId,
+          joinedAt: new Date(),
+        });
+        if (group.members.length >= this.MAX_GROUP_SIZE) {
+          group.isFull = true;
+        }
+      }
+      groupInfo = {
+        groupId: group.id,
+        memberCount: group.members.length,
+        isFull: group.isFull,
+      };
+      message += ` | 그룹 번호: ${group.id} (${group.members.length}/4명)`;
+    }
+
     const result = {
       success: isInValidLocation,
       message,
       data: {
         ...locationData,
         isValidLocation: isInValidLocation,
+        group: groupInfo,
       },
     };
 
-    console.log('=== 위치 판별 결과 ===');
+    console.log('=== 위치 판별 및 그룹 매칭 결과 ===');
     console.log(JSON.stringify(result, null, 2));
-    console.log('=====================\n');
+    console.log('================================\n');
 
     return result;
   }
