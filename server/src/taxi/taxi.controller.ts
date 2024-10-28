@@ -1,4 +1,14 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
+import { TaxiService } from './taxi.service';
 
 @Controller('taxi')
-export class TaxiController {}
+export class TaxiController {
+  constructor(private readonly taxiService: TaxiService) {}
+
+  @Post('location')
+  async updateLocation(
+    @Body() locationData: { latitude: number; longitude: number; to: string },
+  ) {
+    return this.taxiService.processLocation(locationData);
+  }
+}
