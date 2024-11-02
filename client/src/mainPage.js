@@ -8,128 +8,151 @@ import axios from 'axios';
 // 아이콘 파일 import
 import taxiIcon from './assets/Taxi.png';
 import busInfoIcon from './assets/Bus.png';
-import mjImage from './assets/mj.png'; // 명지 이미지
-import ghImage from './assets/gh.png'; // 기흥역 이미지
+import mjImage from './assets/mj.png';
+import ghImage from './assets/gh.png';
 
 const HeaderContainer = styled.div`
     display: flex;
-    flex-direction: column; /* 세로 방향으로 배치 */
-    align-items: center; /* 중앙 정렬 */
-    width: 100%; /* 전체 너비 */
-    min-height: 100vh; /* 화면 높이를 최소 100%로 설정 */
-    padding-bottom: 0; /* 푸터와 간격 제거 */
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-height: 100vh;
+    padding-bottom: 0;
 `;
 
 const HomerunLink = styled(Link)`
     color: #007bff;
-    font-size: 1.5em; /* 글씨 크기 */
-    font-weight: bold; /* 글씨 두껍게 */
+    font-size: 1.5em;
+    font-weight: bold;
     text-decoration: none;
-    margin: 10px 20px; /* 위치 조정 */
+    margin: 10px 20px;
 `;
 
 const MenuContainer = styled.nav`
     display: flex;
-    justify-content: center; /* 중앙 정렬 */
-    background-color: lightgray; /* 비활성화 시 배경색 */
-    padding: 10px 0; /* 상단 메뉴바의 패딩 */
-    width: 100%; /* 메뉴바가 전체 너비를 차지하도록 설정 */
+    justify-content: center;
+    background-color: lightgray;
+    padding: 10px 0;
+    width: 100%;
 `;
 
 const MenuItem = styled(Link)`
     display: flex;
     align-items: center;
-    justify-content: center; /* 이미지와 텍스트 중앙 정렬 */
-    color: ${(props) => (props.active ? "white" : "grey")}; /* 텍스트 색상 */
+    justify-content: center;
+    color: ${(props) => (props.active ? "white" : "grey")};
     text-decoration: none;
-    padding: 20px; /* 패딩 */
-    font-size: 1.5em; /* 글씨 크기 */
-    margin: 0 10px; /* 버튼 사이 여백 */
-    flex-grow: 1; /* 버튼의 너비가 균등하게 분배되도록 설정 */
+    padding: 20px;
+    font-size: 1.5em;
+    margin: 0 10px;
+    flex-grow: 1;
     border-radius: 5px;
-    background-color: ${(props) => (props.active ? (props.isinfo ? "#005700" : "#fb9403") : "transparent")}; /* 활성화 색상 */
-    
+    background-color: ${(props) => (props.active ? (props.isinfo ? "#005700" : "#fb9403") : "transparent")};
+
     img {
-        height: 40px; /* 이미지 크기 */
-        filter: ${(props) => (props.active ? "invert(1)" : "invert(0.5)")}; /* 이미지 색상 변환 */
+        height: 40px;
+        filter: ${(props) => (props.active ? "invert(1)" : "invert(0.5)")};
     }
 
     &:hover {
-        background-color: ${(props) => (props.active ? (props.isinfo ? "#005700" : "#fb9403") : "rgba(0, 0, 0, 0.1)")}; /* Hover 시 배경색 변경 */
+        background-color: ${(props) => (props.active ? (props.isinfo ? "#005700" : "#fb9403") : "rgba(0, 0, 0, 0.1)")};
     }
 `;
 
 const CardContainer = styled.div`
-    display: block; /* 카드 표시 */
-    margin: 20px auto; /* 카드 중앙 정렬 */
-    width: 80%; /* 카드의 너비 */
-    background-color: #f0f0f0; /* 카드 배경색 */
+    display: block;
+    margin: 20px auto;
+    width: 80%;
+    background-color: #f0f0f0;
     border-radius: 10px; 
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
-    padding: 20px; /* 카드 안쪽 여백 */
-    text-align: center; /* 텍스트 중앙 정렬 */
-    color: black; /* 텍스트 색상 변경 */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+    color: black;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 300ms ease-in, transform 300ms ease-in;
+
+    &.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
 `;
 
 const Time = styled.div`
     margin: 10px; 
-    color: #000; /* 시간 텍스트 색상 */
+    color: #000; 
     text-align: left;
     font-size: 15px;
+`;
+
+const DirectionButtonContainer = styled.div`
+    text-align: center;
+    margin: 20px 0;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 300ms ease-in, transform 300ms ease-in;
+
+    &.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
 `;
 
 const DirectionButton = styled.button`
     display: inline-flex;
     align-items: center;
-    justify-content: center; /* 이미지와 텍스트 중앙 정렬 */
-    color: ${(props) => (props.active ? "white" : "grey")}; /* 텍스트 색상 */
-    padding: 15px 30px; /* 패딩 */
-    font-size: 1.5em; /* 글씨 크기 */
+    justify-content: center;
+    color: ${(props) => (props.active ? "white" : "grey")};
+    padding: 15px 30px;
+    font-size: 1.5em;
     margin: 0 10px;
-    border: 2px solid transparent; /* 기본 테두리 */
+    border: 2px solid transparent; 
     border-radius: 5px;
-    background-color: ${(props) => (props.active ? (props.dir ? "#F5A200" : "#001C4A") : "lightgrey")}; /* 활성화 색상 */
-    
+    background-color: ${(props) => (props.active ? (props.dir ? "#F5A200" : "#001C4A") : "lightgrey")};
+    transition: background-color 300ms ease-in;
+
     img {
-        height: 50px; /* 이미지 크기 증가 */
-        margin-right: 10px; /* 이미지와 텍스트 사이 간격 */
-        filter: ${(props) => (props.active ? "none" : "none")}; /* 원래 색상 유지 */
+        height: 50px; 
+        margin-right: 10px; 
+        filter: ${(props) => (props.active ? "none" : "none")}; 
     }
 
     &:hover {
-        background-color: ${(props) => (props.active ? (props.dir ? "#F5A200" : "#001C4A") : "rgba(0, 0, 0, 0.1)")}; /* Hover 시 배경색 */
+        background-color: ${(props) => (props.active ? (props.dir ? "#F5A200" : "#001C4A") : "rgba(0, 0, 0, 0.1)")}; 
     }
 `;
 
 const AppContainer = styled.div`
-    background-color: #f0f0f0; /* 페이지 배경색 */
+    background-color: #f0f0f0; 
     display: flex;
-    flex-direction: column; /* 세로 방향으로 배치 */
-    align-items: stretch; /* 콘텐츠가 전체 너비를 차지하도록 설정 */
-    width: 100%; /* 전체 너비 */
-    min-height: 100vh; /* 화면 높이를 최소 100%로 설정 */
+    flex-direction: column;
+    align-items: stretch; 
+    width: 100%; 
+    min-height: 100vh; 
 `;
 
 const Footer = styled.footer`
-    background-color: #333; /* 푸터의 배경색 */
-    color: #fff; /* 글씨 색상 */
+    background-color: #333; 
+    color: #fff; 
     text-align: center;
-    padding: 20px; /* 푸터의 패딩 */
+    padding: 20px; 
     font-size: 0.9em;
-    width: 100%; /* 전체 너비 */
-    flex-shrink: 0; /* 푸터가 줄어들지 않도록 설정 */
-    min-height: 60px; /* 푸터의 고정 높이 */
-    margin-top: auto; /* 자동 마진을 사용하여 푸터를 아래로 밀기 */
-    box-sizing: border-box; /* 패딩을 포함한 전체 너비 설정 */
+    width: 100%; 
+    flex-shrink: 0; 
+    min-height: 60px; 
+    margin-top: auto; 
+    box-sizing: border-box; 
 `;
 
 const MainPage = () => {
     const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
     const [direction, setDirection] = useState("giheung-to-mju");
+    const [showEfficiencyCard, setShowEfficiencyCard] = useState(false);
+    const [showDirectionControls, setShowDirectionControls] = useState(false);
+    const [cardVisible, setCardVisible] = useState(false);
+    const [directionControlsVisible, setDirectionControlsVisible] = useState(false);
     const location = useLocation();
-
-    // 방향 버튼과 현재 방향을 '정보'와 '택시' 페이지에서만 보이도록 설정
-    const showDirectionControls = location.pathname === "/info" || location.pathname === "/taxi";
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -143,6 +166,25 @@ const MainPage = () => {
         setDirection(newDirection);
     };
 
+    useEffect(() => {
+        if (location.pathname === "/") {
+            setShowEfficiencyCard(true);
+            setShowDirectionControls(false);
+            setTimeout(() => setCardVisible(true), 33);
+            setDirectionControlsVisible(false);
+        } else if (location.pathname === "/info" || location.pathname === "/taxi") {
+            setShowEfficiencyCard(false);
+            setShowDirectionControls(true);
+            setCardVisible(false);
+            setTimeout(() => setDirectionControlsVisible(true), 33);
+        } else {
+            setShowEfficiencyCard(false); 
+            setShowDirectionControls(false); 
+            setCardVisible(false);
+            setDirectionControlsVisible(false);
+        }
+    }, [location]);
+    
     return (
         <AppContainer>
             <HeaderContainer>
@@ -167,45 +209,39 @@ const MainPage = () => {
                     </MenuItem>
                 </MenuContainer>
 
-                {/* 카드 표시: 현재 가장 효율적인 교통 수단 */}
-                {location.pathname === "/" && (
-                    <CardContainer>
+                {showEfficiencyCard && (
+                    <CardContainer className={cardVisible ? 'show' : ''}>
                         <div className="card-header">현재 가장 효율적인 교통 수단</div>
                         <div className="card-body">기흥역 셔틀버스</div>
                         <Time>현재 시간: {currentTime}</Time>
                     </CardContainer>
                 )}
 
-                {/* 방향 선택 버튼: '/info' 또는 '/taxi' 경로에서만 표시 */}
                 {showDirectionControls && (
-                    <div style={{ textAlign: "center", margin: "20px 0" }}>
+                    <DirectionButtonContainer className={directionControlsVisible ? 'show' : ''}>
                         <img src={mjImage} alt="명지역" style={{ height: "40px", marginRight: "10px" }} />
                         <DirectionButton
                             onClick={() => handleDirectionChange("mju-to-giheung")}
                             active={direction === "mju-to-giheung"}
-                            dir={direction === "giheung-to-mju"}
                         >
                             명지대행
                         </DirectionButton>
                         <DirectionButton
                             onClick={() => handleDirectionChange("giheung-to-mju")}
                             active={direction === "giheung-to-mju"}
-                            dir={direction === "giheung-to-mju"}
+                            dir={true}
                         >
                             기흥역행
                         </DirectionButton>
                         <img src={ghImage} alt="기흥역" style={{ height: "40px", marginLeft: "10px" }} />
-                    </div>
+                    </DirectionButtonContainer>
                 )}
 
                 <Outlet context={{ direction }} />
             </HeaderContainer>
-            {/* 푸터 추가 */}
             <Footer>
                 © 2024 Example Site | Developed by Your Name
             </Footer>
-            {/* 푸터 아래의 배경색과 동일한 div 추가 */}
-            <div style={{ backgroundColor: '#333', height: '20px' }} />
         </AppContainer>
     );
 }
