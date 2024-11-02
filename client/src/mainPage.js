@@ -16,6 +16,8 @@ const HeaderContainer = styled.div`
     flex-direction: column; /* 세로 방향으로 배치 */
     align-items: center; /* 중앙 정렬 */
     width: 100%; /* 전체 너비 */
+    min-height: 100vh; /* 화면 높이를 최소 100%로 설정 */
+    padding-bottom: 0; /* 푸터와 간격 제거 */
 `;
 
 const HomerunLink = styled(Link)`
@@ -45,7 +47,7 @@ const MenuItem = styled(Link)`
     margin: 0 10px; /* 버튼 사이 여백 */
     flex-grow: 1; /* 버튼의 너비가 균등하게 분배되도록 설정 */
     border-radius: 5px;
-    background-color: ${(props) => (props.active ? (props.isinfo ? "#005700" : "#fb9403" ): "transparent")}; /* 활성화 색상 */
+    background-color: ${(props) => (props.active ? (props.isinfo ? "#005700" : "#fb9403") : "transparent")}; /* 활성화 색상 */
     
     img {
         height: 40px; /* 이미지 크기 */
@@ -53,7 +55,7 @@ const MenuItem = styled(Link)`
     }
 
     &:hover {
-        background-color: ${(props) => (props.active ? (props.isinfo ? "#005700" : "#fb9403" ) : "rgba(0, 0, 0, 0.1)")}; /* Hover 시 배경색 변경 */
+        background-color: ${(props) => (props.active ? (props.isinfo ? "#005700" : "#fb9403") : "rgba(0, 0, 0, 0.1)")}; /* Hover 시 배경색 변경 */
     }
 `;
 
@@ -99,6 +101,28 @@ const DirectionButton = styled.button`
     }
 `;
 
+const AppContainer = styled.div`
+    background-color: #f0f0f0; /* 페이지 배경색 */
+    display: flex;
+    flex-direction: column; /* 세로 방향으로 배치 */
+    align-items: stretch; /* 콘텐츠가 전체 너비를 차지하도록 설정 */
+    width: 100%; /* 전체 너비 */
+    min-height: 100vh; /* 화면 높이를 최소 100%로 설정 */
+`;
+
+const Footer = styled.footer`
+    background-color: #333; /* 푸터의 배경색 */
+    color: #fff; /* 글씨 색상 */
+    text-align: center;
+    padding: 20px; /* 푸터의 패딩 */
+    font-size: 0.9em;
+    width: 100%; /* 전체 너비 */
+    flex-shrink: 0; /* 푸터가 줄어들지 않도록 설정 */
+    min-height: 60px; /* 푸터의 고정 높이 */
+    margin-top: auto; /* 자동 마진을 사용하여 푸터를 아래로 밀기 */
+    box-sizing: border-box; /* 패딩을 포함한 전체 너비 설정 */
+`;
+
 const MainPage = () => {
     const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
     const [direction, setDirection] = useState("giheung-to-mju");
@@ -120,61 +144,69 @@ const MainPage = () => {
     };
 
     return (
-        <HeaderContainer>
-            <HomerunLink to="/">Homerun</HomerunLink>
+        <AppContainer>
+            <HeaderContainer>
+                <HomerunLink to="/">Homerun</HomerunLink>
 
-            <MenuContainer>
-                <MenuItem 
-                    to={`/info?direction=${direction}`} 
-                    active={location.pathname === "/info"} 
-                    isinfo={location.pathname === "/info"}
-                >
-                    <img src={busInfoIcon} alt="Info" />
-                    정보
-                </MenuItem>
-                <MenuItem 
-                    to="/taxi" 
-                    active={location.pathname === "/taxi"}
-                    isinfo={location.pathname === "/info"}
-                >
-                    <img src={taxiIcon} alt="Taxi" />
-                    택시
-                </MenuItem>
-            </MenuContainer>
-
-            {/* 카드 표시: 현재 가장 효율적인 교통 수단 */}
-            {location.pathname === "/" && (
-                <CardContainer>
-                    <div className="card-header">현재 가장 효율적인 교통 수단</div>
-                    <div className="card-body">기흥역 셔틀버스</div>
-                    <Time>현재 시간: {currentTime}</Time>
-                </CardContainer>
-            )}
-
-            {/* 방향 선택 버튼: '/info' 또는 '/taxi' 경로에서만 표시 */}
-            {showDirectionControls && (
-                <div style={{ textAlign: "center", margin: "20px 0" }}>
-                    <img src={mjImage} alt="명지역" style={{ height: "40px", marginRight: "10px" }} />
-                    <DirectionButton 
-                        onClick={() => handleDirectionChange("mju-to-giheung")} 
-                        active={direction === "mju-to-giheung"}
-                        dir={direction === "giheung-to-mju"}
+                <MenuContainer>
+                    <MenuItem
+                        to={`/info?direction=${direction}`}
+                        active={location.pathname === "/info"}
+                        isinfo={location.pathname === "/info"}
                     >
-                        명지대행
-                    </DirectionButton>
-                    <DirectionButton 
-                        onClick={() => handleDirectionChange("giheung-to-mju")} 
-                        active={direction === "giheung-to-mju"}
-                        dir={direction === "giheung-to-mju"}
+                        <img src={busInfoIcon} alt="Info" />
+                        정보
+                    </MenuItem>
+                    <MenuItem
+                        to="/taxi"
+                        active={location.pathname === "/taxi"}
+                        isinfo={location.pathname === "/info"}
                     >
-                        기흥역행
-                    </DirectionButton>
-                    <img src={ghImage} alt="기흥역" style={{ height: "40px", marginLeft: "10px" }} />
-                </div>
-            )}
+                        <img src={taxiIcon} alt="Taxi" />
+                        택시
+                    </MenuItem>
+                </MenuContainer>
 
-            <Outlet context={{ direction }} />
-        </HeaderContainer>
+                {/* 카드 표시: 현재 가장 효율적인 교통 수단 */}
+                {location.pathname === "/" && (
+                    <CardContainer>
+                        <div className="card-header">현재 가장 효율적인 교통 수단</div>
+                        <div className="card-body">기흥역 셔틀버스</div>
+                        <Time>현재 시간: {currentTime}</Time>
+                    </CardContainer>
+                )}
+
+                {/* 방향 선택 버튼: '/info' 또는 '/taxi' 경로에서만 표시 */}
+                {showDirectionControls && (
+                    <div style={{ textAlign: "center", margin: "20px 0" }}>
+                        <img src={mjImage} alt="명지역" style={{ height: "40px", marginRight: "10px" }} />
+                        <DirectionButton
+                            onClick={() => handleDirectionChange("mju-to-giheung")}
+                            active={direction === "mju-to-giheung"}
+                            dir={direction === "giheung-to-mju"}
+                        >
+                            명지대행
+                        </DirectionButton>
+                        <DirectionButton
+                            onClick={() => handleDirectionChange("giheung-to-mju")}
+                            active={direction === "giheung-to-mju"}
+                            dir={direction === "giheung-to-mju"}
+                        >
+                            기흥역행
+                        </DirectionButton>
+                        <img src={ghImage} alt="기흥역" style={{ height: "40px", marginLeft: "10px" }} />
+                    </div>
+                )}
+
+                <Outlet context={{ direction }} />
+            </HeaderContainer>
+            {/* 푸터 추가 */}
+            <Footer>
+                © 2024 Example Site | Developed by Your Name
+            </Footer>
+            {/* 푸터 아래의 배경색과 동일한 div 추가 */}
+            <div style={{ backgroundColor: '#333', height: '20px' }} />
+        </AppContainer>
     );
 }
 
