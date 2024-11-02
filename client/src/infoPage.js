@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useOutletContext } from "react-router-dom";
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 const CardContainer = styled.div`
     display: flex;
@@ -10,7 +11,7 @@ const CardContainer = styled.div`
 `;
 
 const Card = styled.div`
-    background: white; /* 카드 배경색을 흰색으로 설정 */
+    background: white;
     border: 6px solid ${(props) => (props.type === 'shuttle' ? '#001C4A' : '#C00305')};
     border-radius: 8px;
     padding: 20px;
@@ -19,14 +20,14 @@ const Card = styled.div`
     flex: 1 1 calc(33.33% - 20px);
     max-width: 300px;
     text-decoration: none;
-    color: black; /* 기본 글자 색상 검정 */
+    color: black;
     transition: box-shadow 0.3s;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: 160px; /* 카드 높이 조정 */
-    max-height: 160px; /* 최대 카드 높이 조정 */
-    min-height: 160px; /* 최소 카드 높이 조정 */
+    height: 160px;
+    max-height: 160px;
+    min-height: 160px;
 
     &:hover {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -39,14 +40,35 @@ const Card = styled.div`
     @media (max-width: 480px) {
         flex: 1 1 100%;
     }
+
+    &.fade-enter, &.fade-appear {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    &.fade-enter-active, &.fade-appear-active {
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 300ms ease-in, transform 300ms ease-in;
+    }
+
+    &.fade-exit {
+        opacity: 1;
+    }
+
+    &.fade-exit-active {
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: opacity 300ms ease-in, transform 300ms ease-in;
+    }
 `;
 
 const Title = styled.h2`
     text-align: center;
-    color: white; /* 제목 글자 색상 흰색 */
-    background-color: ${(props) => (props.type === 'shuttle' ? '#001C4A' : '#C00305')}; /* 카드 유형에 따라 제목 배경색 설정 */
-    padding: 10px; /* 제목 주변 여백 */
-    border-radius: 4px; /* 둥글게 처리 */
+    color: white;
+    background-color: ${(props) => (props.type === 'shuttle' ? '#001C4A' : '#C00305')};
+    padding: 10px;
+    border-radius: 4px;
     font-size: 1.5em;
     margin-bottom: 10px;
 `;
@@ -61,7 +83,7 @@ const Info = () => {
     const [shuttleInfo, setShuttleInfo] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { direction } = useOutletContext(); // 방향 가져오기
+    const { direction } = useOutletContext();
 
     const fetchBusInfo = async () => {
         try {
@@ -71,7 +93,7 @@ const Info = () => {
             }
             const data = await response.json();
             const filteredBusInfo = data.map((bus) => ({
-                busNumber: bus.버스번호, // 버스 번호를 가져옴
+                busNumber: bus.버스번호,
                 arrivalTime: bus.도착시간 || '정보 없음',
                 remainingSeats: bus.남은좌석수 || '정보 없음',
                 type: 'bus',
@@ -104,7 +126,7 @@ const Info = () => {
                 arrivalTime: '정보 없음',
                 remainingSeats: '정보 없음',
                 type: 'shuttle',
-            }]); // 기본 셔틀 카드 추가
+            }]);
         } finally {
             setLoading(false);
         }
@@ -113,9 +135,9 @@ const Info = () => {
     useEffect(() => {
         fetchBusInfo();
         fetchShuttleInfo();
-    }, [direction]); // 방향 변경 시 정보 재호출
+    }, [direction]);
 
-    const sortedInfo = [...busInfo, ...shuttleInfo]; // 셔틀 정보 추가
+    const sortedInfo = [...busInfo, ...shuttleInfo];
 
     if (loading) {
         return <div>Loading...</div>;
@@ -127,19 +149,28 @@ const Info = () => {
 
     return (
         <CardContainer>
-            {sortedInfo.map((info, index) => (
-                <Card key={index} type={info.type}>  
-                    <Title type={info.type}>{info.type === 'shuttle' ? '셔틀' : `${info.busNumber}`}</Title> {/* type을 Title에 전달 */}
-                    <div>
-                        <InfoItem>
-                            <strong>도착 시간:</strong> {info.arrivalTime}
-                        </InfoItem>
-                        <InfoItem>
-                            <strong>탑승 인원:</strong> {info.remainingSeats}
-                        </InfoItem>
-                    </div>
-                </Card>
-            ))}
+            <TransitionGroup component={null}>
+                {sortedInfo.map((info, index) => (
+                    <CSSTransition
+                        key={index}
+                        timeout={300}
+                        classNames="fade"
+                        appear={true}
+                    >
+                        <Card type={info.type}>  
+                            <Title type={info.type}>{info.type === 'shuttle' ? '셔틀' : `${info.busNumber}`}</Title>
+                            <div>
+                                <InfoItem>
+                                    <strong>도착 시간:</strong> {info.arrivalTime}
+                                </InfoItem>
+                                <InfoItem>
+                                    <strong>탑승 인원:</strong> {info.remainingSeats}
+                                </InfoItem>
+                            </div>
+                        </Card>
+                    </CSSTransition>
+                ))}
+            </TransitionGroup>
         </CardContainer>
     );
 };
