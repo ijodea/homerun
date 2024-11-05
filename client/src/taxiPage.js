@@ -55,13 +55,6 @@ const ErrorContainer = styled.div`
   margin-top: 1rem;
 `;
 
-const DirectionInfo = styled.div`
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin-top: 1rem;
-  text-align: center;
-`;
-
 // API 기본 URL 설정
 const API_BASE_URL = "http://localhost:8000"; // NestJS 서버 주소
 
