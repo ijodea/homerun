@@ -1,37 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-
-interface LocationData {
-  latitude: number;
-  longitude: number;
-  to: string;
-  userId: string;
-}
-
-interface GroupMember {
-  userId: string;
-  joinedAt: Date;
-}
-
-interface TaxiGroup {
-  id: string;
-  destination: string;
-  members: GroupMember[];
-  createdAt: Date;
-  isFull: boolean;
-}
+import {
+  LocationData,
+  TaxiGroup,
+  GPSBounds,
+  GroupStatus,
+  LocationUpdateResponse,
+} from './interfaces/taxi.interface';
 
 @Injectable()
 export class TaxiService {
-  private readonly mjuGPS: {
-    sw: { lat: number; lng: number };
-    ne: { lat: number; lng: number };
-  };
-  private readonly ghGPS: {
-    sw: { lat: number; lng: number };
-    ne: { lat: number; lng: number };
-  };
-  private activeGroups: Map<string, TaxiGroup> = new Map(); // 현재 활성화된 그룹들
+  private readonly mjuGPS: GPSBounds;
+  private readonly ghGPS: GPSBounds;
+  private activeGroups: Map<string, TaxiGroup> = new Map();
   private readonly MAX_GROUP_SIZE = 4;
 
   constructor(private readonly configService: ConfigService) {
@@ -77,7 +58,7 @@ export class TaxiService {
     return true; //테스트용으로 항상 true
   }
 
-  async getGroupStatus(groupId: string) {
+  async getGroupStatus(groupId: string): Promise<GroupStatus> {
     const group = this.activeGroups.get(groupId);
     if (!group) {
       return {
@@ -134,7 +115,9 @@ export class TaxiService {
     }
   }
 
-  async processLocation(locationData: LocationData) {
+  async processLocation(
+    locationData: LocationData,
+  ): Promise<LocationUpdateResponse> {
     console.log('받은 위치 정보:', locationData);
 
     let isInValidLocation = false;
