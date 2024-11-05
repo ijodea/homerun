@@ -5,7 +5,7 @@ interface LocationData {
   latitude: number;
   longitude: number;
   to: string;
-  userId: string; // 사용자 식별을 위한 필드 추가
+  userId: string;
 }
 
 interface GroupMember {
@@ -35,7 +35,6 @@ export class TaxiService {
   private readonly MAX_GROUP_SIZE = 4;
 
   constructor(private readonly configService: ConfigService) {
-    // 기존 GPS 설정 코드는 동일하게 유지
     const mjuBounds = this.configService.get<string>('MJU_BOUNDS');
     const mjuCoords = mjuBounds
       .split(',')
@@ -97,7 +96,6 @@ export class TaxiService {
   }
 
   private generateGroupId(): string {
-    // 랜덤 4자리 숫자 생성
     return Math.floor(1000 + Math.random() * 9000).toString();
   }
 
