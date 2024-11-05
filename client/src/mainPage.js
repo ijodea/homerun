@@ -11,6 +11,15 @@ import busInfoIcon from './assets/Bus.png';
 import mjImage from './assets/mj.png';
 import ghImage from './assets/gh.png';
 
+const AppContainer = styled.div`
+    background-color: #f0f0f0; 
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; 
+    width: 100%; 
+    min-height: 100vh; 
+`;
+
 const HeaderContainer = styled.div`
     display: flex;
     flex-direction: column;
@@ -61,13 +70,11 @@ const MenuItem = styled(Link)`
 
 const CardContainer = styled.div`
     display: block;
-    margin: 20px auto;
-    width: 80%;
+    width: 30%;
     background-color: #f0f0f0;
     border-radius: 10px; 
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    text-align: center;
     color: black;
     opacity: 0;
     transform: translateY(20px);
@@ -77,12 +84,15 @@ const CardContainer = styled.div`
         opacity: 1;
         transform: translateY(0);
     }
+    * {
+        text-align: center;
+    }
 `;
 
 const Time = styled.div`
     margin: 10px; 
     color: #000; 
-    text-align: left;
+    text-align: center;
     font-size: 15px;
 `;
 
@@ -123,19 +133,10 @@ const DirectionButton = styled.button`
     }
 `;
 
-const AppContainer = styled.div`
-    background-color: #f0f0f0; 
-    display: flex;
-    flex-direction: column;
-    align-items: stretch; 
-    width: 100%; 
-    min-height: 100vh; 
-`;
-
 const Footer = styled.footer`
     background-color: #333; 
     color: #fff; 
-    text-align: center;
+    text-align: right;
     padding: 20px; 
     font-size: 0.9em;
     width: 100%; 
@@ -189,7 +190,6 @@ const MainPage = () => {
         <AppContainer>
             <HeaderContainer>
                 <HomerunLink to="/">Homerun</HomerunLink>
-
                 <MenuContainer>
                     <MenuItem
                         to={`/info?direction=${direction}`}
@@ -208,7 +208,6 @@ const MainPage = () => {
                         택시
                     </MenuItem>
                 </MenuContainer>
-
                 {showEfficiencyCard && (
                     <CardContainer className={cardVisible ? 'show' : ''}>
                         <div className="card-header">현재 가장 효율적인 교통 수단</div>
@@ -240,7 +239,8 @@ const MainPage = () => {
                 <Outlet context={{ direction }} />
             </HeaderContainer>
             <Footer>
-                © 2024 Example Site | Developed by Your Name
+                © 2024 공개SW 아2조디어 | HomeRun |
+                백병재 강병수 박영찬 이승현
             </Footer>
         </AppContainer>
     );

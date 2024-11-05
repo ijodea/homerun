@@ -55,7 +55,6 @@ const ErrorContainer = styled.div`
   margin-top: 1rem;
 `;
 
-// API 기본 URL 설정
 const API_BASE_URL = "http://localhost:8000"; // NestJS 서버 주소
 
 const TaxiPage = () => {
@@ -67,7 +66,12 @@ const TaxiPage = () => {
   const [error, setError] = useState("");
   const [currentGroupId, setCurrentGroupId] = useState(null);
 
-  // 현재 위치 가져오기
+  const resetState = () => {
+    setUserId("");
+    setResponse(null);
+    setCurrentGroupId(null);
+  };
+
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -85,7 +89,6 @@ const TaxiPage = () => {
     }
   }, []);
 
-  // 그룹 상태 주기적 확인
   useEffect(() => {
     let intervalId;
 
@@ -112,6 +115,13 @@ const TaxiPage = () => {
                 data.groupId
               } (${data.memberCount}/4명)`,
             }));
+
+            if (data.isFull) {
+              setTimeout(() => {
+                resetState();
+                alert("택시 모집이 완료되었습니다.");
+              }, 3000);
+            }
           }
         } catch (err) {
           console.error("그룹 상태 확인 중 오류:", err.response || err);
@@ -190,7 +200,7 @@ const TaxiPage = () => {
           <div>경도: {longitude}</div>
         </LocationInfo>
 
-        <Button onClick={handleSubmit}>위치 전송하기</Button>
+        <Button onClick={handleSubmit}>택시 모집</Button>
 
         {error && <ErrorContainer>{error}</ErrorContainer>}
 
