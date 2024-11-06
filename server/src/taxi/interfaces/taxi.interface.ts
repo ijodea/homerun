@@ -27,6 +27,7 @@ export interface GroupStatus {
   success: boolean;
   groupId?: string;
   memberCount?: number;
+  memberIds?: string[];
   isFull?: boolean;
   destination?: string;
   message?: string;

@@ -121,6 +121,7 @@ export class TaxiService {
       success: true,
       groupId: group.id,
       memberCount: group.members.length,
+      memberIds: group.members.map((member) => member.userId),
       isFull: group.isFull,
       destination: group.destination,
     };
@@ -235,9 +236,9 @@ export class TaxiService {
       },
     };
 
-    console.log('=== 위치 판별 및 그룹 매칭 결과 ===');
-    console.log(JSON.stringify(result, null, 2));
-    console.log('================================\n');
+    // console.log('=== 위치 판별 및 그룹 매칭 결과 ===');
+    // console.log(JSON.stringify(result, null, 2));
+    // console.log('================================\n');
 
     return result;
   }
