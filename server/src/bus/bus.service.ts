@@ -10,7 +10,7 @@ export class BusService {
 
   constructor(private readonly configService: ConfigService) {
     // 환경 변수에서 busRouteMap을 불러와 객체로 변환
-    const busRouteMapString = this.configService.get<string>('BUS_ROUTE_MAP');
+    const busRouteMapString = this.configService.get<string>('BUS_ROUTE_MAP') || '{}'; //json.parse()를 호출하기 전에 값이 undefined인지 확인하고 기본값을 설정
     this.busRouteMap = JSON.parse(busRouteMapString);
   }
 

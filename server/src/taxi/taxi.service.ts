@@ -36,7 +36,7 @@ export class TaxiService {
 
   constructor(private readonly configService: ConfigService) {
     // 기존 GPS 설정 코드는 동일하게 유지
-    const mjuBounds = this.configService.get<string>('MJU_BOUNDS');
+    const mjuBounds = this.configService.get<string>('MJU_BOUNDS') || ''; //수정
     const mjuCoords = mjuBounds
       .split(',')
       .map((coord) => parseFloat(coord.trim()));
@@ -45,7 +45,7 @@ export class TaxiService {
       ne: { lat: mjuCoords[2], lng: mjuCoords[3] },
     };
 
-    const ghBounds = this.configService.get<string>('GH_BOUNDS');
+    const ghBounds = this.configService.get<string>('GH_BOUNDS') || '';
     const ghCoords = ghBounds
       .split(',')
       .map((coord) => parseFloat(coord.trim()));
