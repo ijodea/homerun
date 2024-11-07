@@ -4,17 +4,18 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { BusModule } from './bus/bus.module';
 import { ShuttleModule } from './shuttle/shuttle.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
-import { TaxiService } from './taxi/taxi.service';
-import { TaxiController } from './taxi/taxi.controller';
+// import { ServeStaticModule } from '@nestjs/serve-static';
+// import { join } from 'path';
+// import { TaxiService } from './taxi/taxi.service';
+// import { TaxiController } from './taxi/taxi.controller';
 import { TaxiModule } from './taxi/taxi.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'client/build'),
-    }),
+    // ServeStaticModule.forRoot({
+    //   rootPath: join(__dirname, '..', 'client/build'),
+    // }),
 
     ConfigModule.forRoot({
       isGlobal: true,
@@ -22,8 +23,9 @@ import { TaxiModule } from './taxi/taxi.module';
     BusModule,
     ShuttleModule,
     TaxiModule,
+    ChatModule,
   ],
-  providers: [TaxiService],
-  controllers: [TaxiController],
+  // providers: [TaxiService],
+  // controllers: [TaxiController],
 })
 export class AppModule {}

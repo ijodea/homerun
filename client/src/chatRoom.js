@@ -1,9 +1,176 @@
-// ChatRoom.js
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import styled from "styled-components";
 import axios from "axios";
 
 const API_BASE_URL = "http://localhost:8000";
+
+// Styled Components
+const ChatContainer = styled.div`
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f9fa;
+`;
+
+const Header = styled.div`
+  background-color: white;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+`;
+
+const HeaderContent = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 48rem;
+  margin: 0 auto;
+`;
+
+const BackButton = styled.button`
+  padding: 0.5rem;
+  border-radius: 9999px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: #4b5563;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+`;
+
+const GroupInfo = styled.div`
+  flex: 1;
+`;
+
+const GroupTitle = styled.h1`
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin: 0;
+`;
+
+const MemberCount = styled.p`
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const OnlineDot = styled.div`
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: #10b981;
+  border-radius: 9999px;
+`;
+
+const ChatArea = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+`;
+
+const MessagesContainer = styled.div`
+  max-width: 48rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const MessageWrapper = styled.div`
+  display: flex;
+  justify-content: ${(props) =>
+    props.isMyMessage ? "flex-end" : "flex-start"};
+  margin-bottom: 1rem;
+`;
+
+const MessageContent = styled.div`
+  max-width: 70%;
+`;
+
+const SenderName = styled.span`
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-left: 0.75rem;
+  margin-bottom: 0.25rem;
+  display: block;
+`;
+
+const MessageBubble = styled.div`
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  ${(props) =>
+    props.isMyMessage
+      ? `
+    background-color: #2563eb;
+    color: white;
+    border-bottom-right-radius: 0.25rem;
+  `
+      : `
+    background-color: white;
+    color: #1f2937;
+    border-bottom-left-radius: 0.25rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  `}
+`;
+
+const MessageTime = styled.span`
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 0.25rem;
+  display: block;
+  text-align: ${(props) => (props.isMyMessage ? "right" : "left")};
+  padding: 0 0.5rem;
+`;
+
+const InputArea = styled.div`
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem;
+`;
+
+const InputForm = styled.form`
+  max-width: 48rem;
+  margin: 0 auto;
+  display: flex;
+  gap: 0.75rem;
+`;
+
+const MessageInput = styled.input`
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 9999px;
+  outline: none;
+
+  &:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  }
+`;
+
+const SendButton = styled.button`
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  border: none;
+  background-color: ${(props) => (props.disabled ? "#e5e7eb" : "#2563eb")};
+  color: ${(props) => (props.disabled ? "#9ca3af" : "white")};
+  font-weight: 500;
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
+  transition: background-color 0.2s;
+
+  &:hover:not(:disabled) {
+    background-color: #1d4ed8;
+  }
+`;
 
 function ChatRoom() {
   const { groupId } = useParams();
@@ -13,9 +180,9 @@ function ChatRoom() {
   const [roomInfo, setRoomInfo] = useState(null);
   const [error, setError] = useState("");
   const messagesEndRef = useRef(null);
-  const userId = localStorage.getItem("userId"); // 이전 페이지에서 저장한 userId 사용
+  const userId = localStorage.getItem("userId");
+  const messageContainerRef = useRef(null);
 
-  // localStorage에 userId가 없는 경우 taxi 페이지로 리다이렉트
   useEffect(() => {
     if (!userId) {
       navigate("/taxi");
@@ -23,20 +190,21 @@ function ChatRoom() {
   }, [userId, navigate]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messageContainerRef.current) {
+      messageContainerRef.current.scrollTop =
+        messageContainerRef.current.scrollHeight;
+    }
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // 채팅방 생성 또는 참여
   useEffect(() => {
     const initializeRoom = async () => {
       if (!groupId) return;
 
       try {
-        // 먼저 채팅방 생성 시도
         const createResponse = await axios.post(
           `${API_BASE_URL}/chat/room/${groupId}`
         );
@@ -45,7 +213,6 @@ function ChatRoom() {
           setRoomInfo(createResponse.data.data);
           setMessages(createResponse.data.data.messages);
         } else {
-          // 생성 실패 시 기존 채팅방 조회
           const getResponse = await axios.get(
             `${API_BASE_URL}/chat/room/${groupId}`
           );
@@ -65,7 +232,6 @@ function ChatRoom() {
 
     initializeRoom();
 
-    // 주기적으로 메시지 업데이트 (폴링)
     const intervalId = setInterval(async () => {
       try {
         const response = await axios.get(
@@ -96,6 +262,7 @@ function ChatRoom() {
 
       if (response.data.success) {
         setNewMessage("");
+        scrollToBottom();
       } else {
         setError("메시지 전송에 실패했습니다");
       }
@@ -109,87 +276,74 @@ function ChatRoom() {
     navigate("/taxi");
   };
 
+  const formatTime = (date) => {
+    return new Date(date).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   if (error) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-red-500">{error}</div>
+        <div className="text-red-500 bg-white p-4 rounded-lg shadow">
+          {error}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
-      {/* Header */}
-      <div className="bg-white shadow-sm p-4 flex items-center">
-        <button
-          onClick={handleBack}
-          className="p-2 hover:bg-gray-100 rounded-full"
-        >
-          ←
-        </button>
-        <div className="ml-4">
-          <h1 className="text-lg font-semibold">택시 그룹 {groupId}</h1>
-          <p className="text-sm text-gray-500">
-            {roomInfo?.members?.length || 0}명의 멤버
-          </p>
-        </div>
-      </div>
+    <ChatContainer>
+      <Header>
+        <HeaderContent>
+          <BackButton onClick={handleBack}>←</BackButton>
+          <GroupInfo>
+            <GroupTitle>Group #{groupId}</GroupTitle>
+            <MemberCount>
+              <OnlineDot />
+              {roomInfo?.members?.length || 0} members active
+            </MemberCount>
+          </GroupInfo>
+        </HeaderContent>
+      </Header>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${
-              message.userId === userId ? "justify-end" : "justify-start"
-            } mb-4`}
-          >
-            <div
-              className={`max-w-[70%] rounded-lg p-3 ${
-                message.userId === userId
-                  ? "bg-blue-500 text-white"
-                  : "bg-white"
-              }`}
-            >
-              {message.userId !== userId && (
-                <div className="text-xs text-gray-500 mb-1">
-                  {message.userId}
-                </div>
-              )}
-              <div>{message.content}</div>
-              <div className="text-xs mt-1 text-right">
-                {new Date(message.createAt).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </div>
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
+      <ChatArea ref={messageContainerRef}>
+        <MessagesContainer>
+          {messages.map((message) => {
+            const isMyMessage = message.userId === userId;
+            return (
+              <MessageWrapper key={message.id} isMyMessage={isMyMessage}>
+                <MessageContent>
+                  {!isMyMessage && <SenderName>{message.userId}</SenderName>}
+                  <MessageBubble isMyMessage={isMyMessage}>
+                    {message.content}
+                  </MessageBubble>
+                  <MessageTime isMyMessage={isMyMessage}>
+                    {formatTime(message.createAt)}
+                  </MessageTime>
+                </MessageContent>
+              </MessageWrapper>
+            );
+          })}
+          <div ref={messagesEndRef} />
+        </MessagesContainer>
+      </ChatArea>
 
-      {/* Message Input */}
-      <form
-        onSubmit={handleSendMessage}
-        className="bg-white p-4 flex items-center gap-2"
-      >
-        <input
-          type="text"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="메시지를 입력하세요..."
-          className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:border-blue-500"
-        />
-        <button
-          type="submit"
-          className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 focus:outline-none"
-          disabled={!newMessage.trim()}
-        >
-          →
-        </button>
-      </form>
-    </div>
+      <InputArea>
+        <InputForm onSubmit={handleSendMessage}>
+          <MessageInput
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="메시지를 입력하세요..."
+          />
+          <SendButton type="submit" disabled={!newMessage.trim()}>
+            전송
+          </SendButton>
+        </InputForm>
+      </InputArea>
+    </ChatContainer>
   );
 }
 
