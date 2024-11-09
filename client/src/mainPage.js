@@ -1,9 +1,9 @@
+// MainPage.js
 import React, { useState, useEffect } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import './App.css';
 import './card.css';
-import axios from 'axios';
 
 // 아이콘 파일 import
 import taxiIcon from './assets/Taxi.png';
@@ -153,6 +153,8 @@ const MainPage = () => {
     const [showDirectionControls, setShowDirectionControls] = useState(false);
     const [cardVisible, setCardVisible] = useState(false);
     const [directionControlsVisible, setDirectionControlsVisible] = useState(false);
+    const [efficientTransport, setEfficientTransport] = useState(null);
+    const [arrivalTime, setArrivalTime] = useState(null);
     const location = useLocation();
 
     useEffect(() => {
@@ -173,19 +175,81 @@ const MainPage = () => {
             setShowDirectionControls(false);
             setTimeout(() => setCardVisible(true), 33);
             setDirectionControlsVisible(false);
+            fetchEfficientTransport();
         } else if (location.pathname === "/info" || location.pathname === "/taxi") {
             setShowEfficiencyCard(false);
             setShowDirectionControls(true);
             setCardVisible(false);
             setTimeout(() => setDirectionControlsVisible(true), 33);
         } else {
-            setShowEfficiencyCard(false); 
-            setShowDirectionControls(false); 
+            setShowEfficiencyCard(false);
+            setShowDirectionControls(false);
             setCardVisible(false);
             setDirectionControlsVisible(false);
         }
     }, [location]);
-    
+
+    const calculateArrivalTime = (departureMinutes, transportType) => {
+        const now = new Date();
+        const departureTime = new Date(now.getTime() + departureMinutes * 60000);
+        const travelTime = transportType === '셔틀' ? 20 : 32; // 셔틀은 20분, 버스는 32분으로 가정
+        const arrivalTime = new Date(departureTime.getTime() + travelTime * 60000);
+        return arrivalTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
+    const fetchEfficientTransport = async () => {
+        try {
+          const busResponse = await fetch(`http://localhost:8000/bus/mju-to-giheung`);
+          const shuttleResponse = await fetch(`http://localhost:8000/shuttle/next`);
+          
+          if (!busResponse.ok || !shuttleResponse.ok) {
+            throw new Error('네트워크 오류입니다.');
+          }
+          
+          const busData = await busResponse.json();
+          const shuttleData = await shuttleResponse.json();
+      
+          const busTimes = {
+            "5600": 32,
+            "5005": 38,
+            "5003A": 43,
+            "5003B": 43,
+            "820": 44,
+            "셔틀": 20
+          };
+      
+          const calculateArrivalTime = (departureMinutes, busType) => {
+            const now = new Date();
+            const departureTime = new Date(now.getTime() + departureMinutes * 60000);
+            const travelTime = busTimes[busType] || 30;
+            return new Date(departureTime.getTime() + travelTime * 60000);
+          };
+      
+          const allTransports = [
+            ...busData.map(bus => ({
+              type: 'bus',
+              number: bus.버스번호,
+              departureTime: parseInt(bus.도착시간) || Infinity,
+              arrivalTime: calculateArrivalTime(parseInt(bus.도착시간), bus.버스번호)
+            })),
+            {
+              type: 'shuttle',
+              number: '셔틀',
+              departureTime: parseInt(shuttleData.time) || Infinity,
+              arrivalTime: calculateArrivalTime(parseInt(shuttleData.time), '셔틀')
+            }
+          ];
+      
+          const fastestTransport = allTransports.reduce((fastest, current) => 
+            current.arrivalTime < fastest.arrivalTime ? current : fastest
+          );
+      
+          setEfficientTransport(fastestTransport);
+        } catch (error) {
+          console.error("Error fetching efficient transport:", error);
+          setEfficientTransport({ type: 'error', number: '정보 없음' });
+        }
+      };
     return (
         <AppContainer>
             <HeaderContainer>
@@ -210,8 +274,18 @@ const MainPage = () => {
                 </MenuContainer>
                 {showEfficiencyCard && (
                     <CardContainer className={cardVisible ? 'show' : ''}>
-                        <div className="card-header">현재 가장 효율적인 교통 수단</div>
-                        <div className="card-body">기흥역 셔틀버스</div>
+                        <div className="card-header">현재 가장 빠른 기흥-명지 교통수단</div>
+                        <div className="card-body">
+                            {efficientTransport ? (
+                                <>
+                                    <div>{efficientTransport.number}</div>
+                                    <div>도착 예정 시간: {efficientTransport.arrivalTime instanceof Date
+                                        ? efficientTransport.arrivalTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                        : '정보 없음'}
+                                    </div>
+                                </>
+                            ) : '로딩 중...'}
+                        </div>
                         <Time>현재 시간: {currentTime}</Time>
                     </CardContainer>
                 )}
@@ -239,8 +313,7 @@ const MainPage = () => {
                 <Outlet context={{ direction }} />
             </HeaderContainer>
             <Footer>
-                © 2024 공개SW 아2조디어 | HomeRun |
-                백병재 강병수 박영찬 이승현
+                © 2024 공개SW 아2조디어 | HomeRun | 백병재 강병수 박영찬 이승현
             </Footer>
         </AppContainer>
     );
