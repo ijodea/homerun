@@ -1,13 +1,12 @@
-
-import React, {useState, useEffect} from "react";
+import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import MainPage from "./mainPage.js"; 
-import InfoPage from "./infoPage.js";
-import TaxiPage from "./taxiPage.js";
-import TaxiGroup from "./taxiGroup.js";
-import BusDetail from "./busDetail.js"; // DetailPage 추가
-import ShuttleDetail from "./shuttleDetail.js";   // DetailBus 추가
-import axios from 'axios';  
+import MainPage from "./mainPage"; 
+import InfoPage from "./infoPage"; 
+import TaxiPage from "./taxiPage"; 
+import TaxiGroup from "./taxiGroup"; 
+import BusDetail from "./busDetail"; 
+import ShuttleDetail from "./shuttleDetail";   
+import LoginPage from "./loginPage";  
 
 function App() {
     return (
@@ -17,7 +16,8 @@ function App() {
                     <Route path="info" element={<InfoPage />} />
                     <Route path="taxi" element={<TaxiPage />} />
                 </Route>
-                <Route path="taxiGroup" element={<TaxiGroup />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/taxiGroup" element={<TaxiGroup />} />
                 <Route path="/busDetail" element={<BusDetail />} />
                 <Route path="/shuttleDetail" element={<ShuttleDetail />} />
             </Routes>

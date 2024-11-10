@@ -5,29 +5,6 @@ import "./App.css";
 import "./card.css";
 import { useOutletContext } from "react-router-dom";
 
-const SelectText = styled.div`
-    margin: 12px; 
-    color: #666; 
-    text-align: left;
-    font-size: 13px; 
-    font-weight: bold;
-    margin-bottom: 0;
-`;
-
-const Select = styled.select`
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 15px;
-    margin: 7px 18px 5px 7px;
-    cursor: pointer;
-    width: 370px;
-
-    &:hover {
-        border-color: #007bff;
-    }
-`;
-
 const TaxiGroupBtn = styled(Link)`
     display: block;
     background-color: #007bff;
@@ -69,11 +46,6 @@ function TaxiPage() {
         <div className="card-container">
             <div className="card">
                     <div className="card-header">{dir}</div>
-                <SelectText>방향 선택:</SelectText>
-                <Select value={direction} onChange={handleSelectChange}>
-                    <option value="학교 → 기흥역">학교 → 기흥역</option>
-                    <option value="기흥역 → 학교">기흥역 → 학교</option>
-                </Select>
                 <TaxiGroupBtn to="/taxiGroup">택시 모집</TaxiGroupBtn>
             </div>
         </div>

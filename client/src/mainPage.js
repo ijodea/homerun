@@ -3,6 +3,8 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import './App.css';
 import './card.css';
+import HomerunLink from "./homeRunLink";
+import LoginPage from "./loginPage";
 import axios from 'axios';
 
 // 아이콘 파일 import
@@ -18,12 +20,13 @@ const HeaderContainer = styled.div`
     width: 100%; /* 전체 너비 */
 `;
 
-const HomerunLink = styled(Link)`
-    color: #007bff;
-    font-size: 1.5em; /* 글씨 크기 */
-    font-weight: bold; /* 글씨 두껍게 */
+const LoginPageLink = styled(Link)`
+    color: black;
+    font-size: 0.9em; /* 글씨 크기 */
     text-decoration: none;
-    margin: 10px 20px; /* 위치 조정 */
+    position: absolute;
+    right: 20px; /* 오른쪽 여백 */
+    top: 20px; /* 위쪽 여백 */
 `;
 
 const MenuContainer = styled.nav`
@@ -121,8 +124,8 @@ const MainPage = () => {
 
     return (
         <HeaderContainer>
-            <HomerunLink to="/">Homerun</HomerunLink>
-
+            <HomerunLink />
+            <LoginPageLink to="/login">로그인</LoginPageLink>
             <MenuContainer>
                 <MenuItem 
                     to={`/info?direction=${direction}`} 
