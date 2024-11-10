@@ -1,5 +1,3 @@
-// InfoPage.js
-
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useOutletContext } from "react-router-dom";
@@ -44,7 +42,21 @@ const Title = styled.h2`
 
 const InfoItem = styled.div`
     text-align: left;
-    margin: 2px 0; 
+    margin: 2px 0;
+`;
+
+const RefreshButton = styled.button`
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    &:hover {
+        background-color: #0056b3;
+    }
 `;
 
 const Info = () => {
@@ -70,23 +82,23 @@ const Info = () => {
         const minutes = futureTime.getMinutes().toString().padStart(2, '0');
         return `${hours}:${minutes}`;
     };
-    
+
     const calculateArrivalTime = (departureMinutes, busNumber) => {
         const additionalTime = busTimes[busNumber] || 0;
         return calculateDepartureTime(departureMinutes + additionalTime);
     };
-    
+
     const fetchBusInfo = async () => {
         try {
             const response = await fetch(`http://localhost:8000/bus/${direction}`);
             if (!response.ok) throw new Error('네트워크 오류입니다.');
             const data = await response.json();
-    
+
             const filteredBusInfo = data.map((bus) => {
                 const departureMinutes = bus.도착시간 ? parseInt(bus.도착시간) : 0;
                 const departureTime = calculateDepartureTime(departureMinutes);
                 const arrivalTime = calculateArrivalTime(departureMinutes, bus.버스번호);
-    
+
                 return {
                     busNumber: bus.버스번호,
                     departureTime,
@@ -107,16 +119,16 @@ const Info = () => {
         try {
             const response = await fetch(`http://localhost:8000/shuttle/next`);
             const text = await response.text();
-    
+
             if (!response.ok) {
                 throw new Error(`네트워크 오류: ${response.status}`);
             }
             const data = JSON.parse(text);
-    
+
             const departureMinutes = parseInt(data.time);
             const departureTime = calculateDepartureTime(departureMinutes);
             const arrivalTime = calculateArrivalTime(departureMinutes, "셔틀");
-    
+
             setShuttleInfo([{
                 busNumber: data.nextShuttle ? `${data.nextShuttle}` : '셔틀',
                 departureTime,
@@ -143,6 +155,12 @@ const Info = () => {
         fetchShuttleInfo();
     }, [direction]);
 
+    const handleRefresh = () => {
+        setLoading(true);
+        fetchBusInfo();
+        fetchShuttleInfo();
+    };
+
     const sortedInfo = [...busInfo, ...shuttleInfo].sort((a, b) => {
         const [aHours, aMinutes] = a.arrivalTime.split(':').map(Number);
         const [bHours, bMinutes] = b.arrivalTime.split(':').map(Number);
@@ -158,22 +176,25 @@ const Info = () => {
     }
 
     return (
-        <CardContainer>
-            <TransitionGroup component={null}>
-                {sortedInfo.map((info, index) => (
-                    <CSSTransition key={index} timeout={300} classNames="fade" appear={true}>
-                        <Card type={info.type}>  
-                            <Title type={info.type}>{info.busNumber}</Title>
-                            <div>
-                                <InfoItem><strong>출발 시간:</strong> {info.departureTime}</InfoItem>
-                                <InfoItem><strong>도착 시간:</strong> {info.arrivalTime}</InfoItem>
-                                <InfoItem><strong>탑승 인원:</strong> {info.remainingSeats}</InfoItem>
-                            </div>
-                        </Card>
-                    </CSSTransition>
-                ))}
-            </TransitionGroup>
-        </CardContainer>
+        <>
+            <RefreshButton onClick={handleRefresh}>정보 갱신</RefreshButton>
+            <CardContainer>
+                <TransitionGroup component={null}>
+                    {sortedInfo.map((info, index) => (
+                        <CSSTransition key={index} timeout={300} classNames="fade" appear={true}>
+                            <Card type={info.type}>
+                                <Title type={info.type}>{info.busNumber}</Title>
+                                <div>
+                                    <InfoItem><strong>출발 시간:</strong> {info.departureTime}</InfoItem>
+                                    <InfoItem><strong>도착 시간:</strong> {info.arrivalTime}</InfoItem>
+                                    <InfoItem><strong>탑승 인원:</strong> {info.remainingSeats}</InfoItem>
+                                </div>
+                            </Card>
+                        </CSSTransition>
+                    ))}
+                </TransitionGroup>
+            </CardContainer>
+        </>
     );
 };
 
