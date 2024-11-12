@@ -7,5 +7,6 @@ import { ConfigModule } from '@nestjs/config';
   imports: [ConfigModule.forRoot({ isGlobal: true })],
   controllers: [TaxiController],
   providers: [TaxiService],
+  exports: [TaxiService],
 })
 export class TaxiModule {}

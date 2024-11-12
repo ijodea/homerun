@@ -1,38 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-
-interface LocationData {
-  latitude: number;
-  longitude: number;
-  to: string;
-  userId: string; // 사용자 식별을 위한 필드 추가
-}
-
-interface GroupMember {
-  userId: string;
-  joinedAt: Date;
-}
-
-interface TaxiGroup {
-  id: string;
-  destination: string;
-  members: GroupMember[];
-  createdAt: Date;
-  isFull: boolean;
-}
+import {
+  LocationData,
+  TaxiGroup,
+  GPSBounds,
+  GroupStatus,
+  LocationUpdateResponse,
+} from './interfaces/taxi.interface';
 
 @Injectable()
 export class TaxiService {
-  private readonly mjuGPS: {
-    sw: { lat: number; lng: number };
-    ne: { lat: number; lng: number };
-  };
-  private readonly ghGPS: {
-    sw: { lat: number; lng: number };
-    ne: { lat: number; lng: number };
-  };
-  private activeGroups: Map<string, TaxiGroup> = new Map(); // 현재 활성화된 그룹들
+  private readonly mjuGPS: GPSBounds;
+  private readonly ghGPS: GPSBounds;
+  private activeGroups: Map<string, TaxiGroup> = new Map();
   private readonly MAX_GROUP_SIZE = 4;
+
+  private groups: {
+    group: TaxiGroup;
+    priority: number;
+  }[] = [];
 
   constructor(private readonly configService: ConfigService) {
     // 기존 GPS 설정 코드는 동일하게 유지
@@ -54,8 +40,53 @@ export class TaxiService {
       ne: { lat: ghCoords[1], lng: ghCoords[3] },
     };
 
-    // 주기적으로 오래된 그룹 정리 (30분마다)
-    setInterval(() => this.cleanupOldGroups(), 30 * 60 * 1000);
+    // 주기적으로 오래된 그룹 정리 (5분마다)
+    setInterval(() => this.cleanupOldGroups(), 5 * 60 * 1000);
+    // 주기적으로 우선순위 업데이트 하기
+    setInterval(() => this.updatePriorities(), 60 * 1000);
+  }
+
+  // 가중치를 줘서 (기다린 시간 7, 멤버 수 3) 우선순위 큐 우선순위 적용
+  private calculatePriority(group: TaxiGroup): number {
+    const waitingTimeWeight = 0.7;
+    const memberCountWeight = 0.3;
+    const waitingTime = (Date.now() - group.createdAt.getTime()) / (1000 * 60);
+
+    const normalizedWaitingScore = Math.min(waitingTime, 30) / 30;
+    const normalizedMemberScore = group.members.length / this.MAX_GROUP_SIZE;
+
+    return -(
+      normalizedWaitingScore * waitingTimeWeight +
+      normalizedMemberScore * memberCountWeight
+    );
+  }
+
+  // 우선순위 큐에 그룹 enqueue
+  private enqueueGroup(group: TaxiGroup): void {
+    const priority = this.calculatePriority(group);
+    const queueElement = { group, priority };
+
+    let added = false;
+    for (let i = 0; i < this.groups.length; i++) {
+      if (priority < this.groups[i].priority) {
+        this.groups.splice(i, 0, queueElement);
+        added = true;
+        break;
+      }
+    }
+
+    if (!added) {
+      this.groups.push(queueElement);
+    }
+  }
+
+  // 우선순위 업데이트
+  private updatePriorities(): void {
+    this.groups.forEach((item) => {
+      item.priority = this.calculatePriority(item.group);
+    });
+
+    this.groups.sort((a, b) => a.priority - b.priority);
   }
 
   private isLocationInBounds(
@@ -78,7 +109,7 @@ export class TaxiService {
     return true; //테스트용으로 항상 true
   }
 
-  async getGroupStatus(groupId: string) {
+  async getGroupStatus(groupId: string): Promise<GroupStatus> {
     const group = this.activeGroups.get(groupId);
     if (!group) {
       return {
@@ -91,6 +122,7 @@ export class TaxiService {
       success: true,
       groupId: group.id,
       memberCount: group.members.length,
+      memberIds: group.members.map((member) => member.userId),
       isFull: group.isFull,
       destination: group.destination,
     };
@@ -102,16 +134,14 @@ export class TaxiService {
   }
 
   private findAvailableGroup(destination: string): TaxiGroup | null {
-    for (const group of this.activeGroups.values()) {
-      if (
-        group.destination === destination &&
-        !group.isFull &&
-        group.members.length < this.MAX_GROUP_SIZE
-      ) {
-        return group;
-      }
-    }
-    return null;
+    const availableGroup = this.groups.find(
+      (item) =>
+        item.group.destination === destination &&
+        !item.group.isFull &&
+        item.group.members.length < this.MAX_GROUP_SIZE,
+    );
+
+    return availableGroup ? availableGroup.group : null;
   }
 
   private createNewGroup(destination: string, userId: string): TaxiGroup {
@@ -124,19 +154,28 @@ export class TaxiService {
       isFull: false,
     };
     this.activeGroups.set(groupId, newGroup);
+    this.enqueueGroup(newGroup);
     return newGroup;
   }
 
   private cleanupOldGroups() {
-    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+    const fiveMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
     for (const [groupId, group] of this.activeGroups.entries()) {
-      if (group.createdAt < thirtyMinutesAgo) {
+      if (group.createdAt < fiveMinutesAgo) {
         this.activeGroups.delete(groupId);
+        const index = this.groups.findIndex(
+          (item) => item.group.id === groupId,
+        );
+        if (index !== -1) {
+          this.groups.splice(index, 1);
+        }
       }
     }
   }
 
-  async processLocation(locationData: LocationData) {
+  async processLocation(
+    locationData: LocationData,
+  ): Promise<LocationUpdateResponse> {
     console.log('받은 위치 정보:', locationData);
 
     let isInValidLocation = false;
@@ -199,9 +238,9 @@ export class TaxiService {
       },
     };
 
-    console.log('=== 위치 판별 및 그룹 매칭 결과 ===');
-    console.log(JSON.stringify(result, null, 2));
-    console.log('================================\n');
+    // console.log('=== 위치 판별 및 그룹 매칭 결과 ===');
+    // console.log(JSON.stringify(result, null, 2));
+    // console.log('================================\n');
 
     return result;
   }

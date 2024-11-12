@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
 
@@ -58,13 +58,20 @@ const ErrorContainer = styled.div`
 const API_BASE_URL = "http://localhost:8000"; // NestJS 서버 주소
 
 const TaxiPage = () => {
+  const navigate = useNavigate();
   const { direction } = useOutletContext();
-  const [userId, setUserId] = useState("");
+
+  const [userId, setUserId] = useState(() => {
+    // localStorage에서 userId를 가져와서 초기값으로 설정
+    const savedUserId = localStorage.getItem("userId");
+    return savedUserId || "";
+  });
   const [latitude, setLatitude] = useState("-");
   const [longitude, setLongitude] = useState("-");
   const [response, setResponse] = useState(null);
   const [error, setError] = useState("");
   const [currentGroupId, setCurrentGroupId] = useState(null);
+  const [redirectTimer, setRedirectTimer] = useState(null);
 
   const resetState = () => {
     setUserId("");
@@ -89,52 +96,73 @@ const TaxiPage = () => {
     }
   }, []);
 
+  // userId가 변경될 때마다 localStorage 업데이트
   useEffect(() => {
-    let intervalId;
+    if (userId) {
+      localStorage.setItem("userId", userId);
+    }
+  }, [userId]);
 
-    if (currentGroupId) {
-      intervalId = setInterval(async () => {
-        try {
-          const url = `${API_BASE_URL}/taxi/group/${currentGroupId}`;
-          console.log("Polling group status:", url);
+  // 그룹 상태 확인 및 채팅방 리다이렉트
+  useEffect(() => {
+    let statusCheckInterval = null;
 
-          const { data } = await axios.get(url);
+    const checkGroupStatus = async () => {
+      if (!currentGroupId) return;
 
-          if (data.success) {
+      try {
+        const url = `${API_BASE_URL}/taxi/group/${currentGroupId}`;
+        console.log("Polling group status:", url);
+
+        const { data } = await axios.get(url);
+
+        if (data.success) {
+          setResponse((prev) => ({
+            ...prev,
+            data: {
+              ...prev.data,
+              group: {
+                ...prev.data.group,
+                memberCount: data.memberCount,
+                isFull: data.isFull,
+              },
+            },
+            message: `${prev.message.split("|")[0]} | 그룹 번호: ${
+              data.groupId
+            } (${data.memberCount}/4명)`,
+          }));
+
+          // 그룹이 가득 찼을 때 리다이렉트 설정
+          if (data.isFull && !redirectTimer) {
             setResponse((prev) => ({
               ...prev,
-              data: {
-                ...prev.data,
-                group: {
-                  ...prev.data.group,
-                  memberCount: data.memberCount,
-                  isFull: data.isFull,
-                },
-              },
-              message: `${prev.message.split("|")[0]} | 그룹 번호: ${
-                data.groupId
-              } (${data.memberCount}/4명)`,
+              message: `${prev.message} | 3초 후 채팅방으로 이동합니다...`,
             }));
 
-            if (data.isFull) {
-              setTimeout(() => {
-                resetState();
-                alert("택시 모집이 완료되었습니다.");
-              }, 3000);
-            }
-          }
-        } catch (err) {
-          console.error("그룹 상태 확인 중 오류:", err.response || err);
-        }
-      }, 3000);
-    }
+            const timer = setTimeout(() => {
+              navigate(`/chat/room/${currentGroupId}`);
+            }, 3000);
 
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
+            setRedirectTimer(timer);
+          }
+        }
+      } catch (err) {
+        console.error("그룹 상태 확인 중 오류:", err.response || err);
       }
     };
-  }, [currentGroupId]);
+
+    if (currentGroupId) {
+      statusCheckInterval = setInterval(checkGroupStatus, 3000);
+      // 초기 상태 확인
+      checkGroupStatus();
+    }
+
+    // Clean up function
+    return () => {
+      if (statusCheckInterval) clearInterval(statusCheckInterval);
+      if (redirectTimer) clearTimeout(redirectTimer);
+    };
+  }, [currentGroupId, navigate, redirectTimer]);
 
   const handleSubmit = async () => {
     if (!userId) {
@@ -164,10 +192,27 @@ const TaxiPage = () => {
       );
       console.log("서버 응답:", data);
 
+      // API 요청이 성공하면 localStorage에 userId 저장
+      localStorage.setItem("userId", userId);
+
       setResponse(data);
 
       if (data.success && data.data.group) {
         setCurrentGroupId(data.data.group.groupId);
+
+        // 이미 가득 찬 그룹에 참여한 경우
+        if (data.data.group.isFull && !redirectTimer) {
+          setResponse((prev) => ({
+            ...prev,
+            message: `${prev.message} | 3초 후 채팅방으로 이동합니다...`,
+          }));
+
+          const timer = setTimeout(() => {
+            navigate(`/chat/room/${data.data.group.groupId}`);
+          }, 3000);
+
+          setRedirectTimer(timer);
+        }
       }
     } catch (err) {
       console.error("API 요청 상세 오류:", {
