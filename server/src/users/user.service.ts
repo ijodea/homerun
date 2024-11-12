@@ -43,9 +43,11 @@ export class UsersService {
     const user = await this.findUserByPhoneNumber(phoneNumber);
     if (!user) return false;
 
-    const isPhoneValid = await bcrypt.compare(phoneNumber, user.phoneNumber);
     const isStudentIdValid = await bcrypt.compare(studentId, user.studentId);
+    const isPhoneValid = await bcrypt.compare(phoneNumber, user.phoneNumber);
+    
 
-    return user.name === name && isPhoneValid && isStudentIdValid;
+    return user.name === name && isStudentIdValid && isPhoneValid;
+    
   }
 }

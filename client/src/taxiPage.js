@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
+import {useNavigate} from 'react-router-dom';
 
 const TaxiPageContainer = styled.div`
   max-width: 800px;
@@ -58,6 +59,7 @@ const ErrorContainer = styled.div`
 const API_BASE_URL = "http://localhost:8000"; // NestJS 서버 주소
 
 const TaxiPage = () => {
+  const navigate = useNavigate();
   const { direction } = useOutletContext();
   const [userId, setUserId] = useState("");
   const [latitude, setLatitude] = useState("-");
@@ -65,6 +67,16 @@ const TaxiPage = () => {
   const [response, setResponse] = useState(null);
   const [error, setError] = useState("");
   const [currentGroupId, setCurrentGroupId] = useState(null);
+
+
+  // 사용자 로그인 했는지 확인
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      navigate("/login");
+    }
+  }, [navigate]);
 
   const resetState = () => {
     setUserId("");
@@ -95,10 +107,15 @@ const TaxiPage = () => {
     if (currentGroupId) {
       intervalId = setInterval(async () => {
         try {
+          const token = localStorage.getItem("token");
           const url = `${API_BASE_URL}/taxi/group/${currentGroupId}`;
           console.log("Polling group status:", url);
 
-          const { data } = await axios.get(url);
+          const { data } = await axios.get(url,{
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
           if (data.success) {
             setResponse((prev) => ({
@@ -148,6 +165,7 @@ const TaxiPage = () => {
     }
 
     try {
+      const token = localStorage.getItem("token");
       const locationData = {
         userId,
         latitude: parseFloat(latitude),
@@ -160,7 +178,12 @@ const TaxiPage = () => {
 
       const { data } = await axios.post(
         `${API_BASE_URL}/taxi/location`,
-        locationData
+        locationData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       console.log("서버 응답:", data);
 

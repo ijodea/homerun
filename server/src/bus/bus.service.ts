@@ -29,14 +29,18 @@ export class BusService {
         const items = jsonData.response.msgBody[0].busArrivalList;
         const filteredBusInfo = items
           .filter((item) =>
-            Object.values(this.busRouteMap).includes(item.routeId[0]),
+            busNumbers.includes(
+              Object.keys(this.busRouteMap).find(
+                (key) => this.busRouteMap[key] === item.routeId[0]
+              )
+            )
           )
           .map((item) => ({
-            버스번호: Object.keys(this.busRouteMap).find(
+            busNumber: Object.keys(this.busRouteMap).find(
               (key) => this.busRouteMap[key] === item.routeId[0],
             ),
-            도착시간: `${item.predictTime1[0]}분 후 도착`,
-            남은좌석수:
+            arrivalTime: `${item.predictTime1[0]}분 후 도착`,
+            remainingSeats:
               item.remainSeatCnt1[0] === '-1'
                 ? '정보 없음'
                 : `${item.remainSeatCnt1[0]}석 남음`,

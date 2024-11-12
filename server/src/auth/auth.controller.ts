@@ -8,9 +8,10 @@ export class AuthController {
   @Post('login')
   async login(
     @Body('name') name: string,
-    @Body('phoneNumber') phoneNumber: string,
     @Body('studentId') studentId: string,
+    @Body('phoneNumber') phoneNumber: string,
+  
   ) {
-    return this.authService.login(name, phoneNumber, studentId);
+    return this.authService.login(name, studentId, phoneNumber);
   }
 }

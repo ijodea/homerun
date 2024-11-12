@@ -15,6 +15,7 @@ import {JwtAuthGuard} from './auth/jwt-auth.guard';
 import {TypeOrmModule} from '@nestjs/typeorm';
 import {User} from './users/user.entity';
 import { UsersModule } from './users/user.module';
+import { AuthModule } from './auth/auth.module';
 
 
 @Module({
