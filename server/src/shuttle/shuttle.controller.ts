@@ -1,21 +1,21 @@
 import { Controller, Get } from '@nestjs/common';
 import { ShuttleService } from './shuttle.service';
-//주어진 경로에 대해 다음 셔틀 버스의 정보를 제공하는 기능 수행
+
 @Controller('shuttle')
 export class ShuttleController {
   constructor(private readonly shuttleService: ShuttleService) {}
 
   @Get('next')
-  getNextShuttle() {
+  async getNextShuttle() {
     const currentTime = new Date();
-    const m = this.shuttleService.getMStationTime(currentTime);
-    const el = this.shuttleService.getEverlineTime(m, currentTime);
-    const g = this.shuttleService.getGStationTime(currentTime);
+    const m = await this.shuttleService.getMStationTime(currentTime);
+    const el = await this.shuttleService.getEverlineTime(m, currentTime);
+    const g = await this.shuttleService.getGStationTime(currentTime);
 
-    const eta_el = el + 16;
-    const eta_g = g + 15;
+    const eta_el = el !== null ? el + 16 : null;
+    const eta_g = g !== null ? g + 15 : null;
 
-    if (m !== null && g !== null && el !== null) {
+    if (m !== 0 && g !== null && el !== null) {
       if (eta_g <= eta_el) {
         return { nextShuttle: '기흥역 셔틀버스', time: g };
       } else {
