@@ -46,17 +46,27 @@ const InfoItem = styled.div`
 `;
 
 const RefreshButton = styled.button`
-    margin: 10px;
-    padding: 10px 20px;
-    font-size: 1em;
-    background-color: #007bff;
+    width: 50px; 
+    height: 50px; 
+    font-size: 1.5em;  /* 아이콘 크기 */
+    background-color: #005700;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 50%;  /* 버튼을 동그랗게 */
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;  
+     margin-left: auto; 
     &:hover {
-        background-color: #0056b3;
+        background-color: #003e00; 
     }
+`;
+const ButtonContainer = styled.div`
+    position: fixed;  /* 화면에 고정 */
+    right: 75px;      /* 오른쪽에서 20px 떨어진 위치 */
+    bottom: 75px;     /* 아래쪽에서 20px 떨어진 위치 */
+    z-index: 1000;
 `;
 
 const Info = () => {
@@ -177,7 +187,6 @@ const Info = () => {
 
     return (
         <>
-            <RefreshButton onClick={handleRefresh}>정보 갱신</RefreshButton>
             <CardContainer>
                 <TransitionGroup component={null}>
                     {sortedInfo.map((info, index) => (
@@ -194,6 +203,9 @@ const Info = () => {
                     ))}
                 </TransitionGroup>
             </CardContainer>
+            <ButtonContainer>
+                <RefreshButton onClick={handleRefresh}>↺</RefreshButton>
+            </ButtonContainer>
         </>
     );
 };
