@@ -100,7 +100,7 @@ const Info = () => {
 
     const fetchBusInfo = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/bus/${direction}`);
+            const response = await fetch(`http://192.168.95.1/bus/${direction}`);
             if (!response.ok) throw new Error('네트워크 오류입니다.');
             const data = await response.json();
 
@@ -127,7 +127,7 @@ const Info = () => {
 
     const fetchShuttleInfo = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/shuttle/next`);
+            const response = await fetch(`http://192.168.95.1/shuttle/next`);
             const text = await response.text();
 
             if (!response.ok) {

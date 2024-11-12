@@ -6,6 +6,9 @@ import TaxiPage from "./taxiPage.js";
 import TaxiGroup from "./taxiGroup.js";
 import BusDetail from "./busDetail.js"; // DetailPage 추가
 import ShuttleDetail from "./shuttleDetail.js";   // DetailBus 추가 
+import Direction from "./directioncontrols.js";
+import LoginPage from "./loginPage.js";
+import JoingPage from "./joinPage.js";
 import ChatRoom from "./chatRoom.js";
 import axios from "axios";
 
