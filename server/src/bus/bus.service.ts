@@ -35,7 +35,7 @@ export class BusService {
             버스번호: Object.keys(this.busRouteMap).find(
               (key) => this.busRouteMap[key] === item.routeId[0],
             ),
-            도착시간: `${item.predictTime1[0]}분 후 도착`,
+            도착시간: `${item.predictTime1[0]}`,
             남은좌석수:
               item.remainSeatCnt1[0] === '-1'
                 ? '정보 없음'

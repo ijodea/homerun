@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useOutletContext } from "react-router-dom";
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 const CardContainer = styled.div`
     display: flex;
@@ -10,50 +11,52 @@ const CardContainer = styled.div`
 `;
 
 const Card = styled.div`
-    background: white; /* 카드 배경색을 흰색으로 설정 */
+    background: white;
     border: 6px solid ${(props) => (props.type === 'shuttle' ? '#001C4A' : '#C00305')};
     border-radius: 8px;
     padding: 20px;
-    margin: 10px;
+    margin: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    flex: 1 1 calc(33.33% - 20px);
+    flex: 1 1 calc(30% - 20px);
     max-width: 300px;
-    text-decoration: none;
-    color: black; /* 기본 글자 색상 검정 */
-    transition: box-shadow 0.3s;
+    color: black;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: 160px; /* 카드 높이 조정 */
-    max-height: 160px; /* 최대 카드 높이 조정 */
-    min-height: 160px; /* 최소 카드 높이 조정 */
-
+    max-height: 180px;
+    min-height: 180px;
     &:hover {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    @media (max-width: 768px) {
-        flex: 1 1 calc(50% - 20px);
-    }
-
-    @media (max-width: 480px) {
-        flex: 1 1 100%;
     }
 `;
 
 const Title = styled.h2`
     text-align: center;
-    color: white; /* 제목 글자 색상 흰색 */
-    background-color: ${(props) => (props.type === 'shuttle' ? '#001C4A' : '#C00305')}; /* 카드 유형에 따라 제목 배경색 설정 */
-    padding: 10px; /* 제목 주변 여백 */
-    border-radius: 4px; /* 둥글게 처리 */
+    color: white;
+    background-color: ${(props) => (props.type === 'shuttle' ? '#001C4A' : '#C00305')};
+    padding: 10px;
+    border-radius: 4px;
     font-size: 1.5em;
     margin-bottom: 10px;
 `;
 
 const InfoItem = styled.div`
     text-align: left;
-    margin: 2px 0; 
+    margin: 2px 0;
+`;
+
+const RefreshButton = styled.button`
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    &:hover {
+        background-color: #0056b3;
+    }
 `;
 
 const Info = () => {
@@ -61,21 +64,49 @@ const Info = () => {
     const [shuttleInfo, setShuttleInfo] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { direction } = useOutletContext(); // 방향 가져오기
+    const { direction } = useOutletContext();
+
+    const busTimes = {
+        "셔틀": 20,
+        "5600": 32,
+        "5005": 38,
+        "5003A": 43,
+        "5003B": 43,
+        "820": 44
+    };
+
+    const calculateDepartureTime = (minutesFromNow) => {
+        const now = new Date();
+        const futureTime = new Date(now.getTime() + minutesFromNow * 60000);
+        const hours = futureTime.getHours().toString().padStart(2, '0');
+        const minutes = futureTime.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+    };
+
+    const calculateArrivalTime = (departureMinutes, busNumber) => {
+        const additionalTime = busTimes[busNumber] || 0;
+        return calculateDepartureTime(departureMinutes + additionalTime);
+    };
 
     const fetchBusInfo = async () => {
         try {
             const response = await fetch(`http://localhost:8000/bus/${direction}`);
-            if (!response.ok) {
-                throw new Error('네트워크 오류입니다.');
-            }
+            if (!response.ok) throw new Error('네트워크 오류입니다.');
             const data = await response.json();
-            const filteredBusInfo = data.map((bus) => ({
-                busNumber: bus.버스번호, // 버스 번호를 가져옴
-                arrivalTime: bus.도착시간 || '정보 없음',
-                remainingSeats: bus.남은좌석수 || '정보 없음',
-                type: 'bus',
-            }));
+
+            const filteredBusInfo = data.map((bus) => {
+                const departureMinutes = bus.도착시간 ? parseInt(bus.도착시간) : 0;
+                const departureTime = calculateDepartureTime(departureMinutes);
+                const arrivalTime = calculateArrivalTime(departureMinutes, bus.버스번호);
+
+                return {
+                    busNumber: bus.버스번호,
+                    departureTime,
+                    arrivalTime,
+                    remainingSeats: bus.남은좌석수 || '정보 없음',
+                    type: 'bus',
+                };
+            });
             setBusInfo(filteredBusInfo);
         } catch (error) {
             setError("버스 정보를 불러오는 데 문제가 발생했습니다.");
@@ -86,25 +117,34 @@ const Info = () => {
 
     const fetchShuttleInfo = async () => {
         try {
-            const response = await fetch(`${direction}`);
+            const response = await fetch(`http://localhost:8000/shuttle/next`);
+            const text = await response.text();
+
             if (!response.ok) {
-                throw new Error('네트워크 오류입니다.');
+                throw new Error(`네트워크 오류: ${response.status}`);
             }
-            const data = await response.json();
-            const filteredShuttlesInfo = data.map((shuttle) => ({
-                busNumber: "셔틀",
-                arrivalTime: shuttle.도착시간 || '정보 없음',
-                remainingSeats: shuttle.남은좌석수 || '정보 없음',
-                type: 'shuttle',
-            }));
-            setShuttleInfo(filteredShuttlesInfo);
-        } catch (error) {
+            const data = JSON.parse(text);
+
+            const departureMinutes = parseInt(data.time);
+            const departureTime = calculateDepartureTime(departureMinutes);
+            const arrivalTime = calculateArrivalTime(departureMinutes, "셔틀");
+
             setShuttleInfo([{
-                busNumber: "셔틀",
-                arrivalTime: '정보 없음',
+                busNumber: data.nextShuttle ? `${data.nextShuttle}` : '셔틀',
+                departureTime,
+                arrivalTime,
                 remainingSeats: '정보 없음',
                 type: 'shuttle',
-            }]); // 기본 셔틀 카드 추가
+            }]);
+        } catch (error) {
+            console.error('Fetch error:', error);
+            setShuttleInfo([{
+                busNumber: "셔틀",
+                departureTime: `${error.message}`,
+                arrivalTime: 'Error',
+                remainingSeats: 'Error',
+                type: 'shuttle',
+            }]);
         } finally {
             setLoading(false);
         }
@@ -113,9 +153,19 @@ const Info = () => {
     useEffect(() => {
         fetchBusInfo();
         fetchShuttleInfo();
-    }, [direction]); // 방향 변경 시 정보 재호출
+    }, [direction]);
 
-    const sortedInfo = [...busInfo, ...shuttleInfo]; // 셔틀 정보 추가
+    const handleRefresh = () => {
+        setLoading(true);
+        fetchBusInfo();
+        fetchShuttleInfo();
+    };
+
+    const sortedInfo = [...busInfo, ...shuttleInfo].sort((a, b) => {
+        const [aHours, aMinutes] = a.arrivalTime.split(':').map(Number);
+        const [bHours, bMinutes] = b.arrivalTime.split(':').map(Number);
+        return aHours !== bHours ? aHours - bHours : aMinutes - bMinutes;
+    });
 
     if (loading) {
         return <div>Loading...</div>;
@@ -126,21 +176,25 @@ const Info = () => {
     }
 
     return (
-        <CardContainer>
-            {sortedInfo.map((info, index) => (
-                <Card key={index} type={info.type}>  
-                    <Title type={info.type}>{info.type === 'shuttle' ? '셔틀' : `${info.busNumber}`}</Title> {/* type을 Title에 전달 */}
-                    <div>
-                        <InfoItem>
-                            <strong>도착 시간:</strong> {info.arrivalTime}
-                        </InfoItem>
-                        <InfoItem>
-                            <strong>탑승 인원:</strong> {info.remainingSeats}
-                        </InfoItem>
-                    </div>
-                </Card>
-            ))}
-        </CardContainer>
+        <>
+            <RefreshButton onClick={handleRefresh}>정보 갱신</RefreshButton>
+            <CardContainer>
+                <TransitionGroup component={null}>
+                    {sortedInfo.map((info, index) => (
+                        <CSSTransition key={index} timeout={300} classNames="fade" appear={true}>
+                            <Card type={info.type}>
+                                <Title type={info.type}>{info.busNumber}</Title>
+                                <div>
+                                    <InfoItem><strong>출발 시간:</strong> {info.departureTime}</InfoItem>
+                                    <InfoItem><strong>도착 시간:</strong> {info.arrivalTime}</InfoItem>
+                                    <InfoItem><strong>탑승 인원:</strong> {info.remainingSeats}</InfoItem>
+                                </div>
+                            </Card>
+                        </CSSTransition>
+                    ))}
+                </TransitionGroup>
+            </CardContainer>
+        </>
     );
 };
 

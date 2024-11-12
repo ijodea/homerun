@@ -1,55 +1,223 @@
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
-import { Link } from "react-router-dom";
-import "./App.css";
-import "./card.css";
 import { useOutletContext } from "react-router-dom";
+import styled from "styled-components";
+import axios from "axios";
 
-const TaxiGroupBtn = styled(Link)`
-    display: block;
-    background-color: #007bff;
-    text-align : center;
-    color: white;
-    border-radius: 3px;
-    font-size: 13px;
-    text-decoration: none;
-    padding: 5px;
-    margin: 8px 8px 6px; 
-    width: 15%;
-
-    &:hover {
-        transition: color 0.2s ease; 
-        background-color: #0056b3;
-    }
+const TaxiPageContainer = styled.div`
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
 `;
 
-function TaxiPage() {
-    const [selectedDirection, setSelectedDirection] = useState("방향 선택");
-    const { direction } = useOutletContext(); // 방향 가져오기
-    const dir = (direction === "/api/giheung-to-mju" ? "명지대행" : "기흥역행")
-    
-    useEffect(() => {
-        const savedDirection = localStorage.getItem("selectedDirection");
-        if (savedDirection) {
-            setSelectedDirection(savedDirection);
+const Input = styled.input`
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
+`;
+
+const Button = styled.button`
+  width: 100%;
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+
+  &:hover {
+    background-color: #2563eb;
+  }
+`;
+
+const LocationInfo = styled.div`
+  background-color: #f3f4f6;
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
+`;
+
+const ResponseContainer = styled.div`
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 0.25rem;
+  background-color: ${(props) => (props.success ? "#ecfdf5" : "#fef2f2")};
+  color: ${(props) => (props.success ? "#065f46" : "#991b1b")};
+`;
+
+const ErrorContainer = styled.div`
+  background-color: #fef2f2;
+  color: #991b1b;
+  padding: 1rem;
+  border-radius: 0.25rem;
+  margin-top: 1rem;
+`;
+
+const API_BASE_URL = "http://localhost:8000"; // NestJS 서버 주소
+
+const TaxiPage = () => {
+  const { direction } = useOutletContext();
+  const [userId, setUserId] = useState("");
+  const [latitude, setLatitude] = useState("-");
+  const [longitude, setLongitude] = useState("-");
+  const [response, setResponse] = useState(null);
+  const [error, setError] = useState("");
+  const [currentGroupId, setCurrentGroupId] = useState(null);
+
+  const resetState = () => {
+    setUserId("");
+    setResponse(null);
+    setCurrentGroupId(null);
+  };
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLatitude(position.coords.latitude.toFixed(6));
+          setLongitude(position.coords.longitude.toFixed(6));
+          setError("");
+        },
+        (error) => {
+          setError("위치 정보를 가져올 수 없습니다: " + error.message);
         }
-    }, []);
+      );
+    } else {
+      setError("이 브라우저는 위치 정보를 지원하지 않습니다.");
+    }
+  }, []);
 
-    const handleSelectChange = (event) => {
-        const direction = event.target.value;
-        setSelectedDirection(direction);
+  useEffect(() => {
+    let intervalId;
 
-        localStorage.setItem("selectedDirection", direction);
+    if (currentGroupId) {
+      intervalId = setInterval(async () => {
+        try {
+          const url = `${API_BASE_URL}/taxi/group/${currentGroupId}`;
+          console.log("Polling group status:", url);
+
+          const { data } = await axios.get(url);
+
+          if (data.success) {
+            setResponse((prev) => ({
+              ...prev,
+              data: {
+                ...prev.data,
+                group: {
+                  ...prev.data.group,
+                  memberCount: data.memberCount,
+                  isFull: data.isFull,
+                },
+              },
+              message: `${prev.message.split("|")[0]} | 그룹 번호: ${
+                data.groupId
+              } (${data.memberCount}/4명)`,
+            }));
+
+            if (data.isFull) {
+              setTimeout(() => {
+                resetState();
+                alert("택시 모집이 완료되었습니다.");
+              }, 3000);
+            }
+          }
+        } catch (err) {
+          console.error("그룹 상태 확인 중 오류:", err.response || err);
+        }
+      }, 3000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
     };
+  }, [currentGroupId]);
 
-    return (
-        <div className="card-container">
-            <div className="card">
-                    <div className="card-header">{dir}</div>
-                <TaxiGroupBtn to="/taxiGroup">택시 모집</TaxiGroupBtn>
-            </div>
+  const handleSubmit = async () => {
+    if (!userId) {
+      setError("사용자 ID를 입력해주세요.");
+      return;
+    }
+
+    if (latitude === "-" || longitude === "-") {
+      setError("위치 정보를 가져올 수 없습니다.");
+      return;
+    }
+
+    try {
+      const locationData = {
+        userId,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        to: direction === "giheung-to-mju" ? "mju" : "gh",
+      };
+
+      console.log("위치 데이터 전송:", locationData);
+      console.log("요청 URL:", `${API_BASE_URL}/taxi/location`);
+
+      const { data } = await axios.post(
+        `${API_BASE_URL}/taxi/location`,
+        locationData
+      );
+      console.log("서버 응답:", data);
+
+      setResponse(data);
+
+      if (data.success && data.data.group) {
+        setCurrentGroupId(data.data.group.groupId);
+      }
+    } catch (err) {
+      console.error("API 요청 상세 오류:", {
+        status: err.response?.status,
+        data: err.response?.data,
+        config: err.config,
+      });
+      setError(
+        "서버 요청 중 오류가 발생했습니다: " +
+          (err.response?.data?.message || err.message)
+      );
+    }
+  };
+
+  return (
+    <TaxiPageContainer>
+      <div className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium mb-1">사용자 ID:</label>
+          <Input
+            type="text"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            placeholder="사용자 ID를 입력하세요"
+          />
         </div>
-    );
-}
+
+        <LocationInfo>
+          <div className="mb-2">위도: {latitude}</div>
+          <div>경도: {longitude}</div>
+        </LocationInfo>
+
+        <Button onClick={handleSubmit}>택시 모집</Button>
+
+        {error && <ErrorContainer>{error}</ErrorContainer>}
+
+        {response && (
+          <ResponseContainer success={response.success}>
+            <p>{response.message}</p>
+            {response.data?.group && (
+              <p className="mt-2">
+                현재 인원: {response.data.group.memberCount}/4
+                {response.data.group.isFull && " (모집 완료)"}
+              </p>
+            )}
+          </ResponseContainer>
+        )}
+      </div>
+    </TaxiPageContainer>
+  );
+};
 
 export default TaxiPage;

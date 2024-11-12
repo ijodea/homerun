@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate, Link } from "react-router-dom"; 
 import HomerunLink from "./homeRunLink";
+import MainPage from "./mainPage";
+import Join from "./joinPage";
 
 const Container = styled.div`
     display: flex;
@@ -34,7 +36,7 @@ const ButtonContainer = styled.div`
     margin: 20px 0 0;     
 `;
 
-const Button = styled.button`
+const LoginBtn = styled.button`
     width: 50%;           
     padding: 10px;          
     font-size: 16px;        
@@ -49,16 +51,18 @@ const Button = styled.button`
     }
 `;
 
-const SignupText = styled.p`
+const JoinLink = styled(Link)`
     margin: 10px 0;       
     font-size: 14px;      
     color: #007bff;        
-    cursor: pointer;       
+    cursor: pointer;      
+    text-decoration: none;
     
     &:hover {
-        text-decoration: underline; 
+        text-decoration: underline;
     }
 `;
+
 
 function Login() {
     const [studentId, setStudentId] = useState(""); // 학번 상태
@@ -71,8 +75,8 @@ function Login() {
         localStorage.setItem("studentId", studentId);
         localStorage.setItem("phoneNumber", phoneNumber);
         
-        // 회원가입 페이지로 이동
-        navigate("/signup", { state: { studentId, phoneNumber } }); // navigate 사용
+        //메인 페이지로 이동
+        navigate("/", { state: { studentId, phoneNumber } }); // navigate 사용
     };
 
     return (
@@ -98,8 +102,8 @@ function Login() {
                     />
                 </InputContainer>
                 <ButtonContainer>
-                    <SignupText>회원가입하기</SignupText> 
-                    <Button type="submit">로그인</Button>
+                    <JoinLink to="/join">회원가입하기</JoinLink> 
+                    <LoginBtn to="/">로그인</LoginBtn>
                 </ButtonContainer>
             </form>
         </Container>
