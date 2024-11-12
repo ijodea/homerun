@@ -10,6 +10,7 @@ import {
 export class TaxiController {
   constructor(private readonly taxiService: TaxiService) {}
 
+  
   @Post('location')
   async updateLocation(
     @Body() locationData: LocationData,

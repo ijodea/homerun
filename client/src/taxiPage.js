@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
+import {useNavigate} from 'react-router-dom';
 
 const TaxiPageContainer = styled.div`
   max-width: 800px;
@@ -71,9 +72,23 @@ const TaxiPage = () => {
   const [response, setResponse] = useState(null);
   const [error, setError] = useState("");
   const [currentGroupId, setCurrentGroupId] = useState(null);
-  const [redirectTimer, setRedirectTimer] = useState(null);
 
-  // 현재 위치 가져오기
+
+  // 사용자 로그인 했는지 확인
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      navigate("/login");
+    }
+  }, [navigate]);
+
+  const resetState = () => {
+    setUserId("");
+    setResponse(null);
+    setCurrentGroupId(null);
+  };
+
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -106,10 +121,15 @@ const TaxiPage = () => {
       if (!currentGroupId) return;
 
       try {
+          const token = localStorage.getItem("token");
         const url = `${API_BASE_URL}/taxi/group/${currentGroupId}`;
         console.log("Polling group status:", url);
 
-        const { data } = await axios.get(url);
+        const { data } = await axios.get(url,{
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
         if (data.success) {
           setResponse((prev) => ({
@@ -170,6 +190,7 @@ const TaxiPage = () => {
     }
 
     try {
+      const token = localStorage.getItem("token");
       const locationData = {
         userId,
         latitude: parseFloat(latitude),
@@ -182,7 +203,12 @@ const TaxiPage = () => {
 
       const { data } = await axios.post(
         `${API_BASE_URL}/taxi/location`,
-        locationData
+        locationData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       console.log("서버 응답:", data);
 
@@ -239,7 +265,7 @@ const TaxiPage = () => {
           <div>경도: {longitude}</div>
         </LocationInfo>
 
-        <Button onClick={handleSubmit}>위치 전송하기</Button>
+        <Button onClick={handleSubmit}>택시 모집</Button>
 
         {error && <ErrorContainer>{error}</ErrorContainer>}
 
