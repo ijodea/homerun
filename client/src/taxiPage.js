@@ -115,7 +115,6 @@ const TaxiPage = () => {
           setResponse((prev) => ({
             ...prev,
             data: {
-              ...prev.data,
               group: {
                 ...prev.data.group,
                 memberCount: data.memberCount,
