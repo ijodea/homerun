@@ -10,6 +10,9 @@ import { ShuttleModule } from './shuttle/shuttle.module';
 // import { TaxiController } from './taxi/taxi.controller';
 import { TaxiModule } from './taxi/taxi.module';
 import { ChatModule } from './chat/chat.module';
+import { AuthService } from './auth/auth.service';
+import { AuthController } from './auth/auth.controller';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -24,7 +27,10 @@ import { ChatModule } from './chat/chat.module';
     ShuttleModule,
     TaxiModule,
     ChatModule,
+    AuthModule,
   ],
+  providers: [AuthService],
+  controllers: [AuthController],
   // providers: [TaxiService],
   // controllers: [TaxiController],
 })
