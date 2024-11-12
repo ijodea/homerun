@@ -5,12 +5,29 @@ import { ShuttleService } from './shuttle.service';
 export class ShuttleController {
   constructor(private readonly shuttleService: ShuttleService) {}
 
-  @Get('next')
-  getNextShuttle() {
+  @Get('mju-to-giheung')
+  getMtoGShuttle() {
     const currentTime = new Date();
-    const m = this.shuttleService.getMStationTime(currentTime);
-    const el = this.shuttleService.getEverlineTime(m, currentTime);
-    const g = this.shuttleService.getGStationTime(currentTime);
+    const m = this.shuttleService.getMStationTimeMtoG(currentTime);
+    const g = this.shuttleService.getGStationTimeMtoG(currentTime);
+
+    if (m !== null && g !== null) {
+      if (g <= m) {
+        return { nextShuttle: '기흥역 셔틀버스', time: g };
+      } else {
+        return { nextShuttle: '명지대역 셔틀버스', time: m };
+      }
+    } else {
+      return { message: '오늘은 더 이상 셔틀이 없습니다.' };
+    }
+  }
+
+  @Get('giheung-to-mju')
+  getGtoMShuttle() {
+    const currentTime = new Date();
+    const m = this.shuttleService.getMStationTimeGtoM(currentTime);
+    const el = this.shuttleService.getEverlineTimeGtoM(m, currentTime);
+    const g = this.shuttleService.getGStationTimeGtoM(currentTime);
 
     const eta_el = el + 16;
     const eta_g = g + 15;
@@ -25,4 +42,25 @@ export class ShuttleController {
       return { message: '오늘은 더 이상 셔틀이 없습니다.' };
     }
   }
+
+  // @Get('next')
+  // getNextShuttle() {
+  //   const currentTime = new Date();
+  //   const m = this.shuttleService.getMStationTime(currentTime);
+  //   const el = this.shuttleService.getEverlineTime(m, currentTime);
+  //   const g = this.shuttleService.getGStationTime(currentTime);
+
+  //   const eta_el = el + 16;
+  //   const eta_g = g + 15;
+
+  //   if (m !== null && g !== null && el !== null) {
+  //     if (eta_g <= eta_el) {
+  //       return { nextShuttle: '기흥역 셔틀버스', time: g };
+  //     } else {
+  //       return { nextShuttle: '명지대역 셔틀버스', time: m };
+  //     }
+  //   } else {
+  //     return { message: '오늘은 더 이상 셔틀이 없습니다.' };
+  //   }
+  // }
 }

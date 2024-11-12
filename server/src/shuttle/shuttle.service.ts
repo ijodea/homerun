@@ -9,7 +9,8 @@ export class ShuttleService {
     return path.join(process.cwd(), 'src', 'timetable', filename);
   }
 
-  getGStationTime(currentTime: Date): number | null {
+  getGStationTimeGtoM(currentTime: Date): number | null {
+    // 기흥 -> 명지대
     const csvFilePath = this.getFilePath('gStation.csv');
     try {
       const csvData = fs.readFileSync(csvFilePath, 'utf8');
@@ -35,7 +36,8 @@ export class ShuttleService {
     }
   }
 
-  getMStationTime(currentTime: Date): number | null {
+  getMStationTimeGtoM(currentTime: Date): number | null {
+    // 기흥 -> 명지대
     const csvFilePath = this.getFilePath('mStation.csv');
     try {
       const csvData = fs.readFileSync(csvFilePath, 'utf8');
@@ -61,7 +63,8 @@ export class ShuttleService {
     }
   }
 
-  getEverlineTime(m: number, currentTime: Date): number | null {
+  getEverlineTimeGtoM(m: number, currentTime: Date): number | null {
+    // 기흥 -> 명지대
     const csvFilePath = this.getFilePath('everline.csv');
     try {
       const csvData = fs.readFileSync(csvFilePath, 'utf8');
@@ -87,4 +90,60 @@ export class ShuttleService {
       return null;
     }
   }
+
+  getGStationTimeMtoG(currentTime: Date): number | null {
+    // 명지대 -> 기흥
+    const csvFilePath = this.getFilePath('gStation.csv');
+    try {
+      const csvData = fs.readFileSync(csvFilePath, 'utf8');
+      const lines = csvData.trim().split('\n');
+      const MJUtoGS = lines.slice(1).map((line) => {
+        const columns = line.split(',');
+        const depart_school_m = Number(columns[3]);
+        return depart_school_m;
+      });
+
+      const currentMinutes =
+        currentTime.getHours() * 60 + currentTime.getMinutes();
+      const nextBusMinutes = MJUtoGS.find(
+        (busTime) => busTime >= currentMinutes,
+      );
+
+      return nextBusMinutes !== undefined
+        ? nextBusMinutes - currentMinutes
+        : null;
+    } catch (error) {
+      console.error(`Error reading file ${csvFilePath}:`, error);
+      return null;
+    }
+  }
+
+  getMStationTimeMtoG(currentTime: Date): number | null {
+    // 명지대 -> 기흥
+    const csvFilePath = this.getFilePath('mStation.csv');
+    try {
+      const csvData = fs.readFileSync(csvFilePath, 'utf8');
+      const lines = csvData.trim().split('\n');
+      const MJUtoMS = lines.slice(1).map((line) => {
+        const columns = line.split(',');
+        const depart_school_m = Number(columns[3]);
+        return depart_school_m;
+      });
+
+      const currentMinutes =
+        currentTime.getHours() * 60 + currentTime.getMinutes();
+      const nextBusMinutes = MJUtoMS.find(
+        (busTime) => busTime >= currentMinutes,
+      );
+
+      return nextBusMinutes !== undefined
+        ? nextBusMinutes - currentMinutes
+        : null;
+    } catch (error) {
+      console.error(`Error reading file ${csvFilePath}:`, error);
+      return null;
+    }
+  }
+
+  // 에버라인 시간 구현 필요 근데 에버라인 시간표가 없음 ㅋㅋ
 }

@@ -132,9 +132,10 @@ const Info = () => {
 
   const fetchShuttleInfo = async () => {
     try {
-      const response = await fetch("http://localhost:8000/shuttle/next");
+      const response = await fetch(
+        `http://localhost:8000/shuttle/${direction}`
+      );
       const text = await response.text();
-      console.log(text);
       if (!response.ok) {
         throw new Error(`네트워크 오류: ${response.status}`);
       }
@@ -143,7 +144,7 @@ const Info = () => {
       if (data.message) {
         setShuttleInfo([
           {
-            busNumber: "셔틀버스",
+            busNumber: "셔틀",
             departureTime: data.message,
             arrivalTime: "-",
             remainingSeats: "-",
