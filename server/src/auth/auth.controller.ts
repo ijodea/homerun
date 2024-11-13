@@ -21,10 +21,17 @@ export class AuthController {
   }
 
   @Get('kakao')
-  async getKakakoInfo(@Query() query: { code }) {
+  async getKakakoInfo(@Query() query: { code }, @Res() res: Response) {
     const REST_API_KEY = this.configService.get<string>('KAKAO_REST_API_KEY');
     const REDIRECT_URI = this.configService.get<string>('KAKAO_REDIRECT_URI');
-    await this.authService.kakaoLogin(REST_API_KEY, REDIRECT_URI, query.code);
+    const userData = await this.authService.kakaoLogin(
+      REST_API_KEY,
+      REDIRECT_URI,
+      query.code,
+    );
+
+    // 사용자 데이터 반환
+    res.status(200).json(userData);
   }
 
   // @Post('kakao')

@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import HomerunLink from "./homeRunLink";
 import MainPage from "./mainPage";
 import Join from "./joinPage";
-import kakaoLoginImg from './assets/kakao_login.png';
+import kakaoLoginImg from "./assets/kakao_login.png";
 
 const Container = styled.div`
   display: flex;
@@ -86,7 +86,7 @@ function Login() {
   };
 
   const handleKakaoLogin = () => {
-    window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.REACT_APP_REST_API_KEY}&redirect_uri=${window.location.origin}/kakao-redirect&response_type=code`;
+    window.location.href = 'http://localhost:8000/auth/kakao-login-page';
   };
 
   return (
