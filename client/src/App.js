@@ -10,7 +10,7 @@ import Direction from "./directioncontrols.js";
 import LoginPage from "./loginPage.js";
 import JoingPage from "./joinPage.js";
 import ChatRoom from "./chatRoom.js";
-import axios from "axios";
+// import axios from "axios";
 
 function App() {
   return (
