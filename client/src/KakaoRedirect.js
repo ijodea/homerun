@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
@@ -6,8 +6,12 @@ const KakaoRedirect = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState("");
+  const calledRef = useRef(false);
 
   useEffect(() => {
+    if (calledRef.current) return;
+    calledRef.current = true;
+
     const processKakaoLogin = async () => {
       const params = new URLSearchParams(location.search);
       const code = params.get("code");
@@ -81,7 +85,7 @@ const KakaoRedirect = () => {
     };
 
     processKakaoLogin();
-  }, [location.search, navigate]);
+  }, []); // 의존성 배열을 빈 배열로 수정하여 최초 마운트 시 한 번만 실행
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
