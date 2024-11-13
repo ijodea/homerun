@@ -12,9 +12,10 @@ export class AuthService {
   ) {}
 
   // 로그인 로직
-  async login(name: string, phoneNumber: string, studentId: string) {
+  async login(name: string, studentId: string, phoneNumber: string) {
     this.logger.log(`로그인 시도: ${name}, ${studentId}, ${phoneNumber}`);
     const isUserValid = await this.usersService.validateUser(name, studentId, phoneNumber);
+    this.logger.debug(`user validation result: ${isUserValid}`);
     if (!isUserValid) {
       this.logger.warn('로그인 실패: 유효하지 않은 사용자 정보');
       throw new UnauthorizedException('로그인 실패: 이름, 전화번호, 학번을 확인하세요.');

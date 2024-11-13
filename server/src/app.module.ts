@@ -6,8 +6,8 @@ import { BusModule } from './bus/bus.module';
 import { ShuttleModule } from './shuttle/shuttle.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-// import { TaxiService } from './taxi/taxi.service';
-// import { TaxiController } from './taxi/taxi.controller';
+import { TaxiService } from './taxi/taxi.service';
+import { TaxiController } from './taxi/taxi.controller';
 import { TaxiModule } from './taxi/taxi.module';
 import {JwtModule} from '@nestjs/jwt';
 import {JwtStrategy} from './auth/jwt.strategy';
@@ -50,7 +50,8 @@ import { ChatModule } from './chat/chat.module';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'), //.env 파일에서 지금은 테스트때문에 postgres데이터베이스에 저장하고 있음. 그러나 실제로는 .env파일에다가 DATABASE_NAME=homerun해줘야함.
         entities: [User], // User 엔티티 추가
-        synchronize: true, // 개발 중에는 true, 배포 시에는 false로 변경 권장
+        synchronize: false, // 개발 중에는 true, 배포 시에는 false로 변경 권장
+        logging: true
       }),
     }),
     TypeOrmModule.forFeature([User]), // User 엔티티 모듈 추가
@@ -59,6 +60,7 @@ import { ChatModule } from './chat/chat.module';
     TaxiModule,
     UsersModule,
     ChatModule,
+    AuthModule,
   ],
   providers: [TaxiService,JwtAuthGuard,JwtStrategy],
   controllers: [TaxiController],

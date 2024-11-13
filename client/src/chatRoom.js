@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "http://localhost:8000/api";
 
 // Styled Components
 const ChatContainer = styled.div`

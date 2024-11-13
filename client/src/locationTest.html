@@ -219,7 +219,7 @@
             if (!groupId) return;
             
             try {
-                const response = await fetch(`http://localhost:8000/taxi/group/${groupId}`, {
+                const response = await fetch(`http://localhost:8000/api/taxi/group/${groupId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',

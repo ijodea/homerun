@@ -10,7 +10,7 @@ export class BusService {
 
   constructor(private readonly configService: ConfigService) {
     // 환경 변수에서 busRouteMap을 불러와 객체로 변환
-    const busRouteMapString = this.configService.get<string>('BUS_ROUTE_MAP') || '{}'; //json.parse()를 호출하기 전에 값이 undefined인지 확인하고 기본값을 설정
+    const busRouteMapString = this.configService.get<string>('BUS_ROUTE_MAP');
     this.busRouteMap = JSON.parse(busRouteMapString);
   }
 
@@ -29,18 +29,14 @@ export class BusService {
         const items = jsonData.response.msgBody[0].busArrivalList;
         const filteredBusInfo = items
           .filter((item) =>
-            busNumbers.includes(
-              Object.keys(this.busRouteMap).find(
-                (key) => this.busRouteMap[key] === item.routeId[0]
-              )
-            )
+            Object.values(this.busRouteMap).includes(item.routeId[0]),
           )
           .map((item) => ({
-            busNumber: Object.keys(this.busRouteMap).find(
+            버스번호: Object.keys(this.busRouteMap).find(
               (key) => this.busRouteMap[key] === item.routeId[0],
             ),
-            arrivalTime: `${item.predictTime1[0]}분 후 도착`,
-            remainingSeats:
+            도착시간: `${item.predictTime1[0]}`,
+            남은좌석수:
               item.remainSeatCnt1[0] === '-1'
                 ? '정보 없음'
                 : `${item.remainSeatCnt1[0]}석 남음`,

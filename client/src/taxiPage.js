@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext,useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
-import {useNavigate} from 'react-router-dom';
+
 
 const TaxiPageContainer = styled.div`
   max-width: 800px;
@@ -56,7 +56,7 @@ const ErrorContainer = styled.div`
   margin-top: 1rem;
 `;
 
-const API_BASE_URL = "http://localhost:8000"; // NestJS 서버 주소
+const API_BASE_URL = "http://localhost:8000/api"; // NestJS 서버 주소
 
 const TaxiPage = () => {
   const navigate = useNavigate();
@@ -72,9 +72,11 @@ const TaxiPage = () => {
   // 사용자 로그인 했는지 확인
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const storedStudentId = localStorage.getItem("studentId");
     if (!token) {
-      alert("로그인이 필요합니다.");
-      navigate("/login");
+      navigate("/login",{state: {returnPath: "/taxi"}});
+    } else{
+      setUserId(storedStudentId);
     }
   }, [navigate]);
 

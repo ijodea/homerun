@@ -1,8 +1,9 @@
-﻿import { Controller, Post, Body } from '@nestjs/common';
+﻿import { Controller, Post, Body, Logger } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
@@ -12,6 +13,7 @@ export class AuthController {
     @Body('phoneNumber') phoneNumber: string,
   
   ) {
+    this.logger.debug(`Login request received - Name: ${name}, StudentID: ${studentId}, Phone: ${phoneNumber}`);
     return this.authService.login(name, studentId, phoneNumber);
   }
 }
