@@ -28,7 +28,7 @@ function App() {
         <Route path="/busDetail" element={<BusDetail />} />
         <Route path="/shuttleDetail" element={<ShuttleDetail />} />
         <Route path="/chat/room/:groupId" element={<ChatRoom />} />
-        <Route path="/oauth" element={<KakaoRedirect />} />
+        <Route path="/oauth/callback" element={<KakaoRedirect />} />
       </Routes>
     </Router>
   );
