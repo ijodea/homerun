@@ -47,7 +47,7 @@ const SeatInfo = styled.div`
   font-size: 16px;
 `;
 
-const Title = styled.h2`
+const TimeBlock = styled.div`
   text-align: center;
   flex-shrink: 0;
   min-width: 80px;
@@ -130,6 +130,12 @@ const RefreshButton = styled.button`
   }
 `;
 
+const LoadingOrError = styled.div`
+  text-align: center;
+  font-size: 18px;
+  margin-top: 20px;
+`;
+
 const calculateTime = (minutesFromNow) => {
   const time = new Date(Date.now() + minutesFromNow * 60000);
   return time.toTimeString().slice(0, 5);
@@ -153,22 +159,22 @@ const Info = () => {
 
   const fetchBusInfo = async () => {
     try {
-        const response = await fetch(`http://localhost:8000/bus/${direction}`);
-        if (!response.ok) throw new Error('네트워크 오류입니다.');
-        const data = await response.json();
-        const filteredBusInfo = data.map((bus) => {
-            const departureMinutes = bus.도착시간 ? parseInt(bus.도착시간) : 0;
-            const departureTime = calculateDepartureTime(departureMinutes);
-            const arrivalTime = calculateArrivalTime(departureMinutes, bus.버스번호);
-            return {
-                busNumber: bus.버스번호,
-                departureTime,
-                arrivalTime,
-                remainingSeats: bus.남은좌석수 || '정보 없음',
-                type: 'bus',
-            };
-        });
-        setBusInfo(filteredBusInfo);
+      const response = await fetch(`http://localhost:8000/bus/${direction}`);
+      if (!response.ok) throw new Error('네트워크 오류입니다.');
+      const data = await response.json();
+      const filteredBusInfo = data.map((bus) => {
+        const departureMinutes = bus.도착시간 ? parseInt(bus.도착시간) : 0;
+        const departureTime = calculateTime(departureMinutes);
+        const arrivalTime = calculateArrivalTime(departureMinutes, bus.버스번호);
+        return {
+          busNumber: bus.버스번호,
+          departureTime,
+          arrivalTime,
+          remainingSeats: bus.남은좌석수 || '정보 없음',
+          type: 'bus',
+        };
+      });
+      setBusInfo(filteredBusInfo);
     } catch (error) {
       setError(error.message);
     }
@@ -202,8 +208,14 @@ const Info = () => {
   const fetchData = async () => {
     setLoading(true);
     setCurrentIndex(0);
-    await Promise.all([fetchBusInfo(), fetchShuttleInfo()]);
-    setLoading(false);
+    setError(null);
+    try {
+      await Promise.all([fetchBusInfo(), fetchShuttleInfo()]);
+    } catch (error) {
+      setError("데이터를 불러오는 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -233,15 +245,17 @@ const Info = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (loading) return <LoadingOrError>로딩 중...</LoadingOrError>;
+  if (error) return <LoadingOrError>오류: {error}</LoadingOrError>;
 
   return (
     <ScrollContainer>
       <LeftScrollButton 
         onClick={() => scroll('left')} 
         disabled={currentIndex === 0}
-      >←</LeftScrollButton>
+      >
+        ←
+      </LeftScrollButton>
       <CardViewport>
         <CardContainer>
           {sortedInfo
@@ -264,13 +278,15 @@ const Info = () => {
                   </TimeBlock>
                 </LineContainer>
               </Card>
-          ))}
+            ))}
         </CardContainer>
       </CardViewport>
       <RightScrollButton 
         onClick={() => scroll('right')} 
         disabled={currentIndex >= sortedInfo.length - 3}
-      >→</RightScrollButton>
+      >
+        →
+      </RightScrollButton>
       <RefreshButton onClick={handleRefresh}>↺</RefreshButton>
     </ScrollContainer>
   );
