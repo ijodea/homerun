@@ -288,17 +288,15 @@ const MainPage = () => {
   const fetchEfficientTransport = async () => {
     try {
       setLoading(true);
-      const [mjuResponse, gihResponse, shuttleResponse] = await Promise.all([
+      const [mjuResponse, gihResponse] = await Promise.all([
         fetch(`http://localhost:8000/bus/mju-to-giheung`),
         fetch(`http://localhost:8000/bus/giheung-to-mju`),
-        fetch(`http://localhost:8000/shuttle/next`),
       ]);
-      const [mjuBusData, gihBusData, shuttleData] = await Promise.all([
+      const [mjuBusData, gihBusData] = await Promise.all([
         mjuResponse.json(),
         gihResponse.json(),
-        shuttleResponse.json(),
       ]);
-
+  
       const busTimes = {
         셔틀: 20,
         5600: 32,
@@ -307,55 +305,57 @@ const MainPage = () => {
         "5003B": 43,
         820: 44,
       };
-
+  
       const calculateArrivalTime = (departureMinutes, busType) => {
         const now = new Date();
-        const departureTime = new Date(
-          now.getTime() + departureMinutes * 60000
-        );
+        const departureTime = new Date(now.getTime() + departureMinutes * 60000);
         const travelTime = busTimes[busType] || 30;
         return new Date(departureTime.getTime() + travelTime * 60000);
       };
-
-      const processTransports = (busData, direction) => {
+  
+      const processTransports = async (busData, direction) => {
         const transports = busData.map((bus) => ({
           type: "bus",
           number: bus.버스번호,
           departureTime: parseInt(bus.도착시간) || Infinity,
-          arrivalTime: calculateArrivalTime(
-            parseInt(bus.도착시간),
-            bus.버스번호
-          ),
+          arrivalTime: calculateArrivalTime(parseInt(bus.도착시간), bus.버스번호),
           remainingSeats: bus.남은좌석수 || "정보 없음",
           direction: direction,
         }));
-
-        if (shuttleData.time) {
-          transports.push({
-            type: "shuttle",
-            number: "셔틀",
-            departureTime: parseInt(shuttleData.time),
-            arrivalTime: calculateArrivalTime(
-              parseInt(shuttleData.time),
-              "셔틀"
-            ),
-            remainingSeats: "정보 없음",
-            direction: direction,
-          });
+  
+        try {
+          const shuttleResponse = await fetch(`http://localhost:8000/shuttle/${direction}`);
+          const shuttleData = await shuttleResponse.json();
+          
+          if (shuttleData?.time) {
+            transports.push({
+              type: "shuttle",
+              number: shuttleData.nextShuttle || "셔틀",
+              departureTime: parseInt(shuttleData.time),
+              arrivalTime: calculateArrivalTime(parseInt(shuttleData.time), "셔틀"),
+              remainingSeats: "정보 없음",
+              direction: direction,
+            });
+          }
+        } catch (error) {
+          console.error("셔틀 정보를 가져오는 중 오류 발생:", error);
         }
-
+  
         return transports
           .filter((transport) => transport.departureTime !== Infinity)
           .sort((a, b) => a.arrivalTime - b.arrivalTime)
           .slice(0, 3);
       };
-
-      const mjuTransports = processTransports(mjuBusData, "mju");
-      const gihTransports = processTransports(gihBusData, "gih");
-
-      setFastestTransports({ mju: mjuTransports, gih: gihTransports });
+  
+      const mjuTransports = await processTransports(mjuBusData, "mju-to-giheung");
+      const gihTransports = await processTransports(gihBusData, "giheung-to-mju");
+  
+      setFastestTransports({
+        mju: mjuTransports,
+        gih: gihTransports,
+      });
     } catch (error) {
-      console.error("Error fetching efficient transport:", error);
+      console.error("효율적인 교통수단 정보를 가져오는 중 오류 발생:", error);
       setFastestTransports({ mju: [], gih: [] });
     } finally {
       setLoading(false);
