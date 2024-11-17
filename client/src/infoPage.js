@@ -26,7 +26,8 @@ const Card = styled.div`
   border-radius: 10px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border: ${(props) => (props.type === 'shuttle' ? '6px solid #001C4A' : '6px solid #C00305')};
+  border: ${(props) =>
+    props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
 `;
 
 const TopInfo = styled.div`
@@ -51,13 +52,13 @@ const TimeBlock = styled.div`
   text-align: center;
   flex-shrink: 0;
   min-width: 80px;
-  
+
   div:first-child {
     color: #666;
     font-size: 14px;
     margin-bottom: 5px;
   }
-  
+
   div:last-child {
     font-size: 18px;
     font-weight: bold;
@@ -93,12 +94,12 @@ const ScrollButton = styled.button`
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  
+
   &:disabled {
     opacity: 0.3;
     cursor: not-allowed;
   }
-  
+
   &:hover:not(:disabled) {
     background: rgba(0, 0, 0, 0.7);
   }
@@ -124,7 +125,7 @@ const RefreshButton = styled.button`
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  
+
   &:hover {
     background-color: #003e00;
   }
@@ -143,8 +144,12 @@ const calculateTime = (minutesFromNow) => {
 
 const calculateArrivalTime = (departureMinutes, busNumber) => {
   const busTimes = {
-    "셔틀": 20, "5600": 32, "5005": 38,
-    "5003A": 43, "5003B": 43, "820": 44
+    셔틀: 20,
+    5600: 32,
+    5005: 38,
+    "5003A": 43,
+    "5003B": 43,
+    820: 44,
   };
   return calculateTime(departureMinutes + (busTimes[busNumber] || 0));
 };
@@ -160,18 +165,21 @@ const Info = () => {
   const fetchBusInfo = async () => {
     try {
       const response = await fetch(`http://localhost:8000/bus/${direction}`);
-      if (!response.ok) throw new Error('네트워크 오류입니다.');
+      if (!response.ok) throw new Error("네트워크 오류입니다.");
       const data = await response.json();
       const filteredBusInfo = data.map((bus) => {
         const departureMinutes = bus.도착시간 ? parseInt(bus.도착시간) : 0;
         const departureTime = calculateTime(departureMinutes);
-        const arrivalTime = calculateArrivalTime(departureMinutes, bus.버스번호);
+        const arrivalTime = calculateArrivalTime(
+          departureMinutes,
+          bus.버스번호
+        );
         return {
           busNumber: bus.버스번호,
           departureTime,
           arrivalTime,
-          remainingSeats: bus.남은좌석수 || '정보 없음',
-          type: 'bus',
+          remainingSeats: bus.남은좌석수 || "정보 없음",
+          type: "bus",
         };
       });
       setBusInfo(filteredBusInfo);
@@ -182,26 +190,32 @@ const Info = () => {
 
   const fetchShuttleInfo = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/shuttle/next`);
-      if (!response.ok) throw new Error('운행 종료');
+      const response = await fetch(
+        `http://localhost:8000/shuttle/${direction}`
+      );
+      if (!response.ok) throw new Error("운행 종료");
       const data = await response.json();
-      if (!data?.time) throw new Error('운행 종료');
-      
-      setShuttleInfo([{
-        busNumber: data.nextShuttle || '셔틀',
-        departureTime: calculateTime(parseInt(data.time)),
-        arrivalTime: calculateArrivalTime(parseInt(data.time), "셔틀"),
-        remainingSeats: '정보 없음',
-        type: 'shuttle'
-      }]);
+      if (!data?.time) throw new Error("운행 종료");
+
+      setShuttleInfo([
+        {
+          busNumber: data.nextShuttle || "셔틀",
+          departureTime: calculateTime(parseInt(data.time)),
+          arrivalTime: calculateArrivalTime(parseInt(data.time), "셔틀"),
+          remainingSeats: "정보 없음",
+          type: "shuttle",
+        },
+      ]);
     } catch (error) {
-      setShuttleInfo([{
-        busNumber: "셔틀",
-        departureTime: "운행 종료",
-        arrivalTime: '운행 종료',
-        remainingSeats: '-',
-        type: 'shuttle'
-      }]);
+      setShuttleInfo([
+        {
+          busNumber: "셔틀",
+          departureTime: "운행 종료",
+          arrivalTime: "운행 종료",
+          remainingSeats: "-",
+          type: "shuttle",
+        },
+      ]);
     }
   };
 
@@ -227,20 +241,20 @@ const Info = () => {
   };
 
   const sortedInfo = [...busInfo, ...shuttleInfo].sort((a, b) => {
-    if (a.departureTime === '운행 종료') return 1;
-    if (b.departureTime === '운행 종료') return -1;
-    
-    const [aHours, aMinutes] = a.departureTime.split(':').map(Number);
-    const [bHours, bMinutes] = b.departureTime.split(':').map(Number);
-    
+    if (a.departureTime === "운행 종료") return 1;
+    if (b.departureTime === "운행 종료") return -1;
+
+    const [aHours, aMinutes] = a.departureTime.split(":").map(Number);
+    const [bHours, bMinutes] = b.departureTime.split(":").map(Number);
+
     if (aHours !== bHours) return aHours - bHours;
     return aMinutes - bMinutes;
   });
 
   const scroll = (direction) => {
-    if (direction === 'left' && currentIndex > 0) {
+    if (direction === "left" && currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
-    } else if (direction === 'right' && currentIndex < sortedInfo.length - 3) {
+    } else if (direction === "right" && currentIndex < sortedInfo.length - 3) {
       setCurrentIndex(currentIndex + 1);
     }
   };
@@ -250,8 +264,8 @@ const Info = () => {
 
   return (
     <ScrollContainer>
-      <LeftScrollButton 
-        onClick={() => scroll('left')} 
+      <LeftScrollButton
+        onClick={() => scroll("left")}
         disabled={currentIndex === 0}
       >
         ←
@@ -281,8 +295,8 @@ const Info = () => {
             ))}
         </CardContainer>
       </CardViewport>
-      <RightScrollButton 
-        onClick={() => scroll('right')} 
+      <RightScrollButton
+        onClick={() => scroll("right")}
         disabled={currentIndex >= sortedInfo.length - 3}
       >
         →

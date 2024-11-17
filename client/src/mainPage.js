@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import DirectionControls from "./directioncontrols";
-import taxiIcon from './assets/Taxi.png';
-import busInfoIcon from './assets/Bus.png';
-import './App.css';
+import taxiIcon from "./assets/Taxi.png";
+import busInfoIcon from "./assets/Bus.png";
+import "./App.css";
 
 const AppContainer = styled.div`
   background-color: #f0f0f0;
@@ -36,19 +36,16 @@ const LoginLink = styled(Link)`
   }
 `;
 
-const LogoutButton = styled.button` 
-    color: black;
-    font-size: 0.9em; 
-    background: none;
-    border: none;
-    cursor: pointer;
-    position: absolute;
-    right: 20px; 
-    top: 20px; 
+const LogoutButton = styled.button`
+  color: black;
+  font-size: 0.9em;
+  background: none;
+  border: none;
+  cursor: pointer;
 
-    &:hover {
-        text-decoration: underline;
-    }
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const HomerunLink = styled(Link)`
@@ -78,13 +75,19 @@ const MenuItem = styled(Link)`
   margin: 0 10px;
   flex-grow: 1;
   border-radius: 5px;
-  background-color: ${(props) => (props.active ? (props.isinfo ? "#005700" : "#fb9403") : "transparent")};
+  background-color: ${(props) =>
+    props.active ? (props.isinfo ? "#005700" : "#fb9403") : "transparent"};
   img {
     height: 40px;
     filter: ${(props) => (props.active ? "invert(1)" : "invert(0.5)")};
   }
   &:hover {
-    background-color: ${(props) => (props.active ? (props.isinfo ? "#005700" : "#fb9403") : "rgba(0, 0, 0, 0.1)")};
+    background-color: ${(props) =>
+      props.active
+        ? props.isinfo
+          ? "#005700"
+          : "#fb9403"
+        : "rgba(0, 0, 0, 0.1)"};
   }
 `;
 
@@ -132,7 +135,8 @@ const EfficientCard = styled.div`
   padding: 20px;
   margin: 10px 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border: ${(props) => (props.type === 'shuttle' ? '6px solid #001C4A' : '6px solid #C00305')};
+  border: ${(props) =>
+    props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
   height: 160px;
   box-sizing: border-box;
 `;
@@ -221,10 +225,15 @@ const Footer = styled.footer`
 `;
 
 const MainPage = () => {
-  const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
+  const [currentTime, setCurrentTime] = useState(
+    new Date().toLocaleTimeString()
+  );
   const [direction, setDirection] = useState("giheung-to-mju");
   const [currentCardIndex, setCurrentCardIndex] = useState({ mju: 0, gih: 0 });
-  const [fastestTransports, setFastestTransports] = useState({ mju: [], gih: [] });
+  const [fastestTransports, setFastestTransports] = useState({
+    mju: [],
+    gih: [],
+  });
   const [loading, setLoading] = useState(true);
   const location = useLocation();
 
@@ -246,11 +255,33 @@ const MainPage = () => {
     setCurrentCardIndex({ mju: 0, gih: 0 });
   };
 
-  const isLoggedIn = !!localStorage.getItem("studentId");
+  const isLoggedIn = () => {
+    return !!(
+      localStorage.getItem("studentId") ||
+      localStorage.getItem("isLoggedIn") === "true"
+    );
+  };
+
+  const getUserDisplayName = () => {
+    const kakaoUser = JSON.parse(localStorage.getItem("kakaoUser"));
+    if (kakaoUser?.nickname) {
+      return kakaoUser.nickname;
+    }
+    return localStorage.getItem("studentId") || "사용자";
+  };
 
   const handleLogout = () => {
+    // 일반 로그인 정보 삭제
     localStorage.removeItem("studentId");
     localStorage.removeItem("phoneNumber");
+
+    // 카카오 로그인 정보 삭제
+    localStorage.removeItem("kakaoUser");
+    localStorage.removeItem("kakaoToken");
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("loginType");
+
+    // 페이지 새로고침
     window.location.reload();
   };
 
@@ -260,59 +291,67 @@ const MainPage = () => {
       const [mjuResponse, gihResponse, shuttleResponse] = await Promise.all([
         fetch(`http://localhost:8000/bus/mju-to-giheung`),
         fetch(`http://localhost:8000/bus/giheung-to-mju`),
-        fetch(`http://localhost:8000/shuttle/next`)
+        fetch(`http://localhost:8000/shuttle/next`),
       ]);
       const [mjuBusData, gihBusData, shuttleData] = await Promise.all([
         mjuResponse.json(),
         gihResponse.json(),
-        shuttleResponse.json()
+        shuttleResponse.json(),
       ]);
 
       const busTimes = {
-        "셔틀": 20,
-        "5600": 32,
-        "5005": 38,
+        셔틀: 20,
+        5600: 32,
+        5005: 38,
         "5003A": 43,
         "5003B": 43,
-        "820": 44
+        820: 44,
       };
 
       const calculateArrivalTime = (departureMinutes, busType) => {
         const now = new Date();
-        const departureTime = new Date(now.getTime() + departureMinutes * 60000);
+        const departureTime = new Date(
+          now.getTime() + departureMinutes * 60000
+        );
         const travelTime = busTimes[busType] || 30;
         return new Date(departureTime.getTime() + travelTime * 60000);
       };
 
       const processTransports = (busData, direction) => {
-        const transports = busData.map(bus => ({
-          type: 'bus',
+        const transports = busData.map((bus) => ({
+          type: "bus",
           number: bus.버스번호,
           departureTime: parseInt(bus.도착시간) || Infinity,
-          arrivalTime: calculateArrivalTime(parseInt(bus.도착시간), bus.버스번호),
-          remainingSeats: bus.남은좌석수 || '정보 없음',
-          direction: direction
+          arrivalTime: calculateArrivalTime(
+            parseInt(bus.도착시간),
+            bus.버스번호
+          ),
+          remainingSeats: bus.남은좌석수 || "정보 없음",
+          direction: direction,
         }));
 
         if (shuttleData.time) {
           transports.push({
-            type: 'shuttle',
-            number: '셔틀',
+            type: "shuttle",
+            number: "셔틀",
             departureTime: parseInt(shuttleData.time),
-            arrivalTime: calculateArrivalTime(parseInt(shuttleData.time), '셔틀'),
-            remainingSeats: '정보 없음',
-            direction: direction
+            arrivalTime: calculateArrivalTime(
+              parseInt(shuttleData.time),
+              "셔틀"
+            ),
+            remainingSeats: "정보 없음",
+            direction: direction,
           });
         }
 
         return transports
-          .filter(transport => transport.departureTime !== Infinity)
+          .filter((transport) => transport.departureTime !== Infinity)
           .sort((a, b) => a.arrivalTime - b.arrivalTime)
           .slice(0, 3);
       };
 
-      const mjuTransports = processTransports(mjuBusData, 'mju');
-      const gihTransports = processTransports(gihBusData, 'gih');
+      const mjuTransports = processTransports(mjuBusData, "mju");
+      const gihTransports = processTransports(gihBusData, "gih");
 
       setFastestTransports({ mju: mjuTransports, gih: gihTransports });
     } catch (error) {
@@ -324,29 +363,38 @@ const MainPage = () => {
   };
 
   const handleCardScroll = (direction, type) => {
-    setCurrentCardIndex(prevState => ({
+    setCurrentCardIndex((prevState) => ({
       ...prevState,
-      [type]: direction === 'up'
-        ? Math.max(0, prevState[type] - 1)
-        : Math.min(fastestTransports[type].length - 1, prevState[type] + 1)
+      [type]:
+        direction === "up"
+          ? Math.max(0, prevState[type] - 1)
+          : Math.min(fastestTransports[type].length - 1, prevState[type] + 1),
     }));
   };
 
   const renderTransportCards = (type) => (
     <DirectionColumn>
       <EfficientCardViewport>
-        <EfficientCardContainer style={{ transform: `translateY(-${currentCardIndex[type] * 180}px)` }}>
+        <EfficientCardContainer
+          style={{
+            transform: `translateY(-${currentCardIndex[type] * 180}px)`,
+          }}
+        >
           {fastestTransports[type].map((transport, index) => (
             <EfficientCard key={index} type={transport.type}>
               <TransportInfo>
                 <BusNumber>{transport.number}</BusNumber>
                 <TimeInfo>
-                  <div>{type === 'mju' ? '명지대 → 기흥역' : '기흥역 → 명지대'}</div>
+                  <div>
+                    {type === "mju" ? "명지대 → 기흥역" : "기흥역 → 명지대"}
+                  </div>
                   <div>
                     {transport.arrivalTime instanceof Date
-                      ? transport.arrivalTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                      : '정보 없음'
-                    }
+                      ? transport.arrivalTime.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "정보 없음"}
                   </div>
                 </TimeInfo>
               </TransportInfo>
@@ -356,10 +404,18 @@ const MainPage = () => {
         </EfficientCardContainer>
       </EfficientCardViewport>
       <CardControls>
-        <CardButton onClick={() => handleCardScroll('up', type)} disabled={currentCardIndex[type] === 0}>
+        <CardButton
+          onClick={() => handleCardScroll("up", type)}
+          disabled={currentCardIndex[type] === 0}
+        >
           ↑
         </CardButton>
-        <CardButton onClick={() => handleCardScroll('down', type)} disabled={currentCardIndex[type] >= fastestTransports[type].length - 1}>
+        <CardButton
+          onClick={() => handleCardScroll("down", type)}
+          disabled={
+            currentCardIndex[type] >= fastestTransports[type].length - 1
+          }
+        >
           ↓
         </CardButton>
       </CardControls>
@@ -370,32 +426,41 @@ const MainPage = () => {
     <AppContainer>
       <HeaderContainer>
         <HomerunLink to="/">Homerun</HomerunLink>
-        {isLoggedIn ? (
-          <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
+        {isLoggedIn() ? (
+          <UserInfo>
+            <span>{getUserDisplayName()}님</span>
+            <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
+          </UserInfo>
         ) : (
           <LoginLink to="/login">로그인</LoginLink>
         )}
         <MenuContainer>
-          <MenuItem to={`/info?direction=${direction}`} active={location.pathname === "/info"} isinfo={true}>
+          <MenuItem
+            to={`/info?direction=${direction}`}
+            active={location.pathname === "/info"}
+            isinfo={true}
+          >
             <img src={busInfoIcon} alt="Info" />
             정보
           </MenuItem>
-          <MenuItem to="/taxi" active={location.pathname === "/taxi"} isinfo={false}>
+          <MenuItem
+            to="/taxi"
+            active={location.pathname === "/taxi"}
+            isinfo={false}
+          >
             <img src={taxiIcon} alt="Taxi" />
             택시
           </MenuItem>
         </MenuContainer>
         {location.pathname === "/" && (
           <>
-            <TimeContainer>
-              현재 시간: {currentTime}
-            </TimeContainer>
+            <TimeContainer>현재 시간: {currentTime}</TimeContainer>
             {loading ? (
               <div>로딩 중...</div>
             ) : (
               <CardContainer>
-                {renderTransportCards('mju')}
-                {renderTransportCards('gih')}
+                {renderTransportCards("mju")}
+                {renderTransportCards("gih")}
               </CardContainer>
             )}
           </>
