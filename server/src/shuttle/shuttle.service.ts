@@ -17,7 +17,7 @@ export class ShuttleService {
       const lines = csvData.trim().split('\n');
       const MJUtoGS = lines.slice(1).map((line) => {
         const columns = line.split(',');
-        const depart_school_m = Number(columns[2]);
+        const depart_school_m = Number(columns[3]);
         return depart_school_m;
       });
 
@@ -44,7 +44,7 @@ export class ShuttleService {
       const lines = csvData.trim().split('\n');
       const MJUtoMS = lines.slice(1).map((line) => {
         const columns = line.split(',');
-        const depart_school_m = Number(columns[2]);
+        const depart_school_m = Number(columns[3]);
         return depart_school_m;
       });
 
@@ -99,7 +99,7 @@ export class ShuttleService {
       const lines = csvData.trim().split('\n');
       const MJUtoGS = lines.slice(1).map((line) => {
         const columns = line.split(',');
-        const depart_school_m = Number(columns[3]);
+        const depart_school_m = Number(columns[2]);
         return depart_school_m;
       });
 
@@ -126,7 +126,7 @@ export class ShuttleService {
       const lines = csvData.trim().split('\n');
       const MJUtoMS = lines.slice(1).map((line) => {
         const columns = line.split(',');
-        const depart_school_m = Number(columns[3]);
+        const depart_school_m = Number(columns[2]);
         return depart_school_m;
       });
 
