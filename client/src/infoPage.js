@@ -8,17 +8,22 @@ const ScrollContainer = styled.div`
   margin: 0 auto;
   position: relative;
   padding: 0 40px;
+  box-sizing: border-box;
 `;
 
 const CardViewport = styled.div`
   width: 100%;
+  overflow: hidden;
+  position: relative;
 `;
 
 const CardContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
   gap: 20px;
-  width: 100%;
+  width: fit-content;
+  will-change: transform;
+  transform: translateX(${props => props.offset}px);
+  transition: ${props => props.isDragging ? 'none' : 'transform 0.3s ease-out'};
 `;
 
 const Card = styled.div`
@@ -28,6 +33,9 @@ const Card = styled.div`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: ${(props) =>
     props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
+  width: calc((100vw - 140px) / 3);
+  max-width: 360px;
+  box-sizing: border-box;
 `;
 
 const TopInfo = styled.div`
@@ -78,41 +86,6 @@ const LineContainer = styled.div`
   align-items: center;
 `;
 
-const ScrollButton = styled.button`
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-
-  &:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-
-  &:hover:not(:disabled) {
-    background: rgba(0, 0, 0, 0.7);
-  }
-`;
-
-const LeftScrollButton = styled(ScrollButton)`
-  left: 0;
-`;
-
-const RightScrollButton = styled(ScrollButton)`
-  right: 0;
-`;
-
 const RefreshButton = styled.button`
   position: fixed;
   right: 20px;
@@ -161,6 +134,59 @@ const Info = () => {
   const [error, setError] = useState(null);
   const { direction } = useOutletContext();
   const [currentIndex, setCurrentIndex] = useState(0);
+  
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [currentTranslate, setCurrentTranslate] = useState(0);
+  const [prevTranslate, setPrevTranslate] = useState(0);
+
+  const cardWidth = window.innerWidth > 1200 ? 400 : window.innerWidth / 3;
+
+  const handleDragStart = (e) => {
+    setIsDragging(true);
+    setStartX(e.type === 'touchstart' ? e.touches[0].clientX : e.clientX);
+    setPrevTranslate(currentTranslate);
+  };
+
+  const handleDragMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    
+    const currentX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+    const diff = currentX - startX;
+    const newTranslate = prevTranslate + diff;
+    
+    const maxTranslate = 0;
+    const minTranslate = -(sortedInfo.length - 3) * (cardWidth + 20);
+    
+    if (newTranslate > maxTranslate) {
+      setCurrentTranslate(maxTranslate);
+    } else if (newTranslate < minTranslate) {
+      setCurrentTranslate(minTranslate);
+    } else {
+      setCurrentTranslate(newTranslate);
+    }
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    const moveThreshold = cardWidth / 4;
+    const diff = currentTranslate - prevTranslate;
+    
+    let snapPosition;
+    if (Math.abs(diff) > moveThreshold) {
+      if (diff > 0) {
+        snapPosition = Math.ceil(currentTranslate / (cardWidth + 20)) * (cardWidth + 20);
+      } else {
+        snapPosition = Math.floor(currentTranslate / (cardWidth + 20)) * (cardWidth + 20);
+      }
+    } else {
+      snapPosition = Math.round(currentTranslate / (cardWidth + 20)) * (cardWidth + 20);
+    }
+    
+    setCurrentTranslate(snapPosition);
+    setCurrentIndex(Math.abs(Math.round(snapPosition / (cardWidth + 20))));
+  };
 
   const fetchBusInfo = async () => {
     try {
@@ -170,10 +196,7 @@ const Info = () => {
       const filteredBusInfo = data.map((bus) => {
         const departureMinutes = bus.도착시간 ? parseInt(bus.도착시간) : 0;
         const departureTime = calculateTime(departureMinutes);
-        const arrivalTime = calculateArrivalTime(
-          departureMinutes,
-          bus.버스번호
-        );
+        const arrivalTime = calculateArrivalTime(departureMinutes, bus.버스번호);
         return {
           busNumber: bus.버스번호,
           departureTime,
@@ -190,9 +213,7 @@ const Info = () => {
 
   const fetchShuttleInfo = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:8000/shuttle/${direction}`
-      );
+      const response = await fetch(`http://localhost:8000/shuttle/${direction}`);
       if (!response.ok) throw new Error("운행 종료");
       const data = await response.json();
       if (!data?.time) throw new Error("운행 종료");
@@ -222,6 +243,7 @@ const Info = () => {
   const fetchData = async () => {
     setLoading(true);
     setCurrentIndex(0);
+    setCurrentTranslate(0);
     setError(null);
     try {
       await Promise.all([fetchBusInfo(), fetchShuttleInfo()]);
@@ -235,6 +257,17 @@ const Info = () => {
   useEffect(() => {
     fetchData();
   }, [direction]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const newCardWidth = window.innerWidth > 1200 ? 400 : window.innerWidth / 3;
+      const newTranslate = currentIndex * -(newCardWidth + 20);
+      setCurrentTranslate(newTranslate);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [currentIndex]);
 
   const handleRefresh = () => {
     fetchData();
@@ -251,56 +284,46 @@ const Info = () => {
     return aMinutes - bMinutes;
   });
 
-  const scroll = (direction) => {
-    if (direction === "left" && currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    } else if (direction === "right" && currentIndex < sortedInfo.length - 3) {
-      setCurrentIndex(currentIndex + 1);
-    }
-  };
-
   if (loading) return <LoadingOrError>로딩 중...</LoadingOrError>;
   if (error) return <LoadingOrError>오류: {error}</LoadingOrError>;
 
   return (
     <ScrollContainer>
-      <LeftScrollButton
-        onClick={() => scroll("left")}
-        disabled={currentIndex === 0}
+      <CardViewport
+        onTouchStart={handleDragStart}
+        onTouchMove={handleDragMove}
+        onTouchEnd={handleDragEnd}
+        onMouseDown={handleDragStart}
+        onMouseMove={handleDragMove}
+        onMouseUp={handleDragEnd}
+        onMouseLeave={handleDragEnd}
       >
-        ←
-      </LeftScrollButton>
-      <CardViewport>
-        <CardContainer>
-          {sortedInfo
-            .slice(currentIndex, currentIndex + 3)
-            .map((info, index) => (
-              <Card key={index} type={info.type}>
-                <TopInfo>
-                  <BusNumber>{info.busNumber}</BusNumber>
-                  <SeatInfo>{info.remainingSeats}</SeatInfo>
-                </TopInfo>
-                <LineContainer>
-                  <TimeBlock>
-                    <div>출발</div>
-                    <div>{info.departureTime}</div>
-                  </TimeBlock>
-                  <DottedLine />
-                  <TimeBlock>
-                    <div>도착</div>
-                    <div>{info.arrivalTime}</div>
-                  </TimeBlock>
-                </LineContainer>
-              </Card>
-            ))}
+        <CardContainer
+          totalCards={sortedInfo.length}
+          offset={currentTranslate}
+          isDragging={isDragging}
+        >
+          {sortedInfo.map((info, index) => (
+            <Card key={index} type={info.type}>
+              <TopInfo>
+                <BusNumber>{info.busNumber}</BusNumber>
+                <SeatInfo>{info.remainingSeats}</SeatInfo>
+              </TopInfo>
+              <LineContainer>
+                <TimeBlock>
+                  <div>출발</div>
+                  <div>{info.departureTime}</div>
+                </TimeBlock>
+                <DottedLine />
+                <TimeBlock>
+                  <div>도착</div>
+                  <div>{info.arrivalTime}</div>
+                </TimeBlock>
+              </LineContainer>
+            </Card>
+          ))}
         </CardContainer>
       </CardViewport>
-      <RightScrollButton
-        onClick={() => scroll("right")}
-        disabled={currentIndex >= sortedInfo.length - 3}
-      >
-        →
-      </RightScrollButton>
       <RefreshButton onClick={handleRefresh}>↺</RefreshButton>
     </ScrollContainer>
   );

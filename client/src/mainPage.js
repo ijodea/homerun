@@ -42,7 +42,6 @@ const LogoutButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-
   &:hover {
     text-decoration: underline;
   }
@@ -121,23 +120,27 @@ const EfficientCardViewport = styled.div`
   overflow: hidden;
   position: relative;
   margin: 20px auto;
+  touch-action: pan-y pinch-zoom;
 `;
 
 const EfficientCardContainer = styled.div`
   position: absolute;
   width: 100%;
-  transition: transform 0.3s ease;
+  transition: ${props => props.isDragging ? 'none' : 'transform 0.3s ease-out'};
+  transform: translateY(${props => props.offset}px);
+  will-change: transform;
+  user-select: none;
 `;
 
 const EfficientCard = styled.div`
   background: white;
   border-radius: 10px;
   padding: 20px;
-  margin: 10px 0;
+  margin-bottom: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: ${(props) =>
     props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
-  height: 160px;
+  height: 140px;
   box-sizing: border-box;
 `;
 
@@ -173,34 +176,6 @@ const SeatInfo = styled.div`
   margin-top: 5px;
 `;
 
-const CardControls = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
-`;
-
-const CardButton = styled.button`
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  border: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  &:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-  &:hover:not(:disabled) {
-    background: rgba(0, 0, 0, 0.7);
-  }
-`;
-
 const UserInfo = styled.div`
   position: absolute;
   right: 20px;
@@ -225,9 +200,7 @@ const Footer = styled.footer`
 `;
 
 const MainPage = () => {
-  const [currentTime, setCurrentTime] = useState(
-    new Date().toLocaleTimeString()
-  );
+  const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
   const [direction, setDirection] = useState("giheung-to-mju");
   const [currentCardIndex, setCurrentCardIndex] = useState({ mju: 0, gih: 0 });
   const [fastestTransports, setFastestTransports] = useState({
@@ -236,6 +209,11 @@ const MainPage = () => {
   });
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+
+  const [isDragging, setIsDragging] = useState({ mju: false, gih: false });
+  const [startY, setStartY] = useState({ mju: 0, gih: 0 });
+  const [currentTranslate, setCurrentTranslate] = useState({ mju: 0, gih: 0 });
+  const [prevTranslate, setPrevTranslate] = useState({ mju: 0, gih: 0 });
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -249,6 +227,46 @@ const MainPage = () => {
       fetchEfficientTransport();
     }
   }, [location]);
+
+  const handleDragStart = (e, type) => {
+    setIsDragging(prev => ({ ...prev, [type]: true }));
+    setStartY(prev => ({
+      ...prev,
+      [type]: e.type === 'touchstart' ? e.touches[0].clientY : e.clientY
+    }));
+    setPrevTranslate(prev => ({ ...prev, [type]: currentTranslate[type] }));
+  };
+
+  const handleDragMove = (e, type) => {
+    if (!isDragging[type]) return;
+    e.preventDefault();
+    
+    const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+    const diff = currentY - startY[type];
+    const newTranslate = prevTranslate[type] + diff;
+    
+    if (newTranslate > 0) {
+      setCurrentTranslate(prev => ({ ...prev, [type]: 0 }));
+    } else if (newTranslate < -(fastestTransports[type].length - 1) * 180) {
+      setCurrentTranslate(prev => ({ 
+        ...prev, 
+        [type]: -(fastestTransports[type].length - 1) * 180 
+      }));
+    } else {
+      setCurrentTranslate(prev => ({ ...prev, [type]: newTranslate }));
+    }
+  };
+
+  const handleDragEnd = (type) => {
+    setIsDragging(prev => ({ ...prev, [type]: false }));
+    const cardHeight = 180;
+    const newIndex = Math.round(Math.abs(currentTranslate[type]) / cardHeight);
+    setCurrentCardIndex(prev => ({ ...prev, [type]: newIndex }));
+    setCurrentTranslate(prev => ({
+      ...prev,
+      [type]: -newIndex * cardHeight
+    }));
+  };
 
   const handleDirectionChange = (newDirection) => {
     setDirection(newDirection);
@@ -271,17 +289,12 @@ const MainPage = () => {
   };
 
   const handleLogout = () => {
-    // 일반 로그인 정보 삭제
     localStorage.removeItem("studentId");
     localStorage.removeItem("phoneNumber");
-
-    // 카카오 로그인 정보 삭제
     localStorage.removeItem("kakaoUser");
     localStorage.removeItem("kakaoToken");
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("loginType");
-
-    // 페이지 새로고침
     window.location.reload();
   };
 
@@ -296,7 +309,7 @@ const MainPage = () => {
         mjuResponse.json(),
         gihResponse.json(),
       ]);
-  
+
       const busTimes = {
         셔틀: 20,
         5600: 32,
@@ -305,34 +318,41 @@ const MainPage = () => {
         "5003B": 43,
         820: 44,
       };
-  
+
       const calculateArrivalTime = (departureMinutes, busType) => {
         const now = new Date();
         const departureTime = new Date(now.getTime() + departureMinutes * 60000);
         const travelTime = busTimes[busType] || 30;
         return new Date(departureTime.getTime() + travelTime * 60000);
       };
-  
+
       const processTransports = async (busData, direction) => {
         const transports = busData.map((bus) => ({
           type: "bus",
           number: bus.버스번호,
           departureTime: parseInt(bus.도착시간) || Infinity,
-          arrivalTime: calculateArrivalTime(parseInt(bus.도착시간), bus.버스번호),
+          arrivalTime: calculateArrivalTime(
+            parseInt(bus.도착시간),
+            bus.버스번호
+          ),
           remainingSeats: bus.남은좌석수 || "정보 없음",
           direction: direction,
         }));
-  
+
         try {
-          const shuttleResponse = await fetch(`http://localhost:8000/shuttle/${direction}`);
+          const shuttleResponse = await fetch(
+            `http://localhost:8000/shuttle/${direction}`
+          );
           const shuttleData = await shuttleResponse.json();
-          
           if (shuttleData?.time) {
             transports.push({
               type: "shuttle",
               number: shuttleData.nextShuttle || "셔틀",
               departureTime: parseInt(shuttleData.time),
-              arrivalTime: calculateArrivalTime(parseInt(shuttleData.time), "셔틀"),
+              arrivalTime: calculateArrivalTime(
+                parseInt(shuttleData.time),
+                "셔틀"
+              ),
               remainingSeats: "정보 없음",
               direction: direction,
             });
@@ -340,16 +360,22 @@ const MainPage = () => {
         } catch (error) {
           console.error("셔틀 정보를 가져오는 중 오류 발생:", error);
         }
-  
+
         return transports
           .filter((transport) => transport.departureTime !== Infinity)
           .sort((a, b) => a.arrivalTime - b.arrivalTime)
           .slice(0, 3);
       };
-  
-      const mjuTransports = await processTransports(mjuBusData, "mju-to-giheung");
-      const gihTransports = await processTransports(gihBusData, "giheung-to-mju");
-  
+
+      const mjuTransports = await processTransports(
+        mjuBusData,
+        "mju-to-giheung"
+      );
+      const gihTransports = await processTransports(
+        gihBusData,
+        "giheung-to-mju"
+      );
+
       setFastestTransports({
         mju: mjuTransports,
         gih: gihTransports,
@@ -362,23 +388,20 @@ const MainPage = () => {
     }
   };
 
-  const handleCardScroll = (direction, type) => {
-    setCurrentCardIndex((prevState) => ({
-      ...prevState,
-      [type]:
-        direction === "up"
-          ? Math.max(0, prevState[type] - 1)
-          : Math.min(fastestTransports[type].length - 1, prevState[type] + 1),
-    }));
-  };
-
   const renderTransportCards = (type) => (
     <DirectionColumn>
-      <EfficientCardViewport>
+      <EfficientCardViewport
+        onTouchStart={(e) => handleDragStart(e, type)}
+        onTouchMove={(e) => handleDragMove(e, type)}
+        onTouchEnd={() => handleDragEnd(type)}
+        onMouseDown={(e) => handleDragStart(e, type)}
+        onMouseMove={(e) => handleDragMove(e, type)}
+        onMouseUp={() => handleDragEnd(type)}
+        onMouseLeave={() => isDragging[type] && handleDragEnd(type)}
+      >
         <EfficientCardContainer
-          style={{
-            transform: `translateY(-${currentCardIndex[type] * 180}px)`,
-          }}
+          isDragging={isDragging[type]}
+          offset={currentTranslate[type]}
         >
           {fastestTransports[type].map((transport, index) => (
             <EfficientCard key={index} type={transport.type}>
@@ -403,24 +426,9 @@ const MainPage = () => {
           ))}
         </EfficientCardContainer>
       </EfficientCardViewport>
-      <CardControls>
-        <CardButton
-          onClick={() => handleCardScroll("up", type)}
-          disabled={currentCardIndex[type] === 0}
-        >
-          ↑
-        </CardButton>
-        <CardButton
-          onClick={() => handleCardScroll("down", type)}
-          disabled={
-            currentCardIndex[type] >= fastestTransports[type].length - 1
-          }
-        >
-          ↓
-        </CardButton>
-      </CardControls>
     </DirectionColumn>
   );
+
 
   return (
     <AppContainer>
@@ -473,7 +481,7 @@ const MainPage = () => {
         <Outlet context={{ direction }} />
       </HeaderContainer>
       <Footer>
-        © 2024 공개SW 아2조디어 | HomeRun | 백병재 강병수 박영찬 이승현
+        © 아2조디어 | HomeRun | 백병재 강병수 박영찬 이승현
       </Footer>
     </AppContainer>
   );
