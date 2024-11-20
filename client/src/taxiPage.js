@@ -61,6 +61,17 @@ const TaxiPage = () => {
   const navigate = useNavigate();
   const { direction } = useOutletContext();
 
+  //로그인 상태 체크를 위한 useEffect 추가
+  useEffect(()=> {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    if(!isLoggedIn){
+      navigate("/login");
+      return;
+    }
+  }, [navigate]);
+  
+  
+
   const [userId, setUserId] = useState(() => {
     // localStorage에서 userId를 가져와서 초기값으로 설정
     const savedUserId = localStorage.getItem("userId");

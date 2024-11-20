@@ -256,30 +256,20 @@ const MainPage = () => {
   };
 
   const isLoggedIn = () => {
-    return !!(
-      localStorage.getItem("studentId") ||
-      localStorage.getItem("isLoggedIn") === "true"
-    );
+    return localStorage.getItem("isLoggedIn") === "true";
   };
 
   const getUserDisplayName = () => {
-    const kakaoUser = JSON.parse(localStorage.getItem("kakaoUser"));
-    if (kakaoUser?.nickname) {
-      return kakaoUser.nickname;
-    }
-    return localStorage.getItem("studentId") || "사용자";
+    return localStorage.getItem("studentName") || "사용자";
   };
 
   const handleLogout = () => {
-    // 일반 로그인 정보 삭제
+    //로그인 정보 삭제
+    localStorage.removeItem("studentName");
     localStorage.removeItem("studentId");
     localStorage.removeItem("phoneNumber");
-
-    // 카카오 로그인 정보 삭제
-    localStorage.removeItem("kakaoUser");
-    localStorage.removeItem("kakaoToken");
     localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("loginType");
+    localStorage.removeItem("accessToken");
 
     // 페이지 새로고침
     window.location.reload();

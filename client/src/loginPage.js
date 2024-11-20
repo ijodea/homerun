@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate, Link } from "react-router-dom";
 import HomerunLink from "./homeRunLink";
 import MainPage from "./mainPage";
 import Join from "./joinPage";
-import kakaoLoginImg from "./assets/kakao_login.png";
+
 
 const Container = styled.div`
   display: flex;
@@ -64,43 +64,61 @@ const JoinLink = styled(Link)`
   }
 `;
 
-const KakaoLoginBtn = styled.img`
-  width: 50%;
-  cursor: pointer;
-  margin-top: 10px;
-`;
 
-function Login() {
+function Login(){
   const [studentName, setStudentName] = useState(""); // 이름 상태
   const [studentId, setStudentId] = useState(""); // 학번 상태
   const [phoneNumber, setPhoneNumber] = useState(""); // 전화번호 상태
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  // 이미 로그인된 사용자 체크
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    if (isLoggedIn) {
+      navigate("/");
+    }
+  }, [navigate]);
+
+  const handleSubmit = async (e) =>{
     e.preventDefault();
-    // 로컬 스토리지에 데이터 저장
-    localStorage.setItem("studentName", studentName);
-    localStorage.setItem("studentId", studentId);
-    localStorage.setItem("phoneNumber", phoneNumber);
+    try{
+      const response = await fetch('http://localhost:8000/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({name:studentName, studentId, phoneNumber}),
+      });
+      if(response.ok){
+        const data = await response.json();
+        localStorage.setItem("studentName", studentName);
+        localStorage.setItem("studentId", studentId);
+        localStorage.setItem("phoneNumber", phoneNumber);
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("accessToken", data.accessToken);
 
-    //메인 페이지로 이동
-    navigate("/", { state: { studentName, studentId, phoneNumber } }); // navigate 사용
+        navigate("/");
+      } else {
+        alert("로그인에 실패하였습니다.");
+      }
+    } catch (error) {
+      console.error("로그인 중 오류 발생:", error);
+    }
   };
 
-  const handleKakaoLogin = () => {
-    window.location.href = 'http://localhost:8000/auth/kakao-login-page';
-  };
+
+  
 
   return (
     <Container>
       <HomerunLink />
       <form onSubmit={handleSubmit}>
-      <InputContainer>
+        <InputContainer>
           <Input
             type="text"
             placeholder="이름을 입력하세요"
             value={studentName}
-            onChange={(e) => setStudentName(e.target.value)} // 이름 입력 핸들러
+            onChange={(e) => setStudentName(e.target.value)}
             required
           />
         </InputContainer>
@@ -109,7 +127,7 @@ function Login() {
             type="text"
             placeholder="학번을 입력하세요"
             value={studentId}
-            onChange={(e) => setStudentId(e.target.value)} // 학번 입력 핸들러
+            onChange={(e) => setStudentId(e.target.value)}
             required
           />
         </InputContainer>
@@ -118,14 +136,13 @@ function Login() {
             type="tel"
             placeholder="전화번호를 입력하세요"
             value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)} // 전화번호 입력 핸들러
+            onChange={(e) => setPhoneNumber(e.target.value)}
             required
           />
         </InputContainer>
         <ButtonContainer>
-          <JoinLink to="/join">회원가입하기</JoinLink>
-          <LoginBtn to="/">로그인</LoginBtn>
-          <KakaoLoginBtn src={kakaoLoginImg} onClick={handleKakaoLogin} />
+          <JoinLink onClick={() => navigate("/join")}>회원가입하기</JoinLink>
+          <LoginBtn type="submit">로그인</LoginBtn>
         </ButtonContainer>
       </form>
     </Container>

@@ -10,7 +10,7 @@ import Direction from "./directioncontrols.js";
 import LoginPage from "./loginPage.js";
 import JoingPage from "./joinPage.js";
 import ChatRoom from "./chatRoom.js";
-import KakaoRedirect from "./KakaoRedirect";
+
 // import axios from "axios";
 
 function App() {
@@ -28,7 +28,6 @@ function App() {
         <Route path="/busDetail" element={<BusDetail />} />
         <Route path="/shuttleDetail" element={<ShuttleDetail />} />
         <Route path="/chat/room/:groupId" element={<ChatRoom />} />
-        <Route path="/oauth/callback" element={<KakaoRedirect />} />
       </Routes>
     </Router>
   );
