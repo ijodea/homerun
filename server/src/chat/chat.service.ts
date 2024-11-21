@@ -6,12 +6,16 @@ import {
   ChatRoomResponse,
 } from './Interfaces/chat.interface';
 import { TaxiService } from '../taxi/taxi.service';
+import { ChatGateway } from './chat.gateway';
 
 @Injectable()
 export class ChatService {
   private chatRooms: Map<string, ChatRoom> = new Map();
 
-  constructor(private readonly taxiService: TaxiService) {}
+  constructor(
+    private readonly taxiService: TaxiService,
+    private readonly chatGateway: ChatGateway,
+  ) {}
 
   private generateChatId(): string {
     return Math.random().toString(36).substring(2, 15);
@@ -77,6 +81,8 @@ export class ChatService {
     };
 
     room.messages.push(newMessage);
+    // 메시지를 클라이언트에게 브로드캐스트
+    this.chatGateway.broadcastMessage(newMessage);
     return newMessage;
   }
 
