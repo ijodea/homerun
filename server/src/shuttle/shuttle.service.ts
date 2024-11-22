@@ -36,7 +36,7 @@ export class ShuttleService {
     }
   }
 
-  getMStationTimeGtoM(currentTime: Date): number | null {
+  getMStationTimeGtoM(el: number, currentTime: Date): number | null {
     // 기흥 -> 명지대
     const csvFilePath = this.getFilePath('mStation.csv');
     try {
@@ -48,10 +48,11 @@ export class ShuttleService {
         return depart_school_m;
       });
 
+      el += 16;
       const currentMinutes =
         currentTime.getHours() * 60 + currentTime.getMinutes();
       const nextBusMinutes = MJUtoMS.find(
-        (busTime) => busTime >= currentMinutes,
+        (busTime) => busTime >= el + currentMinutes,
       );
 
       return nextBusMinutes !== undefined
@@ -63,7 +64,7 @@ export class ShuttleService {
     }
   }
 
-  getEverlineTimeGtoM(m: number, currentTime: Date): number | null {
+  getEverlineTimeGtoM(currentTime: Date): number | null {
     // 기흥 -> 명지대
     const csvFilePath = this.getFilePath('everline.csv');
     try {
@@ -75,11 +76,10 @@ export class ShuttleService {
         return depart_school_m;
       });
 
-      m += 10;
       const currentMinutes =
         currentTime.getHours() * 60 + currentTime.getMinutes();
       const nextSubwayMinutes = MStoGS.find(
-        (subwayTime) => subwayTime >= m + currentMinutes,
+        (subwayTime) => subwayTime >= currentMinutes,
       );
 
       return nextSubwayMinutes !== undefined
@@ -145,5 +145,31 @@ export class ShuttleService {
     }
   }
 
-  // 에버라인 시간 구현 필요 근데 에버라인 시간표가 없음 ㅋㅋ
+  getEverlineTimeMtoG(m: number, currentTime: Date): number | null {
+    // 명지대 -> 기흥
+    const csvFilePath = this.getFilePath('everline.csv');
+    try {
+      const csvData = fs.readFileSync(csvFilePath, 'utf8');
+      const lines = csvData.trim().split('\n');
+      const MStoGS = lines.slice(1).map((line) => {
+        const columns = line.split(',');
+        const depart_school_m = Number(columns[2]);
+        return depart_school_m;
+      });
+
+      m += 10;
+      const currentMinutes =
+        currentTime.getHours() * 60 + currentTime.getMinutes();
+      const nextSubwayMinutes = MStoGS.find(
+        (subwayTime) => subwayTime >= m + currentMinutes,
+      );
+
+      return nextSubwayMinutes !== undefined
+        ? nextSubwayMinutes - currentMinutes
+        : null;
+    } catch (error) {
+      console.error(`Error reading file ${csvFilePath}:`, error);
+      return null;
+    }
+  }
 }
