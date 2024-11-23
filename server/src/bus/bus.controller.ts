@@ -14,7 +14,7 @@ export class BusController {
   ) {}
 
   @Get('mju-to-giheung')
-  async getMjuToGiheungBusInfo(@Query('apiKey') apiKey: string) {
+  async getMjuToGiheungBusInfo() {
     const stationId = this.configService.get<string>(
       'MJU_TO_GIHEUNG_STATION_ID',
     );
@@ -24,7 +24,7 @@ export class BusController {
   }
 
   @Get('giheung-to-mju')
-  async getGiheungToMjuBusInfo(@Query('apiKey') apiKey: string) {
+  async getGiheungToMjuBusInfo() {
     const stationId = this.configService.get<string>(
       'GIHEUNG_TO_MJU_STATION_ID',
     );
