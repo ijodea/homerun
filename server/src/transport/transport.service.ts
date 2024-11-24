@@ -71,15 +71,20 @@ export class TransportService {
     const giheungToMjuStationId = this.configService.get<string>('GIHEUNG_TO_MJU_STATION_ID');
     const busNumbers = this.configService.get<string>('BUS_NUMBERS').split(',');
 
-    const calculateArrivalTime = (departureMinutes: number, travelMinutes: number) => {
-      const departureTimeUTC = new Date(currentTime.getTime() + departureMinutes * 60000);
-      const arrivalTimeUTC = new Date(departureTimeUTC.getTime() + travelMinutes * 60000);
+    const calculateArrivalTime = (currentTime: Date, waitingTime: number, totalTime: number) => {
+      const departureTime = new Date(currentTime.getTime() + waitingTime * 60000); // 현재 시간 + 대기 시간
+      const arrivalTime = new Date(departureTime.getTime() + totalTime * 60000); // 출발 시간 + 총 소요 시간
+      return { departureTime, arrivalTime };
+    };
+    
 
-      // UTC -> KST 변환
-      const departureTimeKST = new Date(departureTimeUTC.getTime() + 9 * 60 * 60 * 1000);
-      const arrivalTimeKST = new Date(arrivalTimeUTC.getTime() + 9 * 60 * 60 * 1000);
-
-      return { departureTime: departureTimeKST, arrivalTime: arrivalTimeKST };
+    // 버스 번호별 이동 시간 정의
+    const busTravelTimes: { [key: string]: number } = {
+      '5005': 43,
+      '5600': 43,
+      '820': 47,
+      '5003B': 59,
+      '5003A': 59,
     };
 
     // 1. 기흥역 → 명지대
@@ -90,13 +95,14 @@ export class TransportService {
     const busArrivalDataGtoM = await this.busService.getBusArrivalInfo(giheungToMjuStationId, busNumbers);
 
     const busOptionsGtoM = busArrivalDataGtoM.map((bus) => {
-      const travelTime = bus.버스번호 === '820' ? 44 : 60; // 이동 시간 예시값
-      const { departureTime, arrivalTime } = calculateArrivalTime(parseInt(bus.도착시간, 10), travelTime);
+      const waitingTime = parseInt(bus.도착시간,10); //도착시간을 숫자로 변환
+      const travelTime = busTravelTimes[bus.버스번호] || 60; // 이동 시간
+      const { departureTime, arrivalTime } = calculateArrivalTime(currentTime, waitingTime,travelTime);
 
       return {
         type: `버스 (${bus.버스번호})`,
         waitingTime: parseInt(bus.도착시간, 10),
-        totalTime: parseInt(bus.도착시간, 10) + travelTime,
+        totalTime: travelTime,
         cost: bus.버스번호 === '820' ? 1450 : 2800,
         seats: bus.남은좌석수 !== '정보 없음' ? parseInt(bus.남은좌석수, 10) : undefined,
         bonus: bus.버스번호 === '820' ? 5 : 0,
@@ -109,19 +115,32 @@ export class TransportService {
       {
         type: '기흥역 직통 셔틀',
         waitingTime: directShuttleGtoM,
-        totalTime: 30,
+        totalTime: 15,
         cost: 0,
-        ...calculateArrivalTime(directShuttleGtoM || 0, 30),
+        ...(() => {
+          if (directShuttleGtoM !== null) {
+            const { departureTime, arrivalTime } = calculateArrivalTime(currentTime, directShuttleGtoM, 15);
+            return { departureTime, arrivalTime };
+          }
+          return { departureTime: null, arrivalTime: null }; // 대기 시간이 null인 경우 처리
+        })(),
       },
       {
         type: '에버라인 + 명지대역 셔틀',
         waitingTime: elToMju,
         totalTime: elToMju !== null && mStationToMju !== null ? elToMju + mStationToMju : null,
         cost: 1450,
-        ...calculateArrivalTime(elToMju || 0, 41), // 예시값: 에버라인 + 셔틀 이동 시간
+        ...(() => {
+          if (elToMju !== null && mStationToMju !== null) {
+            const { departureTime, arrivalTime } = calculateArrivalTime(currentTime, elToMju, elToMju + mStationToMju);
+            return { departureTime, arrivalTime };
+          }
+          return { departureTime: null, arrivalTime: null }; // 대기 시간 또는 총 소요 시간이 null인 경우 처리
+        })(),
       },
       ...busOptionsGtoM,
     ];
+    
 
     const rankedGtoM = await this.calculateScores(optionsGtoM);
 
@@ -133,13 +152,14 @@ export class TransportService {
     const busArrivalDataMtoG = await this.busService.getBusArrivalInfo(mjuToGiheungStationId, busNumbers);
 
     const busOptionsMtoG = busArrivalDataMtoG.map((bus) => {
-      const travelTime = bus.버스번호 === '820' ? 44 : 60; // 이동 시간 예시값
-      const { departureTime, arrivalTime } = calculateArrivalTime(parseInt(bus.도착시간, 10), travelTime);
+      const waitingTime = parseInt(bus.도착시간, 10); //도착시간을 숫자로 변환
+      const travelTime = busTravelTimes[bus.버스번호] || 60; // 이동 시간
+      const { departureTime, arrivalTime } = calculateArrivalTime(currentTime, waitingTime, travelTime);
 
       return {
         type: `버스 (${bus.버스번호})`,
         waitingTime: parseInt(bus.도착시간, 10),
-        totalTime: parseInt(bus.도착시간, 10) + travelTime,
+        totalTime: travelTime,
         cost: bus.버스번호 === '820' ? 1450 : 2800,
         seats: bus.남은좌석수 !== '정보 없음' ? parseInt(bus.남은좌석수, 10) : undefined,
         bonus: bus.버스번호 === '820' ? 5 : 0,
@@ -152,19 +172,32 @@ export class TransportService {
       {
         type: '명지대 → 기흥역 셔틀',
         waitingTime: directShuttleMtoG,
-        totalTime: 30,
+        totalTime: 15,
         cost: 0,
-        ...calculateArrivalTime(directShuttleMtoG || 0, 30),
+        ...(() => {
+          if (directShuttleMtoG !== null) {
+            const { departureTime, arrivalTime } = calculateArrivalTime(currentTime, directShuttleMtoG, 15);
+            return { departureTime, arrivalTime };
+          }
+          return { departureTime: null, arrivalTime: null }; // 대기 시간이 null인 경우 처리
+        })(),
       },
       {
         type: '명지대역 셔틀 + 에버라인',
         waitingTime: mStationToGiheung,
         totalTime: mStationToGiheung !== null && elToGiheung !== null ? mStationToGiheung + elToGiheung : null,
         cost: 1450,
-        ...calculateArrivalTime(mStationToGiheung || 0, 41), // 예시값: 셔틀 + 에버라인 이동 시간
+        ...(() => {
+          if (mStationToGiheung !== null && elToGiheung !== null) {
+            const { departureTime, arrivalTime } = calculateArrivalTime(currentTime, mStationToGiheung, mStationToGiheung + elToGiheung);
+            return { departureTime, arrivalTime };
+          }
+          return { departureTime: null, arrivalTime: null }; // 대기 시간 또는 총 소요 시간이 null인 경우 처리
+        })(),
       },
       ...busOptionsMtoG,
     ];
+    
 
     const rankedMtoG = await this.calculateScores(optionsMtoG);
 
