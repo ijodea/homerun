@@ -19,6 +19,7 @@ import {UsersModule} from './users/user.module';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
+import {TransportModule} from './transport/transport.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { JwtModule } from '@nestjs/jwt';
     // }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'timetable'),
+      //serveRoot: '/static',
       serveRoot: '/timetable',
     }),
     ConfigModule.forRoot({
@@ -61,6 +63,7 @@ import { JwtModule } from '@nestjs/jwt';
     TaxiModule,
     ChatModule,
     AuthModule,
+    TransportModule,
   ],
   providers: [TaxiService,JwtAuthGuard,JwtStrategy],
   controllers: [TaxiController],
