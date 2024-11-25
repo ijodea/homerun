@@ -437,10 +437,10 @@ const MainPage = () => {
         {isLoggedIn() ? (
           <UserInfo>
             <span>{getUserDisplayName()}님</span>
-            <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
+            <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
           </UserInfo>
         ) : (
-          <LoginLink to="/login">로그인</LoginLink>
+          <LoginLink to="/login">Longin</LoginLink>
         )}
         <MenuContainer>
           <MenuItem

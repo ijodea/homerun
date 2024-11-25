@@ -32,13 +32,6 @@ const Button = styled.button`
   }
 `;
 
-const LocationInfo = styled.div`
-  background-color: #f3f4f6;
-  padding: 0.75rem;
-  border-radius: 0.25rem;
-  margin-bottom: 1rem;
-`;
-
 const ResponseContainer = styled.div`
   margin-top: 1rem;
   padding: 1rem;
@@ -62,12 +55,9 @@ const TaxiPage = () => {
   const { direction } = useOutletContext();
 
   const [userId, setUserId] = useState(() => {
-    // localStorage에서 userId를 가져와서 초기값으로 설정
     const savedUserId = localStorage.getItem("userId");
     return savedUserId || "";
   });
-  const [latitude, setLatitude] = useState("-");
-  const [longitude, setLongitude] = useState("-");
   const [response, setResponse] = useState(null);
   const [error, setError] = useState("");
   const [currentGroupId, setCurrentGroupId] = useState(null);
@@ -80,30 +70,12 @@ const TaxiPage = () => {
   };
 
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLatitude(position.coords.latitude.toFixed(6));
-          setLongitude(position.coords.longitude.toFixed(6));
-          setError("");
-        },
-        (error) => {
-          setError("위치 정보를 가져올 수 없습니다: " + error.message);
-        }
-      );
-    } else {
-      setError("이 브라우저는 위치 정보를 지원하지 않습니다.");
-    }
-  }, []);
-
-  // userId가 변경될 때마다 localStorage 업데이트
-  useEffect(() => {
+    // userId가 변경될 때마다 localStorage 업데이트
     if (userId) {
       localStorage.setItem("userId", userId);
     }
   }, [userId]);
 
-  // 그룹 상태 확인 및 채팅방 리다이렉트
   useEffect(() => {
     let statusCheckInterval = null;
 
@@ -132,7 +104,6 @@ const TaxiPage = () => {
             } (${data.memberCount}/4명)`,
           }));
 
-          // 그룹이 가득 찼을 때 리다이렉트 설정
           if (data.isFull && !redirectTimer) {
             setResponse((prev) => ({
               ...prev,
@@ -153,11 +124,9 @@ const TaxiPage = () => {
 
     if (currentGroupId) {
       statusCheckInterval = setInterval(checkGroupStatus, 3000);
-      // 초기 상태 확인
       checkGroupStatus();
     }
 
-    // Clean up function
     return () => {
       if (statusCheckInterval) clearInterval(statusCheckInterval);
       if (redirectTimer) clearTimeout(redirectTimer);
@@ -170,16 +139,9 @@ const TaxiPage = () => {
       return;
     }
 
-    if (latitude === "-" || longitude === "-") {
-      setError("위치 정보를 가져올 수 없습니다.");
-      return;
-    }
-
     try {
       const locationData = {
         userId,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
         to: direction === "giheung-to-mju" ? "mju" : "gh",
       };
 
@@ -192,7 +154,6 @@ const TaxiPage = () => {
       );
       console.log("서버 응답:", data);
 
-      // API 요청이 성공하면 localStorage에 userId 저장
       localStorage.setItem("userId", userId);
 
       setResponse(data);
@@ -200,7 +161,6 @@ const TaxiPage = () => {
       if (data.success && data.data.group) {
         setCurrentGroupId(data.data.group.groupId);
 
-        // 이미 가득 찬 그룹에 참여한 경우
         if (data.data.group.isFull && !redirectTimer) {
           setResponse((prev) => ({
             ...prev,
@@ -239,11 +199,6 @@ const TaxiPage = () => {
             placeholder="사용자 ID를 입력하세요"
           />
         </div>
-
-        <LocationInfo>
-          <div className="mb-2">위도: {latitude}</div>
-          <div>경도: {longitude}</div>
-        </LocationInfo>
 
         <Button onClick={handleSubmit}>택시 모집</Button>
 
