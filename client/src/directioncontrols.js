@@ -19,7 +19,7 @@ const DirectionButtonContainer = styled.div`
     }
 
     img {
-        height: 50px; /* 기본 이미지 크기 */
+        height: 50px;
         margin: 0 10px;
 
         @media (max-width: 768px) {
