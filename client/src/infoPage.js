@@ -7,25 +7,38 @@ const ScrollContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   position: relative;
-  padding: 0 40px;
+  padding: 0 40px 10px; /* 하단 여백 줄이기 */
+  margin-bottom: 20px;
   box-sizing: border-box;
+
+    /* 모바일 화면에서 하단 여백 조정 */
+    @media (max-width: 768px) {
+    padding-bottom: 5px; 
+    margin-bottom: 5px;
+  }
 `;
 
 const CardViewport = styled.div`
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  height: 400px; /* 카드 영역의 높이를 고정 */
+  height: 400px; 
   overflow-y: auto; /* 카드 영역만 수직 스크롤 가능 */
   box-sizing: border-box;
   padding: 20px;
-  border: 1px solid #ccc; /* 시각적으로 구분하기 위한 테두리 */
+  border: 1px solid #ccc; 
+  margin-bottom: 10px; 
+
+    /* 모바일 화면에서 하단 여백 조정 */
+    @media (max-width: 768px) {
+    margin-bottom: 5px; /* 간격 줄이기 */
+  }
 `;
 
 const CardContainer = styled.div`
   display: flex;
-  flex-wrap: wrap; /* 플렉스 래핑 활성화 */
-  gap: 15px; /* 카드 간 간격 */
+  flex-wrap: wrap;
+  gap: 15px; 
   
   @media (max-width: 768px) {
     flex-direction: column; /* 모바일에서는 세로 정렬 */
