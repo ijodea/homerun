@@ -174,7 +174,7 @@ const Info = () => {
           busNumber: bus.버스번호,
           departureTime,
           arrivalTime,
-          remainingSeats: bus.남은좌석수 || "정보 없음",
+          remainingSeats: bus.남은좌석수 || "공석",
           type: "bus",
         };
       });
@@ -196,7 +196,7 @@ const Info = () => {
           busNumber: data.nextShuttle || "셔틀",
           departureTime: calculateTime(parseInt(data.time)),
           arrivalTime: calculateArrivalTime(parseInt(data.time), "셔틀"),
-          remainingSeats: "정보 없음",
+          remainingSeats: "탑승 가능",
           type: "shuttle",
         },
       ]);
@@ -230,14 +230,17 @@ const Info = () => {
   }, [direction]);
 
   const sortedInfo = [...busInfo, ...shuttleInfo].sort((a, b) => {
-    if (a.departureTime === "운행 종료") return 1;
-    if (b.departureTime === "운행 종료") return -1;
-
-    const [aHours, aMinutes] = a.departureTime.split(":").map(Number);
-    const [bHours, bMinutes] = b.departureTime.split(":").map(Number);
-
-    if (aHours !== bHours) return aHours - bHours;
-    return aMinutes - bMinutes;
+    if (a.arrivalTime === "운행 종료") return 1;
+    if (b.arrivalTime === "운행 종료") return -1;
+    
+    const [aHours, aMinutes] = a.arrivalTime.split(":").map(Number);
+    const [bHours, bMinutes] = b.arrivalTime.split(":").map(Number);
+    
+    // 시간을 분으로 변환하여 비교
+    const aTotal = aHours * 60 + aMinutes;
+    const bTotal = bHours * 60 + bMinutes;
+    
+    return aTotal - bTotal;
   });
 
   if (loading) return <LoadingOrError>로딩 중...</LoadingOrError>;

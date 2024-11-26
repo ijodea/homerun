@@ -14,7 +14,7 @@ const AppContainer = styled.div`
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
-`;  
+`;
 
 const HeaderContainer = styled.div`
   display: flex;
@@ -79,7 +79,7 @@ const MenuItem = styled(Link)`
   flex: 1;
   border-radius: 5px;
   font-size: clamp(1rem, 3vw, 1.5rem);
-  background-color: ${(props) => 
+  background-color: ${(props) =>
     props.active ? (props.isinfo ? "#005700" : "#fb9403") : "transparent"};
 
   img {
@@ -94,7 +94,7 @@ const MenuItem = styled(Link)`
 
   &:hover {
     background-color: ${(props) =>
-      props.active ? (props.isinfo ? "#005700" : "#fb9403") : "rgba(0, 0, 0, 0.1)"};
+    props.active ? (props.isinfo ? "#005700" : "#fb9403") : "rgba(0, 0, 0, 0.1)"};
   }
 `;
 
@@ -138,8 +138,8 @@ const DirectionColumn = styled.div`
 
 const EfficientCardViewport = styled.div`
   width: 90%;
-  max-width: 350px; // 300px에서 350px로 증가
-  height: 200px; // 180px에서 200px로 증가
+  max-width: 400px;
+  height: 200px; 
   overflow: hidden;
   position: relative;
   margin: 20px auto;
@@ -160,9 +160,10 @@ const EfficientCard = styled.div`
   border-radius: 10px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 
+              0 2px 4px rgba(0, 0, 0, 0.19);
   border: ${(props) => props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
-  height: 160px; // 140px에서 160px로 증가
+  height: 160px;
   box-sizing: border-box;
 `;
 
@@ -180,18 +181,24 @@ const BusNumber = styled.div`
 
 const TimeInfo = styled.div`
   text-align: right;
-  
+  position: relative;
   div:first-child {
     color: #666;
     font-size: 14px;
     margin-bottom: 5px;
   }
-  
-  div:last-child {
-    font-size: 18px;
+  div:nth-child(2) {
+    font-size: 20px;
     font-weight: bold;
     color: #0066ff;
   }
+`;
+
+const Medal = styled.span`
+  position: absolute;
+  right: 0;
+  bottom: -50px;
+  font-size: 30px;
 `;
 
 const SeatInfo = styled.div`
@@ -227,6 +234,7 @@ const Footer = styled.footer`
     margin-top: auto;
   }
 `;
+
 
 
 const MainPage = () => {
@@ -270,17 +278,17 @@ const MainPage = () => {
   const handleDragMove = (e, type) => {
     if (!isDragging[type]) return;
     e.preventDefault();
-    
+
     const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
     const diff = currentY - startY[type];
     const newTranslate = prevTranslate[type] + diff;
-    
+
     if (newTranslate > 0) {
       setCurrentTranslate(prev => ({ ...prev, [type]: 0 }));
     } else if (newTranslate < -(fastestTransports[type].length - 1) * 180) {
-      setCurrentTranslate(prev => ({ 
-        ...prev, 
-        [type]: -(fastestTransports[type].length - 1) * 180 
+      setCurrentTranslate(prev => ({
+        ...prev,
+        [type]: -(fastestTransports[type].length - 1) * 180
       }));
     } else {
       setCurrentTranslate(prev => ({ ...prev, [type]: newTranslate }));
@@ -365,7 +373,7 @@ const MainPage = () => {
             parseInt(bus.도착시간),
             bus.버스번호
           ),
-          remainingSeats: bus.남은좌석수 || "정보 없음",
+          remainingSeats: bus.남은좌석수 || "공석",
           direction: direction,
         }));
 
@@ -383,7 +391,7 @@ const MainPage = () => {
                 parseInt(shuttleData.time),
                 "셔틀"
               ),
-              remainingSeats: "정보 없음",
+              remainingSeats: "탑승 가능",
               direction: direction,
             });
           }
@@ -444,14 +452,17 @@ const MainPage = () => {
                   <div>
                     {transport.arrivalTime instanceof Date
                       ? transport.arrivalTime.toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
                       : "정보 없음"}
                   </div>
+                  <Medal>
+                    {index === 0 ? "🏅" : index === 1 ? "🥈" : index === 2 ? "🥉" : ""}
+                  </Medal>
                 </TimeInfo>
               </TransportInfo>
-              <SeatInfo>잔여 좌석: {transport.remainingSeats}</SeatInfo>
+              <SeatInfo>{transport.remainingSeats}</SeatInfo>
             </EfficientCard>
           ))}
         </EfficientCardContainer>
@@ -479,7 +490,7 @@ const MainPage = () => {
             isinfo={true}
           >
             <img src={busInfoIcon} alt="Info" />
-             정보
+            정보
           </MenuItem>
           <MenuItem
             to="/taxi"
