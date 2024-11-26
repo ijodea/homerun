@@ -13,7 +13,8 @@ const AppContainer = styled.div`
   align-items: stretch;
   width: 100%;
   min-height: 100vh;
-`;
+  overflow-x: hidden;
+`;  
 
 const HeaderContainer = styled.div`
   display: flex;
@@ -21,7 +22,10 @@ const HeaderContainer = styled.div`
   align-items: center;
   width: 100%;
   min-height: 100vh;
-  padding-bottom: 0;
+  padding-bottom: 60px;
+  @media (min-width: 768px) {
+    padding-bottom: 0;
+  }
 `;
 
 const LoginLink = styled(Link)`
@@ -69,24 +73,28 @@ const MenuItem = styled(Link)`
   justify-content: center;
   color: ${(props) => (props.active ? "white" : "grey")};
   text-decoration: none;
-  padding: 20px;
-  font-size: 1.5em;
-  margin: 0 10px;
-  flex-grow: 1;
+  padding: 10px;
+  font-size: 1.2em;
+  margin: 0 5px;
+  flex: 1;
   border-radius: 5px;
-  background-color: ${(props) =>
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  background-color: ${(props) => 
     props.active ? (props.isinfo ? "#005700" : "#fb9403") : "transparent"};
+
   img {
     height: 40px;
     filter: ${(props) => (props.active ? "invert(1)" : "invert(0.5)")};
   }
+
+  @media (max-width: 768px) {
+    padding: 10px 5px;
+    font-size: 1em;
+  }
+
   &:hover {
     background-color: ${(props) =>
-      props.active
-        ? props.isinfo
-          ? "#005700"
-          : "#fb9403"
-        : "rgba(0, 0, 0, 0.1)"};
+      props.active ? (props.isinfo ? "#005700" : "#fb9403") : "rgba(0, 0, 0, 0.1)"};
   }
 `;
 
@@ -104,19 +112,34 @@ const TimeContainer = styled.div`
 
 const CardContainer = styled.div`
   display: flex;
-  justify-content: space-around;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
-  max-width: 800px;
-  margin: 20px auto;
+  padding: 0 10px;
+  box-sizing: border-box;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-around;
+    max-width: 800px;
+    margin: 20px auto;
+  }
 `;
 
 const DirectionColumn = styled.div`
-  width: 45%;
+  width: 100%;
+  margin-bottom: 20px;
+  
+  @media (min-width: 768px) {
+    width: 45%;
+    margin-bottom: 0;
+  }
 `;
 
 const EfficientCardViewport = styled.div`
-  width: 300px;
-  height: 180px;
+  width: 90%;
+  max-width: 350px; // 300px에서 350px로 증가
+  height: 200px; // 180px에서 200px로 증가
   overflow: hidden;
   position: relative;
   margin: 20px auto;
@@ -138,9 +161,8 @@ const EfficientCard = styled.div`
   padding: 20px;
   margin-bottom: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border: ${(props) =>
-    props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
-  height: 140px;
+  border: ${(props) => props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
+  height: 160px; // 140px에서 160px로 증가
   box-sizing: border-box;
 `;
 
@@ -152,17 +174,19 @@ const TransportInfo = styled.div`
 `;
 
 const BusNumber = styled.div`
-  font-size: 28px;
+  font-size: clamp(1rem, 4.8vw, 1.38rem);
   font-weight: bold;
 `;
 
 const TimeInfo = styled.div`
   text-align: right;
+  
   div:first-child {
     color: #666;
     font-size: 14px;
     margin-bottom: 5px;
   }
+  
   div:last-child {
     font-size: 18px;
     font-weight: bold;
@@ -190,23 +214,18 @@ const Footer = styled.footer`
   background-color: #333;
   color: #fff;
   text-align: right;
-  padding: 20px;
-  font-size: 0.9em;
+  padding: 15px;
   width: 100%;
-  flex-shrink: 0;
-  min-height: 60px;
-  margin-top: auto;
   box-sizing: border-box;
-;
-
-  @media (max-width: 768px) {
-    position: fixed; /* 화면 하단에 고정 */
-    bottom: 0;
-    left: 0;
-    padding: 20px;
-    z-index: 10; /* 다른 요소 위로 올리기 */
-    height: 60px; /* 고정 높이 설정 */
-    }
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  
+  @media (min-width: 768px) {
+    position: relative;
+    margin-top: auto;
+  }
 `;
 
 
@@ -460,7 +479,7 @@ const MainPage = () => {
             isinfo={true}
           >
             <img src={busInfoIcon} alt="Info" />
-            정보
+             정보
           </MenuItem>
           <MenuItem
             to="/taxi"
@@ -473,7 +492,7 @@ const MainPage = () => {
         </MenuContainer>
         {location.pathname === "/" && (
           <>
-            <TimeContainer>현재 시간: {currentTime}</TimeContainer>
+            <TimeContainer>현재 시간 : {currentTime}</TimeContainer>
             {loading ? (
               <div>로딩 중...</div>
             ) : (
