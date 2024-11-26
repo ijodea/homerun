@@ -7,23 +7,42 @@ const ScrollContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   position: relative;
-  padding: 0 40px;
+  padding: 0 40px 10px; /* 하단 여백 줄이기 */
+  margin-bottom: 20px;
   box-sizing: border-box;
+
+    /* 모바일 화면에서 하단 여백 조정 */
+    @media (max-width: 768px) {
+    padding-bottom: 5px; 
+    margin-bottom: 5px;
+  }
 `;
 
 const CardViewport = styled.div`
   width: 100%;
-  overflow: hidden;
-  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 400px; 
+  overflow-y: auto; /* 카드 영역만 수직 스크롤 가능 */
+  box-sizing: border-box;
+  padding: 20px;
+  border: 1px solid #ccc; 
+  margin-bottom: 10px; 
+
+    /* 모바일 화면에서 하단 여백 조정 */
+    @media (max-width: 768px) {
+    margin-bottom: 5px; /* 간격 줄이기 */
+  }
 `;
 
 const CardContainer = styled.div`
   display: flex;
-  gap: 20px;
-  width: fit-content;
-  will-change: transform;
-  transform: translateX(${props => props.offset}px);
-  transition: ${props => props.isDragging ? 'none' : 'transform 0.3s ease-out'};
+  flex-wrap: wrap;
+  gap: 15px; 
+  
+  @media (max-width: 768px) {
+    flex-direction: column; /* 모바일에서는 세로 정렬 */
+  }
 `;
 
 const Card = styled.div`
@@ -33,9 +52,12 @@ const Card = styled.div`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: ${(props) =>
     props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
-  width: calc((100vw - 140px) / 3);
-  max-width: 360px;
+  width: calc(50% - 15px); /* 한 줄에 카드 2개, 간격을 고려하여 너비 계산 */
   box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    width: 100%; /* 모바일에서는 전체 너비 사용 */
+  }
 `;
 
 const TopInfo = styled.div`
@@ -93,6 +115,7 @@ const RefreshButton = styled.button`
   width: 50px;
   height: 50px;
   font-size: 1.5em;
+  margin-bottom: 15px;
   background-color: #005700;
   color: white;
   border: none;
@@ -102,6 +125,10 @@ const RefreshButton = styled.button`
   &:hover {
     background-color: #003e00;
   }
+
+  @media (max-width: 768px) {
+            margin-bottom : 60px; /* 모바일 화면에서 이미지 숨기기 */
+        }
 `;
 
 const LoadingOrError = styled.div`
@@ -133,60 +160,6 @@ const Info = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { direction } = useOutletContext();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [currentTranslate, setCurrentTranslate] = useState(0);
-  const [prevTranslate, setPrevTranslate] = useState(0);
-
-  const cardWidth = window.innerWidth > 1200 ? 400 : window.innerWidth / 3;
-
-  const handleDragStart = (e) => {
-    setIsDragging(true);
-    setStartX(e.type === 'touchstart' ? e.touches[0].clientX : e.clientX);
-    setPrevTranslate(currentTranslate);
-  };
-
-  const handleDragMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    
-    const currentX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
-    const diff = currentX - startX;
-    const newTranslate = prevTranslate + diff;
-    
-    const maxTranslate = 0;
-    const minTranslate = -(sortedInfo.length - 3) * (cardWidth + 20);
-    
-    if (newTranslate > maxTranslate) {
-      setCurrentTranslate(maxTranslate);
-    } else if (newTranslate < minTranslate) {
-      setCurrentTranslate(minTranslate);
-    } else {
-      setCurrentTranslate(newTranslate);
-    }
-  };
-
-  const handleDragEnd = () => {
-    setIsDragging(false);
-    const moveThreshold = cardWidth / 4;
-    const diff = currentTranslate - prevTranslate;
-    
-    let snapPosition;
-    if (Math.abs(diff) > moveThreshold) {
-      if (diff > 0) {
-        snapPosition = Math.ceil(currentTranslate / (cardWidth + 20)) * (cardWidth + 20);
-      } else {
-        snapPosition = Math.floor(currentTranslate / (cardWidth + 20)) * (cardWidth + 20);
-      }
-    } else {
-      snapPosition = Math.round(currentTranslate / (cardWidth + 20)) * (cardWidth + 20);
-    }
-    
-    setCurrentTranslate(snapPosition);
-    setCurrentIndex(Math.abs(Math.round(snapPosition / (cardWidth + 20))));
-  };
 
   const fetchBusInfo = async () => {
     try {
@@ -242,8 +215,6 @@ const Info = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    setCurrentIndex(0);
-    setCurrentTranslate(0);
     setError(null);
     try {
       await Promise.all([fetchBusInfo(), fetchShuttleInfo()]);
@@ -257,21 +228,6 @@ const Info = () => {
   useEffect(() => {
     fetchData();
   }, [direction]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const newCardWidth = window.innerWidth > 1200 ? 400 : window.innerWidth / 3;
-      const newTranslate = currentIndex * -(newCardWidth + 20);
-      setCurrentTranslate(newTranslate);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [currentIndex]);
-
-  const handleRefresh = () => {
-    fetchData();
-  };
 
   const sortedInfo = [...busInfo, ...shuttleInfo].sort((a, b) => {
     if (a.departureTime === "운행 종료") return 1;
@@ -289,20 +245,8 @@ const Info = () => {
 
   return (
     <ScrollContainer>
-      <CardViewport
-        onTouchStart={handleDragStart}
-        onTouchMove={handleDragMove}
-        onTouchEnd={handleDragEnd}
-        onMouseDown={handleDragStart}
-        onMouseMove={handleDragMove}
-        onMouseUp={handleDragEnd}
-        onMouseLeave={handleDragEnd}
-      >
-        <CardContainer
-          totalCards={sortedInfo.length}
-          offset={currentTranslate}
-          isDragging={isDragging}
-        >
+      <CardViewport>
+        <CardContainer>
           {sortedInfo.map((info, index) => (
             <Card key={index} type={info.type}>
               <TopInfo>
@@ -324,7 +268,7 @@ const Info = () => {
           ))}
         </CardContainer>
       </CardViewport>
-      <RefreshButton onClick={handleRefresh}>↺</RefreshButton>
+      <RefreshButton onClick={fetchData}>↺</RefreshButton>
     </ScrollContainer>
   );
 };
