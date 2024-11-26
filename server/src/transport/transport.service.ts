@@ -2,6 +2,7 @@
 import { BusService } from '../bus/bus.service';
 import { ShuttleService } from '../shuttle/shuttle.service';
 import { ConfigService } from '@nestjs/config';
+import {TransportOption} from './transport-options.interface';
 
 @Injectable()
 export class TransportService {
@@ -12,17 +13,7 @@ export class TransportService {
   ) {}
 
   async calculateScores(
-    transportOptions: {
-      type: string;
-      waitingTime: number | null;
-      totalTime: number | null;
-      cost: number;
-      seats?: number;
-      bonus?: number;
-      departureTime?: Date;
-      arrivalTime?: Date;
-    }[],
-  ) {
+    transportOptions: TransportOption[]) {
     const DEFAULT_WEIGHTS = { waitingTime: 0.4, totalTime: 0.4, cost: 0.2 };
 
     const MAX_COST = 2800;

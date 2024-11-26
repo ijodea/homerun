@@ -54,7 +54,10 @@ import {TransportModule} from './transport/transport.module';
         database: configService.get<string>('DATABASE_NAME'), //.env 파일에서 지금은 테스트때문에 postgres데이터베이스에 저장하고 있음. 그러나 실제로는 .env파일에다가 DATABASE_NAME=homerun해줘야함.
         entities: [User], // User 엔티티 추가
         synchronize: false, // 개발 중에는 true, 배포 시에는 false로 변경 권장
-        logging: true
+        logging: true,
+        ssl:{
+          rejectUnauthorized: false,
+        },
       }),
     }),
     TypeOrmModule.forFeature([User]), // User 엔티티 모듈 추가
