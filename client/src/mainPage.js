@@ -196,7 +196,7 @@ const TransportInfo = styled.div`
 `;
 
 const BusNumber = styled.div`
-  font-size: clamp(1rem, 4.8vw, 1.38rem);
+  font-size: clamp(1rem, 4.8vw, 1.35rem);
   font-weight: bold;
 `;
 
@@ -394,7 +394,7 @@ const MainPage = () => {
             parseInt(bus.도착시간),
             bus.버스번호
           ),
-          remainingSeats: bus.남은좌석수 || "공석",
+          remainingSeats: direction === "mju-to-giheung" ? "공석" : bus.남은좌석수,
           direction: direction,
         }));
 
@@ -529,8 +529,8 @@ const MainPage = () => {
               <div>로딩 중...</div>
             ) : (
               <CardContainer>
-                {renderTransportCards("mju")}
                 {renderTransportCards("gih")}
+                {renderTransportCards("mju")}
               </CardContainer>
             )}
           </>
