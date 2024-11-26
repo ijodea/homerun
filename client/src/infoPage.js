@@ -166,19 +166,24 @@ const Info = () => {
       const response = await fetch(`http://localhost:8000/bus/${direction}`);
       if (!response.ok) throw new Error("네트워크 오류입니다.");
       const data = await response.json();
-      const filteredBusInfo = data.map((bus) => {
-        const departureMinutes = bus.도착시간 ? parseInt(bus.도착시간) : 0;
-        const departureTime = calculateTime(departureMinutes);
-        const arrivalTime = calculateArrivalTime(departureMinutes, bus.버스번호);
-        return {
-          busNumber: bus.버스번호,
-          departureTime,
-          arrivalTime,
-          remainingSeats: direction === "mju-to-giheung" ? "공석" : bus.남은좌석수,
-          type: "bus",
-        };
-      });
-      setBusInfo(filteredBusInfo);
+      // 데이터가 배열인지 확인
+      if (Array.isArray(data)) {
+        const filteredBusInfo = data.map((bus) => {
+          const departureMinutes = bus.도착시간 ? parseInt(bus.도착시간) : 0;
+          const departureTime = calculateTime(departureMinutes);
+          const arrivalTime = calculateArrivalTime(departureMinutes, bus.버스번호);
+          return {
+            busNumber: bus.버스번호,
+            departureTime,
+            arrivalTime,
+            remainingSeats: direction === "mju-to-giheung" ? "공석" : bus.남은좌석수,
+            type: "bus",
+          };
+        });
+        setBusInfo(filteredBusInfo);
+      } else {
+        setBusInfo([]); // 배열이 아닌 경우 빈 배열로 설정
+      }
     } catch (error) {
       setError(error.message);
     }
@@ -190,26 +195,22 @@ const Info = () => {
       if (!response.ok) throw new Error("운행 종료");
       const data = await response.json();
       if (!data?.time) throw new Error("운행 종료");
-
-      setShuttleInfo([
-        {
-          busNumber: data.nextShuttle || "셔틀",
-          departureTime: calculateTime(parseInt(data.time)),
-          arrivalTime: calculateArrivalTime(parseInt(data.time), "셔틀"),
-          remainingSeats: "탑승 가능",
-          type: "shuttle",
-        },
-      ]);
+      
+      setShuttleInfo([{
+        busNumber: data.nextShuttle || "셔틀",
+        departureTime: calculateTime(parseInt(data.time)),
+        arrivalTime: calculateArrivalTime(parseInt(data.time), "셔틀"),
+        remainingSeats: "탑승 가능",
+        type: "shuttle",
+      }]);
     } catch (error) {
-      setShuttleInfo([
-        {
-          busNumber: "셔틀",
-          departureTime: "운행 종료",
-          arrivalTime: "운행 종료",
-          remainingSeats: "-",
-          type: "shuttle",
-        },
-      ]);
+      setShuttleInfo([{
+        busNumber: "셔틀",
+        departureTime: "운행 종료",
+        arrivalTime: "운행 종료", 
+        remainingSeats: "-",
+        type: "shuttle",
+      }]);
     }
   };
 
@@ -229,28 +230,24 @@ const Info = () => {
     fetchData();
   }, [direction]);
 
+  if (loading) return <LoadingOrError>로딩 중...</LoadingOrError>;
+  if (error) return <LoadingOrError>오류: {error}</LoadingOrError>;
+
   const sortedInfo = [...busInfo, ...shuttleInfo].sort((a, b) => {
     if (a.arrivalTime === "운행 종료") return 1;
     if (b.arrivalTime === "운행 종료") return -1;
-    
     const [aHours, aMinutes] = a.arrivalTime.split(":").map(Number);
     const [bHours, bMinutes] = b.arrivalTime.split(":").map(Number);
-    
-    // 시간을 분으로 변환하여 비교
     const aTotal = aHours * 60 + aMinutes;
     const bTotal = bHours * 60 + bMinutes;
-    
     return aTotal - bTotal;
   });
-
-  if (loading) return <LoadingOrError>로딩 중...</LoadingOrError>;
-  if (error) return <LoadingOrError>오류: {error}</LoadingOrError>;
 
   return (
     <ScrollContainer>
       <CardViewport>
         <CardContainer>
-          {sortedInfo.map((info, index) => (
+          {sortedInfo && sortedInfo.map((info, index) => (
             <Card key={index} type={info.type}>
               <TopInfo>
                 <BusNumber>{info.busNumber}</BusNumber>
@@ -271,7 +268,7 @@ const Info = () => {
           ))}
         </CardContainer>
       </CardViewport>
-      <RefreshButton onClick={fetchData}>↺</RefreshButton>
+      <RefreshButton onClick={fetchData}>🔄</RefreshButton>
     </ScrollContainer>
   );
 };
