@@ -4,6 +4,7 @@ import styled from "styled-components";
 import DirectionControls from "./directioncontrols";
 import taxiIcon from "./assets/Taxi.png";
 import busInfoIcon from "./assets/Bus.png";
+import logo from "./assets/logo.png";
 import "./App.css";
 
 const AppContainer = styled.div`
@@ -57,6 +58,26 @@ const HomerunLink = styled(Link)`
   font-weight: bold;
   text-decoration: none;
   margin: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap : 15px;
+  img {
+    height: 60px;
+    max-width: 100%;
+    object-fit: contain;
+    
+    @media (max-width: 400px) {
+      display: none;
+    }
+    
+    @media (min-width: 401px) and (max-width: 768px) {
+      height: 30px;
+    }
+    
+    @media (min-width: 769px) {
+      height: 40px;
+    }
+  }
 `;
 
 const MenuContainer = styled.nav`
@@ -474,7 +495,7 @@ const MainPage = () => {
   return (
     <AppContainer>
       <HeaderContainer>
-        <HomerunLink to="/">Homerun</HomerunLink>
+        <HomerunLink to="/"><img src={logo} alt="logo" />Homerun</HomerunLink>
         {isLoggedIn() ? (
           <UserInfo>
             <span>{getUserDisplayName()}님</span>
