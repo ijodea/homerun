@@ -174,7 +174,7 @@ const Info = () => {
           busNumber: bus.버스번호,
           departureTime,
           arrivalTime,
-          remainingSeats: bus.남은좌석수 || "공석",
+          remainingSeats: direction === "mju-to-giheung" ? "공석" : bus.남은좌석수,
           type: "bus",
         };
       });

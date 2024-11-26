@@ -62,14 +62,14 @@ const DirectionControls = ({ show, direction, onDirectionChange }) => {
                     style={{ marginRight: "10px" }} 
                 />
                 <DirectionButton
-                    onClick={() => onDirectionChange("mju-to-giheung")}
-                    active={direction === "mju-to-giheung"}
+                    onClick={() => onDirectionChange("giheung-to-mju")}
+                    active={direction === "giheung-to-mju"}
                 >
                     명지대행
                 </DirectionButton>
                 <DirectionButton
-                    onClick={() => onDirectionChange("giheung-to-mju")}
-                    active={direction === "giheung-to-mju"}
+                    onClick={() => onDirectionChange("mju-to-giheung")}
+                    active={direction === "mju-to-giheung"}
                     dir={true}
                 >
                     기흥역행
