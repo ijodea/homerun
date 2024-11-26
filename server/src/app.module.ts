@@ -13,6 +13,9 @@ import { ChatModule } from './chat/chat.module';
 import { AuthService } from './auth/auth.service';
 import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
+import { TransportController } from './transport/transport.controller';
+import { TransportService } from './transport/transport.service';
+import { TransportModule } from './transport/transport.module';
 
 @Module({
   imports: [
@@ -28,9 +31,10 @@ import { AuthModule } from './auth/auth.module';
     TaxiModule,
     ChatModule,
     AuthModule,
+    TransportModule,
   ],
-  providers: [AuthService],
-  controllers: [AuthController],
+  providers: [AuthService, TransportService],
+  controllers: [AuthController, TransportController],
   // providers: [TaxiService],
   // controllers: [TaxiController],
 })
