@@ -197,7 +197,18 @@ const Footer = styled.footer`
   min-height: 60px;
   margin-top: auto;
   box-sizing: border-box;
+;
+
+  @media (max-width: 768px) {
+    position: fixed; /* 화면 하단에 고정 */
+    bottom: 0;
+    left: 0;
+    padding: 20px;
+    z-index: 10; /* 다른 요소 위로 올리기 */
+    height: 60px; /* 고정 높이 설정 */
+    }
 `;
+
 
 const MainPage = () => {
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());

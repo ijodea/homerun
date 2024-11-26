@@ -115,6 +115,7 @@ const RefreshButton = styled.button`
   width: 50px;
   height: 50px;
   font-size: 1.5em;
+  margin-bottom: 15px;
   background-color: #005700;
   color: white;
   border: none;
@@ -124,6 +125,10 @@ const RefreshButton = styled.button`
   &:hover {
     background-color: #003e00;
   }
+
+  @media (max-width: 768px) {
+            margin-bottom : 60px; /* 모바일 화면에서 이미지 숨기기 */
+        }
 `;
 
 const LoadingOrError = styled.div`

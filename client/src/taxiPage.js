@@ -4,21 +4,27 @@ import styled from "styled-components";
 import axios from "axios";
 
 const TaxiPageContainer = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  width: 100%; 
+  margin-top: 10px;
 `;
 
 const Input = styled.input`
-  width: 100%;
+  width: 90%;
+  max-width: 400px; 
   padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 0.25rem;
   margin-bottom: 1rem;
+  margin-top: 5px;
 `;
 
 const Button = styled.button`
-  width: 100%;
+  width: 70%;
+  max-width: 400px; 
+  margin-left: 30px;
   background-color: #3b82f6;
   color: white;
   padding: 0.5rem;

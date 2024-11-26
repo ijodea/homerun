@@ -29,7 +29,7 @@ const DirectionButtonContainer = styled.div`
 `;
 
 const DirectionButton = styled.button`
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
     color: ${(props) => (props.active ? "white" : "grey")};
@@ -47,8 +47,8 @@ const DirectionButton = styled.button`
     }
 
     @media (max-width: 768px) {
-        font-size: 1.2em; /* 글자 크기 줄이기 */
-        padding: 8px 16px; /* 버튼 크기 줄이기 */
+        font-size: 1.2em; 
+        padding: 8px 16px; 
     }
 `;
 
