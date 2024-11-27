@@ -28,7 +28,7 @@ export class ShuttleService {
     }
   }
 
-  getGStationTimeGtoM(currentTime: Date): number | null {
+  getGStationTimeGtoM(day: string, currentTime: Date): number | null {
     // 기흥 -> 명지대
     try {
       const csvData = this.readCsvFile(this.getFilePath('gStation.csv'));
@@ -36,12 +36,34 @@ export class ShuttleService {
       const currentMinutes =
         currentTime.getHours() * 60 + currentTime.getMinutes();
 
-      const MJUtoGS = csvData.slice(1).map((columns) => {
-        const minutes = Number(columns[3]);
+      let dateNum: number;
+      switch (day) {
+        case 'MON':
+          dateNum = 0;
+          break;
+        case 'TUE':
+          dateNum = 1;
+          break;
+        case 'WED':
+          dateNum = 2;
+          break;
+        case 'THU':
+          dateNum = 3;
+          break;
+        case 'FRI':
+          dateNum = 4;
+          break;
+      }
+
+      const GStoMJU = csvData.slice(1).map((columns) => {
+        // const minutes = Number(columns[2 + dateNum * 4]);
+        const timeString = columns[2 + dateNum * 4];
+        const [hour, minute] = timeString.split(':').map(Number);
+        const minutes = hour * 60 + minute;
         return minutes;
       });
 
-      const nextBusMinutes = MJUtoGS.find(
+      const nextBusMinutes = GStoMJU.find(
         (busTime) => busTime >= currentMinutes,
       );
 
@@ -62,9 +84,9 @@ export class ShuttleService {
       const currentMinutes =
         currentTime.getHours() * 60 + currentTime.getMinutes();
 
-      const MJUtoMS = csvData.slice(1).map((columns) => Number(columns[3]));
+      const MStoMJU = csvData.slice(1).map((columns) => Number(columns[3]));
 
-      const nextBusMinutes = MJUtoMS.find(
+      const nextBusMinutes = MStoMJU.find(
         (busTime) => busTime >= el + currentMinutes,
       );
 
@@ -82,12 +104,12 @@ export class ShuttleService {
     try {
       const csvData = this.readCsvFile(this.getFilePath('everline.csv'));
 
-      const MStoGS = csvData.slice(1).map((columns) => Number(columns[0]));
+      const GStoMS = csvData.slice(1).map((columns) => Number(columns[0]));
 
       const currentMinutes =
         currentTime.getHours() * 60 + currentTime.getMinutes();
 
-      const nextSubwayMinutes = MStoGS.find(
+      const nextSubwayMinutes = GStoMS.find(
         (subwayTime) => subwayTime >= currentMinutes,
       );
 
@@ -100,15 +122,41 @@ export class ShuttleService {
     }
   }
 
-  getGStationTimeMtoG(currentTime: Date): number | null {
+  getGStationTimeMtoG(day: string, currentTime: Date): number | null {
     // 명지대 -> 기흥
     try {
       const csvData = this.readCsvFile(this.getFilePath('gStation.csv'));
 
-      const MJUtoGS = csvData.slice(1).map((columns) => Number(columns[2]));
-
       const currentMinutes =
         currentTime.getHours() * 60 + currentTime.getMinutes();
+
+      let dateNum: number;
+      switch (day) {
+        case 'MON':
+          dateNum = 0;
+          break;
+        case 'TUE':
+          dateNum = 1;
+          break;
+        case 'WED':
+          dateNum = 2;
+          break;
+        case 'THU':
+          dateNum = 3;
+          break;
+        case 'FRI':
+          dateNum = 4;
+          break;
+      }
+
+      const MJUtoGS = csvData.slice(1).map((columns) => {
+        // const minutes = Number(columns[1 + dateNum * 4]);
+        const timeString = columns[1 + dateNum * 4];
+        const [hour, minute] = timeString.split(':').map(Number);
+        const minutes = hour * 60 + minute;
+        return minutes;
+      });
+
       const nextBusMinutes = MJUtoGS.find(
         (busTime) => busTime >= currentMinutes,
       );
