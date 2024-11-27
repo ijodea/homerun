@@ -21,7 +21,6 @@ export class ShuttleService {
     try {
       const csvData = fs.readFileSync(filePath, 'utf8');
       const lines = csvData.trim().split('\n');
-      // console.log(`Read ${lines.length} lines from ${filePath}`);
       return lines.map((line) => line.split(','));
     } catch (error) {
       console.error(`Error reading CSV file ${filePath}:`, error);
@@ -34,13 +33,6 @@ export class ShuttleService {
     try {
       const csvData = this.readCsvFile(this.getFilePath('gStation.csv'));
 
-      // const lines = csvData.trim().split('\n');
-      // const MJUtoGS = lines.slice(1).map((line) => {
-      //   const columns = line.split(',');
-      //   const depart_school_m = Number(columns[3]);
-      //   return depart_school_m;
-      // });
-
       const currentMinutes =
         currentTime.getHours() * 60 + currentTime.getMinutes();
 
@@ -52,13 +44,11 @@ export class ShuttleService {
       const nextBusMinutes = MJUtoGS.find(
         (busTime) => busTime >= currentMinutes,
       );
-      // console.log('Next bus minutes:', nextBusMinutes);
 
       return nextBusMinutes !== undefined
         ? nextBusMinutes - currentMinutes
         : null;
     } catch (error) {
-      // console.error(`Error reading file ${csvFilePath}:`, error);
       console.error('error in getGStationTimeGtoM:', error);
       return null;
     }
@@ -68,12 +58,6 @@ export class ShuttleService {
     // 기흥 -> 명지대
     try {
       const csvData = this.readCsvFile(this.getFilePath('mStation.csv'));
-      // const lines = csvData.trim().split('\n');
-      // const MJUtoMS = lines.slice(1).map((line) => {
-      //   const columns = line.split(',');
-      //   const depart_school_m = Number(columns[3]);
-      //   return depart_school_m;
-      // });
       el += 16;
       const currentMinutes =
         currentTime.getHours() * 60 + currentTime.getMinutes();
@@ -88,7 +72,6 @@ export class ShuttleService {
         ? nextBusMinutes - currentMinutes
         : null;
     } catch (error) {
-      // console.error(`Error reading file ${csvFilePath}:`, error);
       console.error('error in getMstationTimeGtoM:', error);
       return null;
     }
@@ -98,12 +81,6 @@ export class ShuttleService {
     // 기흥 -> 명지대
     try {
       const csvData = this.readCsvFile(this.getFilePath('everline.csv'));
-      // const lines = csvData.trim().split('\n');
-      // const MStoGS = lines.slice(1).map((line) => {
-      //   const columns = line.split(',');
-      //   const depart_school_m = Number(columns[0]);
-      //   return depart_school_m;
-      // });
 
       const MStoGS = csvData.slice(1).map((columns) => Number(columns[0]));
 
@@ -118,7 +95,6 @@ export class ShuttleService {
         ? nextSubwayMinutes - currentMinutes
         : null;
     } catch (error) {
-      // console.error(`Error reading file ${csvFilePath}:`, error);
       console.error('error in getEverlineTimeGtoM: ', error);
       return null;
     }
@@ -128,12 +104,6 @@ export class ShuttleService {
     // 명지대 -> 기흥
     try {
       const csvData = this.readCsvFile(this.getFilePath('gStation.csv'));
-      // const lines = csvData.trim().split('\n');
-      // const MJUtoGS = lines.slice(1).map((line) => {
-      //   const columns = line.split(',');
-      //   const depart_school_m = Number(columns[2]);
-      //   return depart_school_m;
-      // });
 
       const MJUtoGS = csvData.slice(1).map((columns) => Number(columns[2]));
 
@@ -147,7 +117,6 @@ export class ShuttleService {
         ? nextBusMinutes - currentMinutes
         : null;
     } catch (error) {
-      // console.error(`Error reading file ${csvFilePath}:`, error);
       console.error('error in getGstationTimeMtoG:', error);
       return null;
     }
@@ -157,12 +126,6 @@ export class ShuttleService {
     // 명지대 -> 기흥
     try {
       const csvData = this.readCsvFile(this.getFilePath('mStation.csv'));
-      // const lines = csvData.trim().split('\n');
-      // const MJUtoMS = lines.slice(1).map((line) => {
-      //   const columns = line.split(',');
-      //   const depart_school_m = Number(columns[2]);
-      //   return depart_school_m;
-      // });
 
       const currentMinutes =
         currentTime.getHours() * 60 + currentTime.getMinutes();
@@ -177,7 +140,6 @@ export class ShuttleService {
         ? nextBusMinutes - currentMinutes
         : null;
     } catch (error) {
-      // console.error(`Error reading file ${csvFilePath}:`, error);
       console.error('error in getMStationTimeMtoG:', error);
       return null;
     }
@@ -185,15 +147,8 @@ export class ShuttleService {
 
   getEverlineTimeMtoG(m: number, currentTime: Date): number | null {
     // 명지대 -> 기흥
-    // const csvFilePath = this.getFilePath('everline.csv');
     try {
       const csvData = this.readCsvFile(this.getFilePath('everline.csv'));
-      // const lines = csvData.trim().split('\n');
-      // const MStoGS = lines.slice(1).map((line) => {
-      //   const columns = line.split(',');
-      //   const depart_school_m = Number(columns[2]);
-      //   return depart_school_m;
-      // });
 
       m += 10;
       const currentMinutes =
@@ -209,7 +164,6 @@ export class ShuttleService {
         ? nextSubwayMinutes - currentMinutes
         : null;
     } catch (error) {
-      // console.error(`Error reading file ${csvFilePath}:`, error);
       console.error('error in getEverlineTimeMtoG:', error);
       return null;
     }
