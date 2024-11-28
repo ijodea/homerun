@@ -9,5 +9,6 @@ import { ConfigModule } from '@nestjs/config';
   imports: [ConfigModule.forRoot({ isGlobal: true })],
   controllers: [BusController],
   providers: [BusService],
+  exports: [BusService],
 })
 export class BusModule {}

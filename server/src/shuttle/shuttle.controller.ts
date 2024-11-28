@@ -5,33 +5,10 @@ import { ShuttleService } from './shuttle.service';
 export class ShuttleController {
   constructor(private readonly shuttleService: ShuttleService) {}
 
-  private getKoreanTime(): Date {
-    const now = new Date();
-    const utc = now.getTime() + now.getTimezoneOffset() * 60 * 1000;
-    return new Date(utc + 60 * 60 * 1000 * 9);
-  }
-
-  private getDay(): string {
-    const newTime = this.getKoreanTime();
-    const newDay = newTime.getDay();
-    switch (newDay) {
-      case 1:
-        return 'MON';
-      case 2:
-        return 'TUE';
-      case 3:
-        return 'WED';
-      case 4:
-        return 'THU';
-      case 5:
-        return 'FRI';
-    }
-  }
-
   @Get('mju-to-giheung')
   getMtoGShuttle() {
-    const currentTime = this.getKoreanTime();
-    const today = this.getDay();
+    const currentTime = this.shuttleService.getKoreanTime();
+    const today = this.shuttleService.getDay();
     const m = this.shuttleService.getMStationTimeMtoG(currentTime);
     const el = this.shuttleService.getEverlineTimeMtoG(m, currentTime);
     const g = this.shuttleService.getGStationTimeMtoG(today, currentTime);
@@ -52,8 +29,8 @@ export class ShuttleController {
 
   @Get('giheung-to-mju')
   getGtoMShuttle() {
-    const currentTime = this.getKoreanTime();
-    const today = this.getDay();
+    const currentTime = this.shuttleService.getKoreanTime();
+    const today = this.shuttleService.getDay();
     const el = this.shuttleService.getEverlineTimeGtoM(currentTime);
     const m = this.shuttleService.getMStationTimeGtoM(el, currentTime);
     const g = this.shuttleService.getGStationTimeGtoM(today, currentTime);
