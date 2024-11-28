@@ -26,7 +26,7 @@ const CardViewport = styled.div`
   overflow-y: auto; /* 카드 영역만 수직 스크롤 가능 */
   box-sizing: border-box;
   padding: 20px;
-  border: 1px solid #ccc; 
+  //border: 1px solid #ccc; 
   margin-bottom: 10px; 
 
     /* 모바일 화면에서 하단 여백 조정 */

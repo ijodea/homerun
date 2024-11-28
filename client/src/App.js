@@ -11,6 +11,7 @@ import LoginPage from "./loginPage.js";
 import JoingPage from "./joinPage.js";
 import ChatRoom from "./chatRoom.js";
 import KakaoRedirect from "./KakaoRedirect";
+import ContactForm from "./feedback.js";
 // import axios from "axios";
 
 function App() {
@@ -21,6 +22,8 @@ function App() {
           <Route path="info" element={<InfoPage />} />
           <Route path="taxi" element={<TaxiPage />} />
           <Route path="direction" element={<Direction />} />
+          <Route path="feedback" element={<ContactForm />} />
+
         </Route>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/join" element={<JoingPage />} />
