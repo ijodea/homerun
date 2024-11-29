@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useOutletContext } from "react-router-dom";
 
+const SERVER_URL = "http://localhost:8000";
+
 const ScrollContainer = styled.div`
   width: 100%;
   max-width: 1200px;
@@ -11,9 +13,9 @@ const ScrollContainer = styled.div`
   margin-bottom: 20px;
   box-sizing: border-box;
 
-    /* 모바일 화면에서 하단 여백 조정 */
-    @media (max-width: 768px) {
-    padding-bottom: 5px; 
+  /* 모바일 화면에서 하단 여백 조정 */
+  @media (max-width: 768px) {
+    padding-bottom: 5px;
     margin-bottom: 5px;
   }
 `;
@@ -22,15 +24,15 @@ const CardViewport = styled.div`
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  height: 400px; 
+  height: 400px;
   overflow-y: auto; /* 카드 영역만 수직 스크롤 가능 */
   box-sizing: border-box;
   padding: 20px;
-  border: 1px solid #ccc; 
-  margin-bottom: 10px; 
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
 
-    /* 모바일 화면에서 하단 여백 조정 */
-    @media (max-width: 768px) {
+  /* 모바일 화면에서 하단 여백 조정 */
+  @media (max-width: 768px) {
     margin-bottom: 5px; /* 간격 줄이기 */
   }
 `;
@@ -38,8 +40,8 @@ const CardViewport = styled.div`
 const CardContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 15px; 
-  
+  gap: 15px;
+
   @media (max-width: 768px) {
     flex-direction: column; /* 모바일에서는 세로 정렬 */
   }
@@ -127,8 +129,8 @@ const RefreshButton = styled.button`
   }
 
   @media (max-width: 768px) {
-            margin-bottom : 60px; /* 모바일 화면에서 이미지 숨기기 */
-        }
+    margin-bottom: 60px; /* 모바일 화면에서 이미지 숨기기 */
+  }
 `;
 
 const LoadingOrError = styled.div`
@@ -163,13 +165,16 @@ const Info = () => {
 
   const fetchBusInfo = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/bus/${direction}`);
+      const response = await fetch(`${SERVER_URL}/bus/${direction}`);
       if (!response.ok) throw new Error("네트워크 오류입니다.");
       const data = await response.json();
       const filteredBusInfo = data.map((bus) => {
         const departureMinutes = bus.도착시간 ? parseInt(bus.도착시간) : 0;
         const departureTime = calculateTime(departureMinutes);
-        const arrivalTime = calculateArrivalTime(departureMinutes, bus.버스번호);
+        const arrivalTime = calculateArrivalTime(
+          departureMinutes,
+          bus.버스번호
+        );
         return {
           busNumber: bus.버스번호,
           departureTime,
@@ -186,7 +191,9 @@ const Info = () => {
 
   const fetchShuttleInfo = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/shuttle/${direction}`);
+      const response = await fetch(
+        `http://localhost:8000/shuttle/${direction}`
+      );
       if (!response.ok) throw new Error("운행 종료");
       const data = await response.json();
       if (!data?.time) throw new Error("운행 종료");

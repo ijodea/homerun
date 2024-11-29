@@ -6,6 +6,8 @@ import MainPage from "./mainPage";
 import Join from "./joinPage";
 import kakaoLoginImg from "./assets/kakao_login.png";
 
+const SERVER_URL = "http://localhost:8000";
+
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -88,14 +90,14 @@ function Login() {
   };
 
   const handleKakaoLogin = () => {
-    window.location.href = 'http://localhost:8000/auth/kakao-login-page';
+    window.location.href = `${SERVER_URL}/auth/kakao-login-page`;
   };
 
   return (
     <Container>
       <HomerunLink />
       <form onSubmit={handleSubmit}>
-      <InputContainer>
+        <InputContainer>
           <Input
             type="text"
             placeholder="이름을 입력하세요"

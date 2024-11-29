@@ -4,6 +4,8 @@ import styled, { keyframes, css } from "styled-components";
 import axios from "axios";
 import io from "socket.io-client";
 
+const SERVER_URL = "http://localhost:8000";
+
 const TaxiPageContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -185,8 +187,6 @@ const OnlineUsersDisplay = styled.div`
   }
 `;
 
-const API_BASE_URL = "http://localhost:8000";
-
 const TaxiPage = () => {
   const navigate = useNavigate();
   const { direction } = useOutletContext();
@@ -206,7 +206,7 @@ const TaxiPage = () => {
       return;
     }
     // WebSocket 연결 설정
-    const socket = io(API_BASE_URL, {
+    const socket = io(SERVER_URL, {
       query: {
         direction: direction === "giheung-to-mju" ? "mju" : "gh",
         userId: kakaoUserData.id,
@@ -250,7 +250,7 @@ const TaxiPage = () => {
 
       try {
         const { data } = await axios.get(
-          `${API_BASE_URL}/taxi/group/${currentGroupId}`
+          `${SERVER_URL}/taxi/group/${currentGroupId}`
         );
 
         if (data.success) {
@@ -307,7 +307,7 @@ const TaxiPage = () => {
       };
 
       const { data } = await axios.post(
-        `${API_BASE_URL}/taxi/location`,
+        `${SERVER_URL}/taxi/location`,
         locationData
       );
 

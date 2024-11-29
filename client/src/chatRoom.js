@@ -4,7 +4,7 @@ import styled from "styled-components";
 import axios from "axios";
 import io from "socket.io-client";
 
-const API_BASE_URL = "http://localhost:8000";
+const SERVER_URL = "http://localhost:8000";
 
 // Styled Components
 const ChatContainer = styled.div`
@@ -211,7 +211,7 @@ function ChatRoom() {
 
       try {
         const createResponse = await axios.post(
-          `${API_BASE_URL}/chat/room/${groupId}`
+          `${SERVER_URL}/chat/room/${groupId}`
         );
 
         if (createResponse.data.success) {
@@ -219,7 +219,7 @@ function ChatRoom() {
           setMessages(createResponse.data.data.messages);
         } else {
           const getResponse = await axios.get(
-            `${API_BASE_URL}/chat/room/${groupId}`
+            `${SERVER_URL}/chat/room/${groupId}`
           );
 
           if (getResponse.data.success) {
@@ -237,7 +237,7 @@ function ChatRoom() {
 
     initializeRoom();
 
-    socketRef.current = io(API_BASE_URL, {
+    socketRef.current = io(SERVER_URL, {
       query: { groupId },
     });
 
@@ -255,7 +255,7 @@ function ChatRoom() {
     if (!newMessage.trim() || !kakaoUserData) return;
 
     try {
-      await axios.post(`${API_BASE_URL}/chat/message`, {
+      await axios.post(`${SERVER_URL}/chat/message`, {
         groupId,
         userId: kakaoUserData.nickname,
         content: newMessage,

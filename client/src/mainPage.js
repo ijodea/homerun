@@ -6,6 +6,8 @@ import taxiIcon from "./assets/Taxi.png";
 import busInfoIcon from "./assets/Bus.png";
 import "./App.css";
 
+const SERVER_URL = "http://localhost:8000";
+
 const AppContainer = styled.div`
   background-color: #f0f0f0;
   display: flex;
@@ -126,8 +128,9 @@ const EfficientCardViewport = styled.div`
 const EfficientCardContainer = styled.div`
   position: absolute;
   width: 100%;
-  transition: ${props => props.isDragging ? 'none' : 'transform 0.3s ease-out'};
-  transform: translateY(${props => props.offset}px);
+  transition: ${(props) =>
+    props.isDragging ? "none" : "transform 0.3s ease-out"};
+  transform: translateY(${(props) => props.offset}px);
   will-change: transform;
   user-select: none;
 `;
@@ -197,8 +200,6 @@ const Footer = styled.footer`
   min-height: 60px;
   margin-top: auto;
   box-sizing: border-box;
-;
-
   @media (max-width: 768px) {
     position: fixed; /* 화면 하단에 고정 */
     bottom: 0;
@@ -206,12 +207,13 @@ const Footer = styled.footer`
     padding: 20px;
     z-index: 10; /* 다른 요소 위로 올리기 */
     height: 60px; /* 고정 높이 설정 */
-    }
+  }
 `;
 
-
 const MainPage = () => {
-  const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
+  const [currentTime, setCurrentTime] = useState(
+    new Date().toLocaleTimeString()
+  );
   const [direction, setDirection] = useState("giheung-to-mju");
   const [currentCardIndex, setCurrentCardIndex] = useState({ mju: 0, gih: 0 });
   const [fastestTransports, setFastestTransports] = useState({
@@ -240,42 +242,42 @@ const MainPage = () => {
   }, [location]);
 
   const handleDragStart = (e, type) => {
-    setIsDragging(prev => ({ ...prev, [type]: true }));
-    setStartY(prev => ({
+    setIsDragging((prev) => ({ ...prev, [type]: true }));
+    setStartY((prev) => ({
       ...prev,
-      [type]: e.type === 'touchstart' ? e.touches[0].clientY : e.clientY
+      [type]: e.type === "touchstart" ? e.touches[0].clientY : e.clientY,
     }));
-    setPrevTranslate(prev => ({ ...prev, [type]: currentTranslate[type] }));
+    setPrevTranslate((prev) => ({ ...prev, [type]: currentTranslate[type] }));
   };
 
   const handleDragMove = (e, type) => {
     if (!isDragging[type]) return;
     e.preventDefault();
-    
-    const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+
+    const currentY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
     const diff = currentY - startY[type];
     const newTranslate = prevTranslate[type] + diff;
-    
+
     if (newTranslate > 0) {
-      setCurrentTranslate(prev => ({ ...prev, [type]: 0 }));
+      setCurrentTranslate((prev) => ({ ...prev, [type]: 0 }));
     } else if (newTranslate < -(fastestTransports[type].length - 1) * 180) {
-      setCurrentTranslate(prev => ({ 
-        ...prev, 
-        [type]: -(fastestTransports[type].length - 1) * 180 
+      setCurrentTranslate((prev) => ({
+        ...prev,
+        [type]: -(fastestTransports[type].length - 1) * 180,
       }));
     } else {
-      setCurrentTranslate(prev => ({ ...prev, [type]: newTranslate }));
+      setCurrentTranslate((prev) => ({ ...prev, [type]: newTranslate }));
     }
   };
 
   const handleDragEnd = (type) => {
-    setIsDragging(prev => ({ ...prev, [type]: false }));
+    setIsDragging((prev) => ({ ...prev, [type]: false }));
     const cardHeight = 180;
     const newIndex = Math.round(Math.abs(currentTranslate[type]) / cardHeight);
-    setCurrentCardIndex(prev => ({ ...prev, [type]: newIndex }));
-    setCurrentTranslate(prev => ({
+    setCurrentCardIndex((prev) => ({ ...prev, [type]: newIndex }));
+    setCurrentTranslate((prev) => ({
       ...prev,
-      [type]: -newIndex * cardHeight
+      [type]: -newIndex * cardHeight,
     }));
   };
 
@@ -313,8 +315,8 @@ const MainPage = () => {
     try {
       setLoading(true);
       const [mjuResponse, gihResponse] = await Promise.all([
-        fetch(`http://localhost:8000/bus/mju-to-giheung`),
-        fetch(`http://localhost:8000/bus/giheung-to-mju`),
+        fetch(`${SERVER_URL}/bus/mju-to-giheung`),
+        fetch(`${SERVER_URL}/bus/giheung-to-mju`),
       ]);
       const [mjuBusData, gihBusData] = await Promise.all([
         mjuResponse.json(),
@@ -332,7 +334,9 @@ const MainPage = () => {
 
       const calculateArrivalTime = (departureMinutes, busType) => {
         const now = new Date();
-        const departureTime = new Date(now.getTime() + departureMinutes * 60000);
+        const departureTime = new Date(
+          now.getTime() + departureMinutes * 60000
+        );
         const travelTime = busTimes[busType] || 30;
         return new Date(departureTime.getTime() + travelTime * 60000);
       };
@@ -352,7 +356,7 @@ const MainPage = () => {
 
         try {
           const shuttleResponse = await fetch(
-            `http://localhost:8000/shuttle/${direction}`
+            `${SERVER_URL}/shuttle/${direction}`
           );
           const shuttleData = await shuttleResponse.json();
           if (shuttleData?.time) {
@@ -440,7 +444,6 @@ const MainPage = () => {
     </DirectionColumn>
   );
 
-
   return (
     <AppContainer>
       <HeaderContainer>
@@ -491,9 +494,7 @@ const MainPage = () => {
         />
         <Outlet context={{ direction }} />
       </HeaderContainer>
-      <Footer>
-        © 아2조디어 | HomeRun | 백병재 강병수 박영찬 이승현
-      </Footer>
+      <Footer>© 아2조디어 | HomeRun | 백병재 강병수 박영찬 이승현</Footer>
     </AppContainer>
   );
 };
