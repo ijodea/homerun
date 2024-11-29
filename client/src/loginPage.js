@@ -5,6 +5,7 @@ import HomerunLink from "./homeRunLink";
 import MainPage from "./mainPage";
 import Join from "./joinPage";
 import kakaoLoginImg from "./assets/kakao_login.png";
+import axios from "axios";
 
 const SERVER_URL = "http://localhost:8000";
 
@@ -78,15 +79,60 @@ function Login() {
   const [phoneNumber, setPhoneNumber] = useState(""); // 전화번호 상태
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // 로컬 스토리지에 데이터 저장
-    localStorage.setItem("studentName", studentName);
-    localStorage.setItem("studentId", studentId);
-    localStorage.setItem("phoneNumber", phoneNumber);
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   // 로컬 스토리지에 데이터 저장
+  //   localStorage.setItem("studentName", studentName);
+  //   localStorage.setItem("studentId", studentId);
+  //   localStorage.setItem("phoneNumber", phoneNumber);
 
-    //메인 페이지로 이동
-    navigate("/", { state: { studentName, studentId, phoneNumber } }); // navigate 사용
+  //   //메인 페이지로 이동
+  //   navigate("/", { state: { studentName, studentId, phoneNumber } }); // navigate 사용
+  // };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post(`${SERVER_URL}/login`, {
+        name: studentName,
+        studentId,
+        phoneNumber,
+      });
+
+      // 로그인 정보 저장 (카카오 로그인과 동일한 형식)
+      localStorage.clear(); // 기존 데이터 모두 제거
+
+      const userInfo = {
+        id: response.data.userData.id,
+        nickname: response.data.userData.properties.nickname,
+        isKakao: false,
+      };
+
+      localStorage.setItem("user", JSON.stringify(userInfo));
+      localStorage.setItem(
+        "token",
+        JSON.stringify({
+          accessToken: response.data.tokenInfo.access_token,
+          expiresIn: response.data.tokenInfo.expires_in,
+          tokenType: response.data.tokenInfo.token_type,
+        })
+      );
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("loginType", "normal");
+
+      // 메인 페이지로 리다이렉트
+      navigate("/", {
+        replace: true,
+        state: {
+          loginSuccess: true,
+          user: userInfo,
+        },
+      });
+    } catch (error) {
+      console.error("로그인 실패:", error);
+      // 에러 처리
+    }
   };
 
   const handleKakaoLogin = () => {

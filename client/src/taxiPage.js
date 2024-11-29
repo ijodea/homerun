@@ -23,11 +23,18 @@ const CardContainer = styled.div`
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
   width: 90%;
   max-width: 400px;
-  padding: 32px;
+  padding: 32px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
+  margin: 0 auto;
+
+  @media (max-width: 480px) {
+    width: 85%;
+    padding: 24px 20px;
+    border-radius: 12px;
+  }
 `;
 
 const ButtonContainer = styled.div`
@@ -35,6 +42,10 @@ const ButtonContainer = styled.div`
   display: flex;
   justify-content: center;
   margin-top: 20px;
+
+  @media (max-width: 480px) {
+    margin-top: 16px;
+  }
 `;
 
 const pulse = keyframes`
@@ -69,6 +80,12 @@ const MatchButton = styled.button`
   transition: all 0.3s ease;
   box-shadow: ${(props) =>
     props.disabled ? "none" : "0 4px 6px -1px rgba(59, 130, 246, 0.2)"};
+
+  @media (max-width: 480px) {
+    padding: 14px;
+    font-size: 1rem;
+    border-radius: 10px;
+  }
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
@@ -164,13 +181,19 @@ const DirectionDisplay = styled.div`
   width: 100%;
   font-size: 0.9rem;
   color: #4b5563;
+
+  @media (max-width: 480px) {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+  }
 `;
 
 const OnlineUsersDisplay = styled.div`
   background-color: #eef2ff;
   padding: 12px 16px;
   border-radius: 8px;
-  margin-top: 12px;
+  margin: 12px 0;
   text-align: center;
   width: 100%;
   font-size: 0.9rem;
@@ -179,6 +202,12 @@ const OnlineUsersDisplay = styled.div`
   align-items: center;
   justify-content: center;
   gap: 6px;
+
+  @media (max-width: 480px) {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    margin: 10px 0;
+  }
 
   svg {
     width: 16px;
@@ -198,10 +227,16 @@ const TaxiPage = () => {
   const [remainingTime, setRemainingTime] = useState(60);
   const [onlineUsers, setOnlineUsers] = useState({ mju: 0, gh: 0 });
 
-  const kakaoUserData = JSON.parse(localStorage.getItem("kakaoUser"));
+  const getUserData = () => {
+    const kakaoUser = JSON.parse(localStorage.getItem("kakaoUser"));
+    const normalUser = JSON.parse(localStorage.getItem("user"));
+    return kakaoUser || normalUser;
+  };
+
+  const userData = getUserData();
 
   useEffect(() => {
-    if (!kakaoUserData) {
+    if (!userData) {
       navigate("/login");
       return;
     }
@@ -209,7 +244,7 @@ const TaxiPage = () => {
     const socket = io(SERVER_URL, {
       query: {
         direction: direction === "giheung-to-mju" ? "mju" : "gh",
-        userId: kakaoUserData.id,
+        userId: userData.id,
       },
     });
 
@@ -221,7 +256,7 @@ const TaxiPage = () => {
     return () => {
       socket.disconnect();
     };
-  }, [kakaoUserData, direction, navigate]);
+  }, [userData, direction, navigate]);
 
   useEffect(() => {
     let intervalId;
@@ -302,7 +337,7 @@ const TaxiPage = () => {
 
     try {
       const locationData = {
-        userId: kakaoUserData.nickname,
+        userId: userData.nickname,
         to: direction === "giheung-to-mju" ? "mju" : "gh",
       };
 

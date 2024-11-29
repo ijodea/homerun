@@ -184,15 +184,20 @@ function ChatRoom() {
   const messageContainerRef = useRef(null);
   const socketRef = useRef(null);
 
-  // 카카오 사용자 정보 가져오기
-  const kakaoUserData = JSON.parse(localStorage.getItem("kakaoUser"));
+  const getUserData = () => {
+    const kakaoUser = JSON.parse(localStorage.getItem("kakaoUser"));
+    const normalUser = JSON.parse(localStorage.getItem("user"));
+    return kakaoUser || normalUser;
+  };
+
+  const userData = getUserData();
 
   useEffect(() => {
-    if (!kakaoUserData) {
+    if (!userData) {
       navigate("/login");
       return;
     }
-  }, [kakaoUserData, navigate]);
+  }, [userData, navigate]);
 
   const scrollToBottom = () => {
     if (messageContainerRef.current) {
@@ -207,7 +212,7 @@ function ChatRoom() {
 
   useEffect(() => {
     const initializeRoom = async () => {
-      if (!groupId || !kakaoUserData) return;
+      if (!groupId || !userData) return;
 
       try {
         const createResponse = await axios.post(
@@ -248,16 +253,16 @@ function ChatRoom() {
     return () => {
       socketRef.current.disconnect();
     };
-  }, [groupId, kakaoUserData]);
+  }, [groupId, userData]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !kakaoUserData) return;
+    if (!newMessage.trim() || !userData) return;
 
     try {
       await axios.post(`${SERVER_URL}/chat/message`, {
         groupId,
-        userId: kakaoUserData.nickname,
+        userId: userData.nickname,
         content: newMessage,
       });
       setNewMessage("");
@@ -326,6 +331,7 @@ function ChatRoom() {
       </ChatArea>
 
       <InputArea>
+        å
         <InputForm onSubmit={handleSendMessage}>
           <MessageInput
             type="text"

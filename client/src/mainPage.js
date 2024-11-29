@@ -9,33 +9,39 @@ import "./App.css";
 const SERVER_URL = "http://localhost:8000";
 
 const AppContainer = styled.div`
-  background-color: #f0f0f0;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  width: 100%;
   min-height: 100vh;
+  background-color: #f0f0f0;
 `;
 
 const HeaderContainer = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  min-height: 100vh;
-  padding-bottom: 0;
 `;
 
-const LoginLink = styled(Link)`
-  color: black;
-  font-size: 0.9em;
+const TopBar = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+`;
+
+const HomerunLink = styled(Link)`
+  color: #007bff;
+  font-size: 1.5em;
+  font-weight: bold;
   text-decoration: none;
-  position: absolute;
-  right: 20px;
-  top: 20px;
-  &:hover {
-    text-decoration: underline;
-  }
+`;
+
+const UserInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
 `;
 
 const LogoutButton = styled.button`
@@ -49,12 +55,13 @@ const LogoutButton = styled.button`
   }
 `;
 
-const HomerunLink = styled(Link)`
-  color: #007bff;
-  font-size: 1.5em;
-  font-weight: bold;
+const LoginLink = styled(Link)`
+  color: black;
+  font-size: 0.9em;
   text-decoration: none;
-  margin: 10px 20px;
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const MenuContainer = styled.nav`
@@ -63,6 +70,7 @@ const MenuContainer = styled.nav`
   background-color: lightgray;
   padding: 10px 0;
   width: 100%;
+  margin-bottom: 20px;
 `;
 
 const MenuItem = styled(Link)`
@@ -75,13 +83,18 @@ const MenuItem = styled(Link)`
   font-size: 1.5em;
   margin: 0 10px;
   flex-grow: 1;
+  max-width: 200px;
   border-radius: 5px;
   background-color: ${(props) =>
     props.active ? (props.isinfo ? "#005700" : "#fb9403") : "transparent"};
+  transition: background-color 0.3s;
+
   img {
     height: 40px;
+    margin-right: 8px;
     filter: ${(props) => (props.active ? "invert(1)" : "invert(0.5)")};
   }
+
   &:hover {
     background-color: ${(props) =>
       props.active
@@ -106,87 +119,124 @@ const TimeContainer = styled.div`
 
 const CardContainer = styled.div`
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   width: 100%;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 20px auto;
+  padding: 0 20px;
+  gap: 40px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+    padding: 0 10px;
+  }
 `;
 
 const DirectionColumn = styled.div`
-  width: 45%;
+  width: 320px;
+  height: ${(props) => (props.isMobile ? "auto" : "100vh")};
+  position: ${(props) => (props.isMobile ? "static" : "sticky")};
+  top: ${(props) => (props.isMobile ? "0" : "20px")};
+
+  @media (max-width: 768px) {
+    width: 90%;
+    max-width: 320px;
+  }
 `;
 
-const EfficientCardViewport = styled.div`
-  width: 300px;
-  height: 180px;
-  overflow: hidden;
-  position: relative;
-  margin: 20px auto;
-  touch-action: pan-y pinch-zoom;
+const CardScrollContainer = styled.div`
+  height: ${(props) => (props.isMobile ? "300px" : "auto")};
+  overflow-y: ${(props) => (props.isMobile ? "auto" : "visible")};
+  padding: 10px;
+
+  @media (max-width: 768px) {
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+  }
 `;
 
-const EfficientCardContainer = styled.div`
-  position: absolute;
-  width: 100%;
-  transition: ${(props) =>
-    props.isDragging ? "none" : "transform 0.3s ease-out"};
-  transform: translateY(${(props) => props.offset}px);
-  will-change: transform;
-  user-select: none;
-`;
-
-const EfficientCard = styled.div`
+const TransportCard = styled.div`
   background: white;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: ${(props) =>
     props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
-  height: 140px;
-  box-sizing: border-box;
+
+  @media (min-width: 769px) {
+    margin-bottom: 30px;
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 `;
 
 const TransportInfo = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 `;
 
 const BusNumber = styled.div`
-  font-size: 28px;
+  font-size: 24px;
   font-weight: bold;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+  }
 `;
 
 const TimeInfo = styled.div`
   text-align: right;
-  div:first-child {
-    color: #666;
-    font-size: 14px;
-    margin-bottom: 5px;
-  }
-  div:last-child {
-    font-size: 18px;
-    font-weight: bold;
-    color: #0066ff;
-  }
+`;
+
+const DirectionText = styled.div`
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 4px;
+`;
+
+const ArrivalTime = styled.div`
+  font-size: 18px;
+  font-weight: bold;
+  color: #0066ff;
 `;
 
 const SeatInfo = styled.div`
   color: #0066ff;
   font-size: 14px;
-  margin-top: 5px;
 `;
 
-const UserInfo = styled.div`
-  position: absolute;
-  right: 20px;
-  top: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.9em;
+const SectionTitle = styled.h2`
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16px;
+  text-align: center;
+  position: ${(props) => (props.isMobile ? "static" : "sticky")};
+  top: 0;
+  background: ${(props) => (props.isMobile ? "none" : "#f0f0f0")};
+  padding: ${(props) => (props.isMobile ? "0" : "10px 0")};
+  z-index: 1;
 `;
 
 const Footer = styled.footer`
@@ -194,39 +244,61 @@ const Footer = styled.footer`
   color: #fff;
   text-align: right;
   padding: 20px;
-  font-size: 0.9em;
   width: 100%;
-  flex-shrink: 0;
-  min-height: 60px;
-  margin-top: auto;
   box-sizing: border-box;
+
   @media (max-width: 768px) {
-    position: fixed; /* 화면 하단에 고정 */
-    bottom: 0;
-    left: 0;
-    padding: 20px;
-    z-index: 10; /* 다른 요소 위로 올리기 */
-    height: 60px; /* 고정 높이 설정 */
+    padding: 15px;
+    font-size: 0.8em;
   }
 `;
+
+function TransportDisplay({ transports, direction }) {
+  const isMobile = window.innerWidth <= 768;
+
+  return (
+    <DirectionColumn isMobile={isMobile}>
+      <SectionTitle isMobile={isMobile}>
+        {direction === "mju" ? "명지대 → 기흥역" : "기흥역 → 명지대"}
+      </SectionTitle>
+      <CardScrollContainer isMobile={isMobile}>
+        {transports.map((transport, index) => (
+          <TransportCard key={index} type={transport.type}>
+            <TransportInfo>
+              <BusNumber>{transport.number}</BusNumber>
+              <TimeInfo>
+                <DirectionText>
+                  {direction === "mju" ? "명지대 → 기흥역" : "기흥역 → 명지대"}
+                </DirectionText>
+                <ArrivalTime>
+                  {transport.arrivalTime instanceof Date
+                    ? transport.arrivalTime.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "정보 없음"}
+                </ArrivalTime>
+              </TimeInfo>
+            </TransportInfo>
+            <SeatInfo>잔여 좌석: {transport.remainingSeats}</SeatInfo>
+          </TransportCard>
+        ))}
+      </CardScrollContainer>
+    </DirectionColumn>
+  );
+}
 
 const MainPage = () => {
   const [currentTime, setCurrentTime] = useState(
     new Date().toLocaleTimeString()
   );
   const [direction, setDirection] = useState("giheung-to-mju");
-  const [currentCardIndex, setCurrentCardIndex] = useState({ mju: 0, gih: 0 });
   const [fastestTransports, setFastestTransports] = useState({
     mju: [],
     gih: [],
   });
   const [loading, setLoading] = useState(true);
   const location = useLocation();
-
-  const [isDragging, setIsDragging] = useState({ mju: false, gih: false });
-  const [startY, setStartY] = useState({ mju: 0, gih: 0 });
-  const [currentTranslate, setCurrentTranslate] = useState({ mju: 0, gih: 0 });
-  const [prevTranslate, setPrevTranslate] = useState({ mju: 0, gih: 0 });
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -241,49 +313,8 @@ const MainPage = () => {
     }
   }, [location]);
 
-  const handleDragStart = (e, type) => {
-    setIsDragging((prev) => ({ ...prev, [type]: true }));
-    setStartY((prev) => ({
-      ...prev,
-      [type]: e.type === "touchstart" ? e.touches[0].clientY : e.clientY,
-    }));
-    setPrevTranslate((prev) => ({ ...prev, [type]: currentTranslate[type] }));
-  };
-
-  const handleDragMove = (e, type) => {
-    if (!isDragging[type]) return;
-    e.preventDefault();
-
-    const currentY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
-    const diff = currentY - startY[type];
-    const newTranslate = prevTranslate[type] + diff;
-
-    if (newTranslate > 0) {
-      setCurrentTranslate((prev) => ({ ...prev, [type]: 0 }));
-    } else if (newTranslate < -(fastestTransports[type].length - 1) * 180) {
-      setCurrentTranslate((prev) => ({
-        ...prev,
-        [type]: -(fastestTransports[type].length - 1) * 180,
-      }));
-    } else {
-      setCurrentTranslate((prev) => ({ ...prev, [type]: newTranslate }));
-    }
-  };
-
-  const handleDragEnd = (type) => {
-    setIsDragging((prev) => ({ ...prev, [type]: false }));
-    const cardHeight = 180;
-    const newIndex = Math.round(Math.abs(currentTranslate[type]) / cardHeight);
-    setCurrentCardIndex((prev) => ({ ...prev, [type]: newIndex }));
-    setCurrentTranslate((prev) => ({
-      ...prev,
-      [type]: -newIndex * cardHeight,
-    }));
-  };
-
   const handleDirectionChange = (newDirection) => {
     setDirection(newDirection);
-    setCurrentCardIndex({ mju: 0, gih: 0 });
   };
 
   const isLoggedIn = () => {
@@ -302,12 +333,7 @@ const MainPage = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("studentId");
-    localStorage.removeItem("phoneNumber");
-    localStorage.removeItem("kakaoUser");
-    localStorage.removeItem("kakaoToken");
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("loginType");
+    localStorage.clear();
     window.location.reload();
   };
 
@@ -403,59 +429,21 @@ const MainPage = () => {
     }
   };
 
-  const renderTransportCards = (type) => (
-    <DirectionColumn>
-      <EfficientCardViewport
-        onTouchStart={(e) => handleDragStart(e, type)}
-        onTouchMove={(e) => handleDragMove(e, type)}
-        onTouchEnd={() => handleDragEnd(type)}
-        onMouseDown={(e) => handleDragStart(e, type)}
-        onMouseMove={(e) => handleDragMove(e, type)}
-        onMouseUp={() => handleDragEnd(type)}
-        onMouseLeave={() => isDragging[type] && handleDragEnd(type)}
-      >
-        <EfficientCardContainer
-          isDragging={isDragging[type]}
-          offset={currentTranslate[type]}
-        >
-          {fastestTransports[type].map((transport, index) => (
-            <EfficientCard key={index} type={transport.type}>
-              <TransportInfo>
-                <BusNumber>{transport.number}</BusNumber>
-                <TimeInfo>
-                  <div>
-                    {type === "mju" ? "명지대 → 기흥역" : "기흥역 → 명지대"}
-                  </div>
-                  <div>
-                    {transport.arrivalTime instanceof Date
-                      ? transport.arrivalTime.toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "정보 없음"}
-                  </div>
-                </TimeInfo>
-              </TransportInfo>
-              <SeatInfo>잔여 좌석: {transport.remainingSeats}</SeatInfo>
-            </EfficientCard>
-          ))}
-        </EfficientCardContainer>
-      </EfficientCardViewport>
-    </DirectionColumn>
-  );
-
   return (
     <AppContainer>
       <HeaderContainer>
-        <HomerunLink to="/">Homerun</HomerunLink>
-        {isLoggedIn() ? (
-          <UserInfo>
-            <span>{getUserDisplayName()}님</span>
-            <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
-          </UserInfo>
-        ) : (
-          <LoginLink to="/login">Longin</LoginLink>
-        )}
+        <TopBar>
+          <HomerunLink to="/">Homerun</HomerunLink>
+          {isLoggedIn() ? (
+            <UserInfo>
+              <span>{getUserDisplayName()}님</span>
+              <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+            </UserInfo>
+          ) : (
+            <LoginLink to="/login">Login</LoginLink>
+          )}
+        </TopBar>
+
         <MenuContainer>
           <MenuItem
             to={`/info?direction=${direction}`}
@@ -474,6 +462,7 @@ const MainPage = () => {
             택시
           </MenuItem>
         </MenuContainer>
+
         {location.pathname === "/" && (
           <>
             <TimeContainer>현재 시간: {currentTime}</TimeContainer>
@@ -481,8 +470,14 @@ const MainPage = () => {
               <div>로딩 중...</div>
             ) : (
               <CardContainer>
-                {renderTransportCards("mju")}
-                {renderTransportCards("gih")}
+                <TransportDisplay
+                  transports={fastestTransports.mju}
+                  direction="mju"
+                />
+                <TransportDisplay
+                  transports={fastestTransports.gih}
+                  direction="gih"
+                />
               </CardContainer>
             )}
           </>

@@ -7,6 +7,8 @@ import {
   Query,
   HttpException,
   HttpStatus,
+  Post,
+  Body,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
@@ -24,6 +26,20 @@ export class AuthController {
     private readonly configService: ConfigService,
   ) {}
 
+  // 일반 로그인
+  @Post('login')
+  async login(
+    @Body('name') name: string,
+    @Body('studentId') studentId: string,
+    @Body('phoneNumber') phoneNumber: string,
+  ) {
+    this.logger.debug(
+      `Login request received Name: ${name}, StudentID: ${studentId}`,
+    );
+    return this.authService.login(name, studentId, phoneNumber);
+  }
+
+  // 카카오 로그인
   @Get('auth/kakao-login-page')
   @Header('Content-Type', 'text/html')
   async kakaoRedirect(@Res() res: Response): Promise<void> {
