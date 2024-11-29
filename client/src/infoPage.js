@@ -5,15 +5,12 @@ import { useOutletContext } from "react-router-dom";
 const ScrollContainer = styled.div`
   width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 0 auto 20px;
   position: relative;
-  padding: 0 40px 10px; /* 하단 여백 줄이기 */
-  margin-bottom: 20px;
+  padding: 0 40px 10px;
   box-sizing: border-box;
-
-    /* 모바일 화면에서 하단 여백 조정 */
-    @media (max-width: 768px) {
-    padding-bottom: 5px; 
+  @media (max-width: 768px) {
+    padding-bottom: 5px;
     margin-bottom: 5px;
   }
 `;
@@ -21,27 +18,23 @@ const ScrollContainer = styled.div`
 const CardViewport = styled.div`
   width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
-  height: 400px; 
-  overflow-y: auto; /* 카드 영역만 수직 스크롤 가능 */
+  margin: 0 auto 10px;
+  height: 400px;
+  overflow-y: auto;
   box-sizing: border-box;
   padding: 20px;
-  border: 1px solid #ccc; 
-  margin-bottom: 10px; 
-
-    /* 모바일 화면에서 하단 여백 조정 */
-    @media (max-width: 768px) {
-    margin-bottom: 5px; /* 간격 줄이기 */
+  border: 1px solid #ccc;
+  @media (max-width: 768px) {
+    margin-bottom: 5px;
   }
 `;
 
 const CardContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 15px; 
-  
+  gap: 15px;
   @media (max-width: 768px) {
-    flex-direction: column; /* 모바일에서는 세로 정렬 */
+    flex-direction: column;
   }
 `;
 
@@ -52,11 +45,11 @@ const Card = styled.div`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: ${(props) =>
     props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
-  width: calc(50% - 15px); /* 한 줄에 카드 2개, 간격을 고려하여 너비 계산 */
+  width: calc(50% - 15px);
   box-sizing: border-box;
-
+  cursor: pointer;
   @media (max-width: 768px) {
-    width: 100%; /* 모바일에서는 전체 너비 사용 */
+    width: 100%;
   }
 `;
 
@@ -82,13 +75,11 @@ const TimeBlock = styled.div`
   text-align: center;
   flex-shrink: 0;
   min-width: 80px;
-
   div:first-child {
     color: #666;
     font-size: 14px;
     margin-bottom: 5px;
   }
-
   div:last-child {
     font-size: 18px;
     font-weight: bold;
@@ -121,14 +112,12 @@ const RefreshButton = styled.button`
   border: none;
   border-radius: 50%;
   cursor: pointer;
-
   &:hover {
     background-color: #003e00;
   }
-
   @media (max-width: 768px) {
-            margin-bottom : 60px; /* 모바일 화면에서 이미지 숨기기 */
-        }
+    margin-bottom: 60px;
+  }
 `;
 
 const LoadingOrError = styled.div`
@@ -136,6 +125,55 @@ const LoadingOrError = styled.div`
   font-size: 18px;
   margin-top: 20px;
 `;
+
+const Popup = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  border: 4px solid #001C4A;
+  width: 300px;
+  text-align: center;
+`;
+
+const PopupButton = styled.button`
+  background-color: #001C4A;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 15px;
+  margin-right: 10px;
+`;
+
+const CancelButton = styled(PopupButton)`
+  background-color: #C00305;
+`;
+
+const PopupContent = ({ onConfirm, onCancel }) => (
+  <Popup>
+    <h3>셔틀을 탑승하셨습니까?</h3>
+    <p>올바른 정보 제공은 정보 개선에 도움을 줍니다.</p>
+    <div>
+      <PopupButton onClick={onConfirm}>확인</PopupButton>
+      <CancelButton onClick={onCancel}>취소</CancelButton>
+    </div>
+  </Popup>
+);
+
+const ThankYouPopup = ({ onClose }) => (
+  <Popup>
+    <h3>정보를 제공해주셔서 감사합니다!</h3>
+    <PopupButton onClick={onClose}>닫기</PopupButton>
+  </Popup>
+);
 
 const calculateTime = (minutesFromNow) => {
   const time = new Date(Date.now() + minutesFromNow * 60000);
@@ -160,13 +198,15 @@ const Info = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { direction } = useOutletContext();
+  const [showPopup, setShowPopup] = useState(false);
+  const [showThankYouPopup, setShowThankYouPopup] = useState(false);
+  const [selectedBus, setSelectedBus] = useState(null);
 
   const fetchBusInfo = async () => {
     try {
       const response = await fetch(`http://localhost:8000/bus/${direction}`);
       if (!response.ok) throw new Error("네트워크 오류입니다.");
       const data = await response.json();
-      // 데이터가 배열인지 확인
       if (Array.isArray(data)) {
         const filteredBusInfo = data.map((bus) => {
           const departureMinutes = bus.도착시간 ? parseInt(bus.도착시간) : 0;
@@ -182,7 +222,7 @@ const Info = () => {
         });
         setBusInfo(filteredBusInfo);
       } else {
-        setBusInfo([]); // 배열이 아닌 경우 빈 배열로 설정
+        setBusInfo([]);
       }
     } catch (error) {
       setError(error.message);
@@ -195,7 +235,6 @@ const Info = () => {
       if (!response.ok) throw new Error("운행 종료");
       const data = await response.json();
       if (!data?.time) throw new Error("운행 종료");
-      
       setShuttleInfo([{
         busNumber: data.nextShuttle || "셔틀",
         departureTime: calculateTime(parseInt(data.time)),
@@ -207,7 +246,7 @@ const Info = () => {
       setShuttleInfo([{
         busNumber: "셔틀",
         departureTime: "운행 종료",
-        arrivalTime: "운행 종료", 
+        arrivalTime: "운행 종료",
         remainingSeats: "-",
         type: "shuttle",
       }]);
@@ -230,6 +269,26 @@ const Info = () => {
     fetchData();
   }, [direction]);
 
+  const handleCardClick = (info) => {
+    if (info.type === "shuttle") {
+      setSelectedBus(info);
+      setShowPopup(true);
+    }
+  };
+
+  const handlePopupConfirm = () => {
+    setShowPopup(false);
+    setShowThankYouPopup(true);
+  };
+
+  const handlePopupCancel = () => {
+    setShowPopup(false);
+  };
+
+  const handleThankYouClose = () => {
+    setShowThankYouPopup(false);
+  };
+
   if (loading) return <LoadingOrError>로딩 중...</LoadingOrError>;
   if (error) return <LoadingOrError>오류: {error}</LoadingOrError>;
 
@@ -238,17 +297,15 @@ const Info = () => {
     if (b.arrivalTime === "운행 종료") return -1;
     const [aHours, aMinutes] = a.arrivalTime.split(":").map(Number);
     const [bHours, bMinutes] = b.arrivalTime.split(":").map(Number);
-    const aTotal = aHours * 60 + aMinutes;
-    const bTotal = bHours * 60 + bMinutes;
-    return aTotal - bTotal;
+    return (aHours * 60 + aMinutes) - (bHours * 60 + bMinutes);
   });
 
   return (
     <ScrollContainer>
       <CardViewport>
         <CardContainer>
-          {sortedInfo && sortedInfo.map((info, index) => (
-            <Card key={index} type={info.type}>
+          {sortedInfo.map((info, index) => (
+            <Card key={index} onClick={() => handleCardClick(info)} type={info.type}>
               <TopInfo>
                 <BusNumber>{info.busNumber}</BusNumber>
                 <SeatInfo>{info.remainingSeats}</SeatInfo>
@@ -268,7 +325,9 @@ const Info = () => {
           ))}
         </CardContainer>
       </CardViewport>
-      <RefreshButton onClick={fetchData}>🔄</RefreshButton>
+      <RefreshButton onClick={fetchData}>↺</RefreshButton>
+      {showPopup && <PopupContent onConfirm={handlePopupConfirm} onCancel={handlePopupCancel} />}
+      {showThankYouPopup && <ThankYouPopup onClose={handleThankYouClose} />}
     </ScrollContainer>
   );
 };
