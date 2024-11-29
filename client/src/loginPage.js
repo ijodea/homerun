@@ -130,8 +130,9 @@ function Login() {
         },
       });
     } catch (error) {
-      console.error("로그인 실패:", error);
-      // 에러 처리
+      console.error("로그인 실패:", error.response?.data || error.message);
+      // 에러 처리를 위한 상태 추가 필요
+      alert(error.response?.data?.message || "로그인에 실패했습니다.");
     }
   };
 
