@@ -38,6 +38,8 @@ export class AuthService {
     const access_token = this.jwtService.sign(payload);
 
     this.logger.log(`로그인 성공: ${name}`);
+
+    // 카카오 로그인과 유사한 응답 구조로 변경
     return {
       userData: {
         id: studentId, // 학번을 ID로 사용
