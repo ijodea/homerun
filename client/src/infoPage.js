@@ -191,9 +191,7 @@ const Info = () => {
 
   const fetchShuttleInfo = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:8000/shuttle/${direction}`
-      );
+      const response = await fetch(`${SERVER_URL}/shuttle/${direction}`);
       if (!response.ok) throw new Error("운행 종료");
       const data = await response.json();
       if (!data?.time) throw new Error("운행 종료");
