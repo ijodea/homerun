@@ -47,7 +47,7 @@ const Card = styled.div`
     props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
   width: calc(50% - 15px);
   box-sizing: border-box;
-  cursor: pointer;
+  cursor: default;
   @media (max-width: 768px) {
     width: 100%;
   }
@@ -99,14 +99,18 @@ const LineContainer = styled.div`
   align-items: center;
 `;
 
-const RefreshButton = styled.button`
+const ButtonContainer = styled.div`
   position: fixed;
   right: 20px;
   bottom: 20px;
+  display: flex;
+  gap: 10px;
+`;
+
+const RefreshButton = styled.button`
   width: 50px;
   height: 50px;
   font-size: 1.5em;
-  margin-bottom: 15px;
   background-color: #005700;
   color: white;
   border: none;
@@ -117,6 +121,20 @@ const RefreshButton = styled.button`
   }
   @media (max-width: 768px) {
     margin-bottom: 60px;
+  }
+`;
+
+const RideButton = styled.button`
+  width: 50px;
+  height: 50px;
+  font-size: 1.5em;
+  background-color: #001C4A;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  &:hover {
+    background-color: #00123D;
   }
 `;
 
@@ -158,21 +176,19 @@ const CancelButton = styled(PopupButton)`
 `;
 
 const PopupContent = ({ onConfirm, onCancel }) => (
-  <Popup>
-    <h3>셔틀을 탑승하셨습니까?</h3>
+  <>
+    <p>셔틀을 탑승하셨습니까?</p>
     <p>올바른 정보 제공은 정보 개선에 도움을 줍니다.</p>
-    <div>
-      <PopupButton onClick={onConfirm}>확인</PopupButton>
-      <CancelButton onClick={onCancel}>취소</CancelButton>
-    </div>
-  </Popup>
+    <PopupButton onClick={onConfirm}>확인</PopupButton>
+    <CancelButton onClick={onCancel}>취소</CancelButton>
+  </>
 );
 
 const ThankYouPopup = ({ onClose }) => (
-  <Popup>
-    <h3>정보를 제공해주셔서 감사합니다!</h3>
+  <>
+    <p>정보를 제공해주셔서 감사합니다!</p>
     <PopupButton onClick={onClose}>닫기</PopupButton>
-  </Popup>
+  </>
 );
 
 const calculateTime = (minutesFromNow) => {
@@ -200,7 +216,6 @@ const Info = () => {
   const { direction } = useOutletContext();
   const [showPopup, setShowPopup] = useState(false);
   const [showThankYouPopup, setShowThankYouPopup] = useState(false);
-  const [selectedBus, setSelectedBus] = useState(null);
 
   const fetchBusInfo = async () => {
     try {
@@ -269,11 +284,8 @@ const Info = () => {
     fetchData();
   }, [direction]);
 
-  const handleCardClick = (info) => {
-    if (info.type === "shuttle") {
-      setSelectedBus(info);
-      setShowPopup(true);
-    }
+  const handleRideClick = () => {
+    setShowPopup(true);
   };
 
   const handlePopupConfirm = () => {
@@ -301,11 +313,11 @@ const Info = () => {
   });
 
   return (
-    <ScrollContainer>
+    <>
       <CardViewport>
         <CardContainer>
           {sortedInfo.map((info, index) => (
-            <Card key={index} onClick={() => handleCardClick(info)} type={info.type}>
+            <Card key={index} type={info.type}>
               <TopInfo>
                 <BusNumber>{info.busNumber}</BusNumber>
                 <SeatInfo>{info.remainingSeats}</SeatInfo>
@@ -325,10 +337,19 @@ const Info = () => {
           ))}
         </CardContainer>
       </CardViewport>
-      <RefreshButton onClick={fetchData}>↺</RefreshButton>
-      {showPopup && <PopupContent onConfirm={handlePopupConfirm} onCancel={handlePopupCancel} />}
-      {showThankYouPopup && <ThankYouPopup onClose={handleThankYouClose} />}
-    </ScrollContainer>
+
+      <ButtonContainer>
+        <RideButton onClick={handleRideClick}>🚌</RideButton>
+        <RefreshButton onClick={fetchData}>↺</RefreshButton>
+      </ButtonContainer>
+
+      {showPopup && <Popup>
+        <PopupContent onConfirm={handlePopupConfirm} onCancel={handlePopupCancel} />
+      </Popup>}
+      {showThankYouPopup && <Popup>
+        <ThankYouPopup onClose={handleThankYouClose} />
+      </Popup>}
+    </>
   );
 };
 
