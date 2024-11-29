@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
-import io from 'socket.io-client';
+import io from "socket.io-client";
 
 const API_BASE_URL = "http://localhost:8000";
 
@@ -181,15 +181,18 @@ function ChatRoom() {
   const [roomInfo, setRoomInfo] = useState(null);
   const [error, setError] = useState("");
   const messagesEndRef = useRef(null);
-  const userId = localStorage.getItem("userId");
   const messageContainerRef = useRef(null);
   const socketRef = useRef(null);
 
+  // 카카오 사용자 정보 가져오기
+  const kakaoUserData = JSON.parse(localStorage.getItem("kakaoUser"));
+
   useEffect(() => {
-    if (!userId) {
-      navigate("/taxi");
+    if (!kakaoUserData) {
+      navigate("/login");
+      return;
     }
-  }, [userId, navigate]);
+  }, [kakaoUserData, navigate]);
 
   const scrollToBottom = () => {
     if (messageContainerRef.current) {
@@ -204,7 +207,7 @@ function ChatRoom() {
 
   useEffect(() => {
     const initializeRoom = async () => {
-      if (!groupId) return;
+      if (!groupId || !kakaoUserData) return;
 
       try {
         const createResponse = await axios.post(
@@ -238,23 +241,23 @@ function ChatRoom() {
       query: { groupId },
     });
 
-    socketRef.current.on('receiveMessage', (message) => {
+    socketRef.current.on("receiveMessage", (message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
     });
 
     return () => {
       socketRef.current.disconnect();
     };
-  }, [groupId]);
+  }, [groupId, kakaoUserData]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !userId) return;
+    if (!newMessage.trim() || !kakaoUserData) return;
 
     try {
       await axios.post(`${API_BASE_URL}/chat/message`, {
         groupId,
-        userId,
+        userId: kakaoUserData.nickname,
         content: newMessage,
       });
       setNewMessage("");
@@ -303,7 +306,7 @@ function ChatRoom() {
       <ChatArea ref={messageContainerRef}>
         <MessagesContainer>
           {messages.map((message) => {
-            const isMyMessage = message.userId === userId;
+            const isMyMessage = message.userId;
             return (
               <MessageWrapper key={message.id} isMyMessage={isMyMessage}>
                 <MessageContent>

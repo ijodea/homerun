@@ -1,3 +1,0 @@
-### Transport 테스트
-GET http://localhost:8000/transport/ranked-options
-Accept: application/json

@@ -46,8 +46,7 @@ export class BusService {
         return []; // 데이터가 없을 경우 빈 배열 반환
       }
     } catch (error) {
-      // 에러 발생 시 빈 배열 반환
-      return [];
+      return { message: 'Error retrieving bus information', error };
     }
   }
 }
