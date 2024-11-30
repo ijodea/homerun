@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import DirectionControls from "./directioncontrols";
 import taxiIcon from "./assets/Taxi.png";
 import busInfoIcon from "./assets/Bus.png";
+import profileIcon from "./assets/profile.png"
+import Login from "./loginPage";
 import logo from "./assets/logo.png";
 import "./App.css";
 
@@ -12,9 +14,10 @@ const AppContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  width: 100%;
-  min-height: 100vh;
-  overflow-x: hidden;
+  width: 100vw;
+  min-height: 100vh; 
+  overflow-y: auto; 
+  overflow-x: hidden; 
 `;
 
 const HeaderContainer = styled.div`
@@ -22,11 +25,8 @@ const HeaderContainer = styled.div`
   flex-direction: column;
   align-items: center;
   width: 100%;
-  min-height: 100vh;
-  padding-bottom: 60px;
-  @media (min-width: 768px) {
-    padding-bottom: 0;
-  }
+  flex-grow: 1;
+  overflow: hidden;
 `;
 
 const LoginLink = styled(Link)`
@@ -41,16 +41,58 @@ const LoginLink = styled(Link)`
   }
 `;
 
-const LogoutButton = styled.button`
-  color: black;
-  font-size: 0.9em;
-  background: none;
-  border: none;
-  cursor: pointer;
-  &:hover {
-    text-decoration: underline;
+const ProfileContainer = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column; 
+  align-items: center; 
+  gap: 5px; 
+  margin-top: 0px; 
+
+  @media (max-width: 768px) {
+    gap: 4px; 
+    margin: 2px 0px 0px 5px;
   }
 `;
+
+const ProfileName = styled.div`
+  font-size: 0.9em;
+  font-weight: bold;
+
+  @media (max-width: 768px) {
+    font-size: 0.5em; 
+  }
+`;
+
+const ProfileImage = styled.img`
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+
+  @media (max-width: 768px) {
+    width: 24px; 
+    height: 24px;
+  }
+`;
+
+const LogoutButton = styled.button`
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background: white;
+  color: black;
+  font-size: 0.9em;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  &:hover {
+    background: #f0f0f0;
+  }
+`;
+
 
 const HomerunLink = styled(Link)`
   color: #007bff;
@@ -85,7 +127,9 @@ const MenuContainer = styled.nav`
   justify-content: center;
   background-color: lightgray;
   padding: 10px 0;
+  margin-top: 23px;
   width: 100%;
+  overflow-x: auto;
 `;
 
 const MenuItem = styled(Link)`
@@ -115,20 +159,32 @@ const MenuItem = styled(Link)`
 
   &:hover {
     background-color: ${(props) =>
-    props.active ? (props.isinfo ? "#005700" : "#fb9403") : "rgba(0, 0, 0, 0.1)"};
+      props.active
+        ? props.isinfo
+          ? "#005700"
+          : "#fb9403"
+        : "rgba(0, 0, 0, 0.1)"};
   }
+
+  @media (max-width: 768px) {
+    padding: 15px;
+    font-size: 1.2em;
+    img {
+      height: 35px;
+    }
+}
 `;
 
 const TimeContainer = styled.div`
   background: white;
-  padding: 15px 30px;
+  padding: 10px 20px;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin: 20px 0;
+  margin: 10px 0;
   text-align: center;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
-  border: 3px solid #007bff;
+  border: 2px solid #007bff;
 `;
 
 const CardContainer = styled.div`
@@ -163,15 +219,16 @@ const EfficientCardViewport = styled.div`
   height: 200px; 
   overflow: hidden;
   position: relative;
-  margin: 20px auto;
+  margin: 10px auto;
   touch-action: pan-y pinch-zoom;
 `;
 
 const EfficientCardContainer = styled.div`
   position: absolute;
   width: 100%;
-  transition: ${props => props.isDragging ? 'none' : 'transform 0.3s ease-out'};
-  transform: translateY(${props => props.offset}px);
+  transition: ${(props) =>
+    props.isDragging ? "none" : "transform 0.3s ease-out"};
+  transform: translateY(${(props) => props.offset}px);
   will-change: transform;
   user-select: none;
 `;
@@ -238,22 +295,43 @@ const UserInfo = styled.div`
   font-size: 0.9em;
 `;
 
-const Footer = styled.footer`
-  background-color: #333;
-  color: #fff;
-  text-align: right;
-  padding: 15px;
+const FooterContainer = styled.div`
+  display: flex; 
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
-  box-sizing: border-box;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  z-index: 10;
-  
-  @media (min-width: 768px) {
-    position: relative;
-    margin-top: auto;
+  background-color: #333; 
+  padding: 20px;
+  box-sizing: border-box; 
+
+  @media (max-width: 768px) {
+    position: fixed; 
+    bottom: 0;
+    left: 0;
+    padding: 10px;
+    z-index: 10;
+    width: 100%;
+    height: auto; 
+    font-size: 0.8em;
+    flex-direction: column; 
+    align-items: center;
+    gap: 5px; 
   }
+`;
+
+const FeedbackLink = styled(Link)`
+  color: #fff; 
+  font-size: 0.9em; 
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const TeamName = styled.div`
+  color: #fff;
+  font-size: 0.9em;
 `;
 
 
@@ -261,6 +339,7 @@ const Footer = styled.footer`
 const MainPage = () => {
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
   const [direction, setDirection] = useState("giheung-to-mju");
+  const [showLogout, setShowLogout] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState({ mju: 0, gih: 0 });
   const [fastestTransports, setFastestTransports] = useState({
     mju: [],
@@ -268,6 +347,7 @@ const MainPage = () => {
   });
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [isDragging, setIsDragging] = useState({ mju: false, gih: false });
   const [startY, setStartY] = useState({ mju: 0, gih: 0 });
@@ -333,11 +413,20 @@ const MainPage = () => {
   };
 
   const isLoggedIn = () => {
-    return !!(
+    return (
       localStorage.getItem("studentId") ||
       localStorage.getItem("isLoggedIn") === "true"
     );
   };
+
+  const handleTaxiClick = (event) => {
+    event.preventDefault(); // 기본 링크 동작 방지
+    if (isLoggedIn()) {
+      navigate("/taxi");
+    } else {
+      navigate("/login");
+    }
+  }; 
 
   const getUserDisplayName = () => {
     const kakaoUser = JSON.parse(localStorage.getItem("kakaoUser"));
@@ -491,15 +580,24 @@ const MainPage = () => {
     </DirectionColumn>
   );
 
-
   return (
     <AppContainer>
       <HeaderContainer>
         <HomerunLink to="/"><img src={logo} alt="logo" />Homerun</HomerunLink>
         {isLoggedIn() ? (
           <UserInfo>
-            <span>{getUserDisplayName()}님</span>
-            <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+            <ProfileContainer>
+                <ProfileImage  
+                    src={profileIcon}
+                    alt="프로필"
+                    style={{marginLeft : "0.5px"}}
+                    onClick={() => setShowLogout(!showLogout)}
+                />
+                <ProfileName>{getUserDisplayName()}님</ProfileName>
+                {showLogout && (
+                    <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+                )}
+            </ProfileContainer>
           </UserInfo>
         ) : (
           <LoginLink to="/login">Longin</LoginLink>
@@ -517,10 +615,12 @@ const MainPage = () => {
             to="/taxi"
             active={location.pathname === "/taxi"}
             isinfo={false}
-          >
-            <img src={taxiIcon} alt="Taxi" />
-            택시
+            onClick={handleTaxiClick} // 클릭 이벤트가 올바르게 연결되어 있는지 확인
+            >
+              <img src={taxiIcon} alt="Taxi" />
+              택시
           </MenuItem>
+
         </MenuContainer>
         {location.pathname === "/" && (
           <>
@@ -542,9 +642,11 @@ const MainPage = () => {
         />
         <Outlet context={{ direction }} />
       </HeaderContainer>
-      <Footer>
-        © 아2조디어 | HomeRun | 백병재 강병수 박영찬 이승현
-      </Footer>
+      
+      <FooterContainer>
+      <FeedbackLink to="/feedback">Feedback</FeedbackLink>
+        <TeamName>© 아2조디어 | HomeRun | 백병재 강병수 박영찬 이승현</TeamName>
+      </FooterContainer>
     </AppContainer>
   );
 };

@@ -64,10 +64,16 @@ const TaxiPage = () => {
     const savedUserId = localStorage.getItem("userId");
     return savedUserId || "";
   });
+
   const [response, setResponse] = useState(null);
   const [error, setError] = useState("");
   const [currentGroupId, setCurrentGroupId] = useState(null);
   const [redirectTimer, setRedirectTimer] = useState(null);
+
+  const isUserLoggedIn = () => {
+    const userId = localStorage.getItem("userId");
+    return !!userId; // 로그인 상태를 반환
+  };
 
   const resetState = () => {
     setUserId("");
@@ -140,56 +146,62 @@ const TaxiPage = () => {
   }, [currentGroupId, navigate, redirectTimer]);
 
   const handleSubmit = async () => {
-    if (!userId) {
+    if (!isUserLoggedIn()){
+      navigate("/login"); // 로그인 화면으로 이동
+      return;
+    } 
+
+    if (!userId.trim()) {
       setError("사용자 ID를 입력해주세요.");
       return;
-    }
-
-    try {
-      const locationData = {
-        userId,
-        to: direction === "giheung-to-mju" ? "mju" : "gh",
-      };
-
-      console.log("위치 데이터 전송:", locationData);
-      console.log("요청 URL:", `${API_BASE_URL}/taxi/location`);
-
-      const { data } = await axios.post(
-        `${API_BASE_URL}/taxi/location`,
-        locationData
-      );
-      console.log("서버 응답:", data);
-
-      localStorage.setItem("userId", userId);
-
-      setResponse(data);
-
-      if (data.success && data.data.group) {
-        setCurrentGroupId(data.data.group.groupId);
-
-        if (data.data.group.isFull && !redirectTimer) {
-          setResponse((prev) => ({
-            ...prev,
-            message: `${prev.message} | 3초 후 채팅방으로 이동합니다...`,
-          }));
-
-          const timer = setTimeout(() => {
-            navigate(`/chat/room/${data.data.group.groupId}`);
-          }, 3000);
-
-          setRedirectTimer(timer);
+    } 
+  
+      try {
+        const userId = localStorage.getItem("userId");
+        const locationData = {
+          userId,
+          to: direction === "giheung-to-mju" ? "mju" : "gh",
+        };
+  
+        console.log("위치 데이터 전송:", locationData);
+        console.log("요청 URL:", `${API_BASE_URL}/taxi/location`);
+  
+        const { data } = await axios.post(
+          `${API_BASE_URL}/taxi/location`,
+          locationData
+        );
+        console.log("서버 응답:", data);
+  
+        //localStorage.setItem("userId", userId);
+  
+        setResponse(data);
+  
+        if (data.success && data.data.group) {
+          setCurrentGroupId(data.data.group.groupId);
+  
+          if (data.data.group.isFull && !redirectTimer) {
+            setResponse((prev) => ({
+              ...prev,
+              message: `${prev.message} | 3초 후 채팅방으로 이동합니다...`,
+            }));
+  
+            const timer = setTimeout(() => {
+              navigate(`/chat/room/${data.data.group.groupId}`);
+            }, 3000);
+  
+            setRedirectTimer(timer);
+          }
         }
-      }
-    } catch (err) {
-      console.error("API 요청 상세 오류:", {
-        status: err.response?.status,
-        data: err.response?.data,
-        config: err.config,
-      });
-      setError(
-        "서버 요청 중 오류가 발생했습니다: " +
-          (err.response?.data?.message || err.message)
-      );
+      } catch (err) {
+        console.error("API 요청 상세 오류:", {
+          status: err.response?.status,
+          data: err.response?.data,
+          config: err.config,
+        });
+        setError(
+          "서버 요청 중 오류가 발생했습니다: " +
+            (err.response?.data?.message || err.message)
+        );
     }
   };
 

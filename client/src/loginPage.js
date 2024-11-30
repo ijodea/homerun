@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate, Link } from "react-router-dom";
 import HomerunLink from "./homeRunLink";
-import MainPage from "./mainPage";
-import Join from "./joinPage";
 import kakaoLoginImg from "./assets/kakao_login.png";
 
 const Container = styled.div`
@@ -38,7 +36,7 @@ const ButtonContainer = styled.div`
 `;
 
 const LoginBtn = styled.button`
-  width: 50%;
+  width: 13%;
   padding: 10px;
   font-size: 16px;
   color: white;
@@ -52,84 +50,88 @@ const LoginBtn = styled.button`
   }
 `;
 
-const JoinLink = styled(Link)`
-  margin: 10px 0;
-  font-size: 14px;
-  color: #007bff;
-  cursor: pointer;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
 const KakaoLoginBtn = styled.img`
-  width: 50%;
+  width: 13%;
   cursor: pointer;
   margin-top: 10px;
 `;
 
-function Login() {
-  const [studentName, setStudentName] = useState(""); // 이름 상태
-  const [studentId, setStudentId] = useState(""); // 학번 상태
-  const [phoneNumber, setPhoneNumber] = useState(""); // 전화번호 상태
+function LoginPage() {
+  const [studentName, setStudentName] = useState("");
+  const [studentId, setStudentId] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleNameChange = (e) => {
+    const value = e.target.value;
+    setStudentName(value);
+  };
+  
+  const handleStudentIdChange = (e) => {
+    // 숫자만 허용
+    const value = e.target.value.replace(/\D/g, "");
+    setStudentId(value);
+  };
+
+  const handlePhoneNumberChange = (e) => {
+    // 숫자만 허용
+    const value = e.target.value.replace(/\D/g, "");
+    setPhoneNumber(value);
+  };
+
+  const handleLoginClick = (e) => {
     e.preventDefault();
-    // 로컬 스토리지에 데이터 저장
+    console.log("Login State:", { studentName, studentId, phoneNumber });
+
+    // 로컬 스토리지 저장
     localStorage.setItem("studentName", studentName);
     localStorage.setItem("studentId", studentId);
     localStorage.setItem("phoneNumber", phoneNumber);
 
-    //메인 페이지로 이동
-    navigate("/", { state: { studentName, studentId, phoneNumber } }); // navigate 사용
+    // 메인 페이지로 이동
+    navigate("/", { state: { studentName, studentId, phoneNumber } });
   };
 
   const handleKakaoLogin = () => {
-    window.location.href = 'http://localhost:8000/auth/kakao-login-page';
+    window.location.href = "http://localhost:8000/auth/kakao-login-page";
   };
 
   return (
     <Container>
       <HomerunLink />
-      <form onSubmit={handleSubmit}>
       <InputContainer>
-          <Input
-            type="text"
-            placeholder="이름을 입력하세요"
-            value={studentName}
-            onChange={(e) => setStudentName(e.target.value)} // 이름 입력 핸들러
-            required
-          />
-        </InputContainer>
-        <InputContainer>
-          <Input
-            type="text"
-            placeholder="학번을 입력하세요"
-            value={studentId}
-            onChange={(e) => setStudentId(e.target.value)} // 학번 입력 핸들러
-            required
-          />
-        </InputContainer>
-        <InputContainer>
-          <Input
-            type="tel"
-            placeholder="전화번호를 입력하세요"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)} // 전화번호 입력 핸들러
-            required
-          />
-        </InputContainer>
-        <ButtonContainer>
-          <JoinLink to="/join">회원가입하기</JoinLink>
-          <LoginBtn to="/">로그인</LoginBtn>
-          <KakaoLoginBtn src={kakaoLoginImg} onClick={handleKakaoLogin} />
-        </ButtonContainer>
-      </form>
+        <Input
+          type="text"
+          placeholder="이름을 입력하세요"
+          value={studentName}
+          onChange={handleNameChange}
+          required
+        />
+      </InputContainer>
+      <InputContainer>
+        <Input
+          type="text"
+          placeholder="학번을 입력하세요"
+          value={studentId}
+          onChange={handleStudentIdChange}
+          required
+        />
+      </InputContainer>
+      <InputContainer>
+        <Input
+          type="tel"
+          placeholder="전화번호를 입력하세요"
+          value={phoneNumber}
+          onChange={handlePhoneNumberChange}
+          required
+        />
+      </InputContainer>
+      <ButtonContainer>
+        <LoginBtn onClick={handleLoginClick}>로그인</LoginBtn>
+        <KakaoLoginBtn src={kakaoLoginImg} onClick={handleKakaoLogin} />
+      </ButtonContainer>
     </Container>
   );
 }
 
-export default Login;
+export default LoginPage;
