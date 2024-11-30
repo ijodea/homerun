@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import DirectionControls from "./directioncontrols";
 import taxiIcon from "./assets/Taxi.png";
 import busInfoIcon from "./assets/Bus.png";
 import profileIcon from "./assets/profile.png"
+import Login from "./loginPage";
 import "./App.css";
 
 const AppContainer = styled.div`
@@ -293,6 +294,7 @@ const MainPage = () => {
   });
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [isDragging, setIsDragging] = useState({ mju: false, gih: false });
   const [startY, setStartY] = useState({ mju: 0, gih: 0 });
@@ -358,11 +360,20 @@ const MainPage = () => {
   };
 
   const isLoggedIn = () => {
-    return !!(
+    return (
       localStorage.getItem("studentId") ||
       localStorage.getItem("isLoggedIn") === "true"
     );
   };
+
+  const handleTaxiClick = (event) => {
+    event.preventDefault(); // 기본 링크 동작 방지
+    if (isLoggedIn()) {
+      navigate("/taxi");
+    } else {
+      navigate("/login");
+    }
+  }; 
 
   const getUserDisplayName = () => {
     const kakaoUser = JSON.parse(localStorage.getItem("kakaoUser"));
@@ -548,10 +559,12 @@ const MainPage = () => {
             to="/taxi"
             active={location.pathname === "/taxi"}
             isinfo={false}
-          >
-            <img src={taxiIcon} alt="Taxi" />
-            택시
+            onClick={handleTaxiClick} // 클릭 이벤트가 올바르게 연결되어 있는지 확인
+            >
+              <img src={taxiIcon} alt="Taxi" />
+              택시
           </MenuItem>
+
         </MenuContainer>
         {location.pathname === "/" && (
           <>

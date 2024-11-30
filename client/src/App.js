@@ -3,15 +3,13 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import MainPage from "./mainPage.js";
 import InfoPage from "./infoPage.js";
 import TaxiPage from "./taxiPage.js";
-import TaxiGroup from "./taxiGroup.js";
 import BusDetail from "./busDetail.js"; // DetailPage 추가
 import ShuttleDetail from "./shuttleDetail.js"; // DetailBus 추가
 import Direction from "./directioncontrols.js";
 import LoginPage from "./loginPage.js";
-import JoingPage from "./joinPage.js";
 import ChatRoom from "./chatRoom.js";
 import KakaoRedirect from "./KakaoRedirect";
-import ContactForm from "./feedback.js";
+import FeedbackForm from "./feedback.js";
 // import axios from "axios";
 
 function App() {
@@ -19,21 +17,20 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<MainPage />}>
-          <Route path="info" element={<InfoPage />} />
-          <Route path="taxi" element={<TaxiPage />} />
-          <Route path="direction" element={<Direction />} />
-          <Route path="feedback" element={<ContactForm />} />
-
-        </Route>
+        <Route path="info" element={<InfoPage />} />
+        <Route path="taxi" element={<TaxiPage />} />
+        <Route path="direction" element={<Direction />} />
+        <Route path="feedback" element={<FeedbackForm />} />
+      </Route>
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/join" element={<JoingPage />} />
-        <Route path="/taxiGroup" element={<TaxiGroup />} />
-        <Route path="/busDetail" element={<BusDetail />} />
-        <Route path="/shuttleDetail" element={<ShuttleDetail />} />
+        <Route path="/detail">
+        <Route path="bus" element={<BusDetail />} />
+        <Route path="shuttle" element={<ShuttleDetail />} />
+      </Route>
         <Route path="/chat/room/:groupId" element={<ChatRoom />} />
         <Route path="/oauth/callback" element={<KakaoRedirect />} />
-      </Routes>
-    </Router>
+    </Routes>
+  </Router>
   );
 }
 
