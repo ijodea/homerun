@@ -1,0 +1,15 @@
+###
+GET http://localhost:8000/bus/mju-to-giheung
+Accept: application/json
+
+###
+GET http://localhost:8000/bus/giheung-to-mju
+Accept: application/json
+
+###
+GET http://localhost:8000/shuttle/mju-to-giheung
+Accept: application/json
+
+###
+GET http://localhost:8000/shuttle/giheung-to-mju
+Accept: application/json

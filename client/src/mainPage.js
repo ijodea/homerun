@@ -9,8 +9,9 @@ import Login from "./loginPage";
 import logo from "./assets/logo.png";
 import "./App.css";
 
+const SERVER_URL = "http://localhost:8000";
+
 const AppContainer = styled.div`
-  background-color: #f0f0f0;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -21,6 +22,7 @@ const AppContainer = styled.div`
 `;
 
 const HeaderContainer = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -29,15 +31,49 @@ const HeaderContainer = styled.div`
   overflow: hidden;
 `;
 
-const LoginLink = styled(Link)`
-  color: black;
-  font-size: 0.9em;
+const HomerunLink = styled(Link)`
+  color: #007bff;
+  font-size: 1.5em;
+  font-weight: bold;
   text-decoration: none;
-  position: absolute;
-  right: 20px;
-  top: 20px;
-  &:hover {
-    text-decoration: underline;
+  margin: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap : 15px;
+  img {
+    height: 60px;
+    max-width: 100%;
+    object-fit: contain;
+    
+    @media (max-width: 400px) {
+      display: none;
+    }
+    
+    @media (min-width: 401px) and (max-width: 768px) {
+      height: 30px;
+    }
+    
+    @media (min-width: 769px) {
+      height: 40px;
+    }
+  }
+`;
+
+const UserInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const ProfileImage = styled.img`
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+
+  @media (max-width: 768px) {
+    width: 24px; 
+    height: 24px;
   }
 `;
 
@@ -64,16 +100,16 @@ const ProfileName = styled.div`
   }
 `;
 
-const ProfileImage = styled.img`
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  cursor: pointer;
-
-  @media (max-width: 768px) {
-    width: 24px; 
-    height: 24px;
-  }
+const EfficientCard = styled.div`
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 
+              0 2px 4px rgba(0, 0, 0, 0.19);
+  border: ${(props) => props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
+  height: 160px;
+  box-sizing: border-box;
 `;
 
 const LogoutButton = styled.button`
@@ -94,10 +130,9 @@ const LogoutButton = styled.button`
 `;
 
 
-const HomerunLink = styled(Link)`
-  color: #007bff;
-  font-size: 1.5em;
-  font-weight: bold;
+const LoginLink = styled(Link)`
+  color: black;
+  font-size: 0.9em;
   text-decoration: none;
   margin: 10px 20px;
   display: flex;
@@ -149,6 +184,7 @@ const MenuItem = styled(Link)`
 
   img {
     height: 40px;
+    margin-right: 8px;
     filter: ${(props) => (props.active ? "invert(1)" : "invert(0.5)")};
   }
 
@@ -233,9 +269,9 @@ const EfficientCardContainer = styled.div`
   user-select: none;
 `;
 
-const EfficientCard = styled.div`
+const TransportCard = styled.div`
   background: white;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 
@@ -249,12 +285,16 @@ const TransportInfo = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 `;
 
 const BusNumber = styled.div`
   font-size: clamp(1rem, 4.8vw, 1.35rem);
   font-weight: bold;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+  }
 `;
 
 const TimeInfo = styled.div`
@@ -282,17 +322,19 @@ const Medal = styled.span`
 const SeatInfo = styled.div`
   color: #0066ff;
   font-size: 14px;
-  margin-top: 5px;
 `;
 
-const UserInfo = styled.div`
-  position: absolute;
-  right: 20px;
-  top: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.9em;
+const SectionTitle = styled.h2`
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16px;
+  text-align: center;
+  position: ${(props) => (props.isMobile ? "static" : "sticky")};
+  top: 0;
+  background: ${(props) => (props.isMobile ? "none" : "#f0f0f0")};
+  padding: ${(props) => (props.isMobile ? "0" : "10px 0")};
+  z-index: 1;
 `;
 
 const FooterContainer = styled.div`
@@ -337,7 +379,9 @@ const TeamName = styled.div`
 
 
 const MainPage = () => {
-  const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
+  const [currentTime, setCurrentTime] = useState(
+    new Date().toLocaleTimeString()
+  );
   const [direction, setDirection] = useState("giheung-to-mju");
   const [showLogout, setShowLogout] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState({ mju: 0, gih: 0 });
@@ -409,7 +453,6 @@ const MainPage = () => {
 
   const handleDirectionChange = (newDirection) => {
     setDirection(newDirection);
-    setCurrentCardIndex({ mju: 0, gih: 0 });
   };
 
   const isLoggedIn = () => {
@@ -437,12 +480,7 @@ const MainPage = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("studentId");
-    localStorage.removeItem("phoneNumber");
-    localStorage.removeItem("kakaoUser");
-    localStorage.removeItem("kakaoToken");
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("loginType");
+    localStorage.clear();
     window.location.reload();
   };
 
@@ -450,8 +488,8 @@ const MainPage = () => {
     try {
       setLoading(true);
       const [mjuResponse, gihResponse] = await Promise.all([
-        fetch(`http://localhost:8000/bus/mju-to-giheung`),
-        fetch(`http://localhost:8000/bus/giheung-to-mju`),
+        fetch(`${SERVER_URL}/bus/mju-to-giheung`),
+        fetch(`${SERVER_URL}/bus/giheung-to-mju`),
       ]);
       const [mjuBusData, gihBusData] = await Promise.all([
         mjuResponse.json(),
@@ -469,7 +507,9 @@ const MainPage = () => {
 
       const calculateArrivalTime = (departureMinutes, busType) => {
         const now = new Date();
-        const departureTime = new Date(now.getTime() + departureMinutes * 60000);
+        const departureTime = new Date(
+          now.getTime() + departureMinutes * 60000
+        );
         const travelTime = busTimes[busType] || 30;
         return new Date(departureTime.getTime() + travelTime * 60000);
       };
@@ -489,7 +529,7 @@ const MainPage = () => {
 
         try {
           const shuttleResponse = await fetch(
-            `http://localhost:8000/shuttle/${direction}`
+            `${SERVER_URL}/shuttle/${direction}`
           );
           const shuttleData = await shuttleResponse.json();
           if (shuttleData?.time) {
@@ -622,6 +662,7 @@ const MainPage = () => {
           </MenuItem>
 
         </MenuContainer>
+
         {location.pathname === "/" && (
           <>
             <TimeContainer>현재 시간 : {currentTime}</TimeContainer>

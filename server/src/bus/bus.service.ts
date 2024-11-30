@@ -41,11 +41,9 @@ export class BusService {
                 ? '정보 없음'
                 : `${item.remainSeatCnt1[0]}석 남음`,
           }));
-        return filteredBusInfo.length
-          ? filteredBusInfo
-          : { message: 'No relevant bus arrival information available' };
+        return filteredBusInfo;
       } else {
-        return { message: 'No arrival information available' };
+        return []; // 데이터가 없을 경우 빈 배열 반환
       }
     } catch (error) {
       return { message: 'Error retrieving bus information', error };

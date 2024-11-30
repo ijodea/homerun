@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
+import io from "socket.io-client";
 
-const API_BASE_URL = "http://localhost:8000";
+const SERVER_URL = "http://localhost:8000";
 
 // Styled Components
 const ChatContainer = styled.div`
@@ -180,14 +181,23 @@ function ChatRoom() {
   const [roomInfo, setRoomInfo] = useState(null);
   const [error, setError] = useState("");
   const messagesEndRef = useRef(null);
-  const userId = localStorage.getItem("userId");
   const messageContainerRef = useRef(null);
+  const socketRef = useRef(null);
+
+  const getUserData = () => {
+    const kakaoUser = JSON.parse(localStorage.getItem("kakaoUser"));
+    const normalUser = JSON.parse(localStorage.getItem("user"));
+    return kakaoUser || normalUser;
+  };
+
+  const userData = getUserData();
 
   useEffect(() => {
-    if (!userId) {
-      navigate("/taxi");
+    if (!userData) {
+      navigate("/login");
+      return;
     }
-  }, [userId, navigate]);
+  }, [userData, navigate]);
 
   const scrollToBottom = () => {
     if (messageContainerRef.current) {
@@ -202,11 +212,11 @@ function ChatRoom() {
 
   useEffect(() => {
     const initializeRoom = async () => {
-      if (!groupId) return;
+      if (!groupId || !userData) return;
 
       try {
         const createResponse = await axios.post(
-          `${API_BASE_URL}/chat/room/${groupId}`
+          `${SERVER_URL}/chat/room/${groupId}`
         );
 
         if (createResponse.data.success) {
@@ -214,7 +224,7 @@ function ChatRoom() {
           setMessages(createResponse.data.data.messages);
         } else {
           const getResponse = await axios.get(
-            `${API_BASE_URL}/chat/room/${groupId}`
+            `${SERVER_URL}/chat/room/${groupId}`
           );
 
           if (getResponse.data.success) {
@@ -232,40 +242,30 @@ function ChatRoom() {
 
     initializeRoom();
 
-    const intervalId = setInterval(async () => {
-      try {
-        const response = await axios.get(
-          `${API_BASE_URL}/chat/room/${groupId}`
-        );
+    socketRef.current = io(SERVER_URL, {
+      query: { groupId },
+    });
 
-        if (response.data.success) {
-          setMessages(response.data.data.messages);
-        }
-      } catch (err) {
-        console.error("메시지 업데이트 오류:", err);
-      }
-    }, 1000);
+    socketRef.current.on("receiveMessage", (message) => {
+      setMessages((prevMessages) => [...prevMessages, message]);
+    });
 
-    return () => clearInterval(intervalId);
-  }, [groupId]);
+    return () => {
+      socketRef.current.disconnect();
+    };
+  }, [groupId, userData]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !userId) return;
+    if (!newMessage.trim() || !userData) return;
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/chat/message`, {
+      await axios.post(`${SERVER_URL}/chat/message`, {
         groupId,
-        userId,
+        userId: userData.nickname,
         content: newMessage,
       });
-
-      if (response.data.success) {
-        setNewMessage("");
-        scrollToBottom();
-      } else {
-        setError("메시지 전송에 실패했습니다");
-      }
+      setNewMessage("");
     } catch (err) {
       console.error("메시지 전송 오류:", err);
       setError("메시지 전송 중 오류가 발생했습니다");
@@ -311,7 +311,7 @@ function ChatRoom() {
       <ChatArea ref={messageContainerRef}>
         <MessagesContainer>
           {messages.map((message) => {
-            const isMyMessage = message.userId === userId;
+            const isMyMessage = message.userId;
             return (
               <MessageWrapper key={message.id} isMyMessage={isMyMessage}>
                 <MessageContent>
@@ -331,6 +331,7 @@ function ChatRoom() {
       </ChatArea>
 
       <InputArea>
+        å
         <InputForm onSubmit={handleSendMessage}>
           <MessageInput
             type="text"

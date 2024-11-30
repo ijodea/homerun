@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
+const SERVER_URL = "http://localhost:8000";
+
 const KakaoRedirect = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,7 +25,7 @@ const KakaoRedirect = () => {
       }
 
       try {
-        const response = await axios.get(`http://localhost:8000/oauth`, {
+        const response = await axios.get(`${SERVER_URL}/oauth`, {
           params: { code },
           headers: {
             "Cache-Control": "no-cache",

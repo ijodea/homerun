@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useOutletContext } from "react-router-dom";
 
+const SERVER_URL = "http://localhost:8000";
+
 const ScrollContainer = styled.div`
   width: 100%;
   max-width: 1200px;
@@ -219,7 +221,7 @@ const Info = () => {
 
   const fetchBusInfo = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/bus/${direction}`);
+      const response = await fetch(`${SERVER_URL}/bus/${direction}`);
       if (!response.ok) throw new Error("네트워크 오류입니다.");
       const data = await response.json();
       if (Array.isArray(data)) {
@@ -246,7 +248,7 @@ const Info = () => {
 
   const fetchShuttleInfo = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/shuttle/${direction}`);
+      const response = await fetch(`${SERVER_URL}/shuttle/${direction}`);
       if (!response.ok) throw new Error("운행 종료");
       const data = await response.json();
       if (!data?.time) throw new Error("운행 종료");

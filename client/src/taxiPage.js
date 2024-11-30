@@ -1,92 +1,281 @@
 import React, { useState, useEffect } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
-import styled from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 import axios from "axios";
+import io from "socket.io-client";
+
+const SERVER_URL = "http://localhost:8000";
 
 const TaxiPageContainer = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center; 
-  width: 100%; 
-  margin-top: 10px;
+  align-items: center;
+  justify-content: center;
+  min-height: calc100vh;
+  width: 100%;
+  padding: 20px;
 `;
 
-const Input = styled.input`
+const CardContainer = styled.div`
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   width: 90%;
-  max-width: 400px; 
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 0.25rem;
-  margin-bottom: 1rem;
-  margin-top: 5px;
-`;
+  max-width: 400px;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  margin: 0 auto;
 
-const Button = styled.button`
-  width: 70%;
-  max-width: 400px; 
-  margin-left: 30px;
-  background-color: #3b82f6;
-  color: white;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-
-  &:hover {
-    background-color: #2563eb;
+  @media (max-width: 480px) {
+    width: 85%;
+    padding: 24px 20px;
+    border-radius: 12px;
   }
 `;
 
-const ResponseContainer = styled.div`
-  margin-top: 1rem;
-  padding: 1rem;
-  border-radius: 0.25rem;
-  background-color: ${(props) => (props.success ? "#ecfdf5" : "#fef2f2")};
-  color: ${(props) => (props.success ? "#065f46" : "#991b1b")};
+const ButtonContainer = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+
+  @media (max-width: 480px) {
+    margin-top: 16px;
+  }
+`;
+
+const pulse = keyframes`
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+`;
+
+const pulseAnimation = css`
+  ${pulse} 2s infinite
+`;
+
+const MatchButton = styled.button`
+  background: ${(props) =>
+    props.disabled
+      ? "#e5e7eb"
+      : "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"};
+  color: white;
+  width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
+  transition: all 0.3s ease;
+  box-shadow: ${(props) =>
+    props.disabled ? "none" : "0 4px 6px -1px rgba(59, 130, 246, 0.2)"};
+
+  @media (max-width: 480px) {
+    padding: 14px;
+    font-size: 1rem;
+    border-radius: 10px;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px -1px rgba(59, 130, 246, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  animation: ${(props) => (props.disabled ? "none" : pulseAnimation)};
+`;
+
+const loadingCircle = keyframes`
+  0% {
+    stroke-dashoffset: 180;
+  }
+  50% {
+    stroke-dashoffset: 45;
+    transform: rotate(135deg);
+  }
+  100% {
+    stroke-dashoffset: 180;
+    transform: rotate(450deg);
+  }
+`;
+
+const LoadingWrapper = styled.div`
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+`;
+
+const LoadingSpinner = styled.div`
+  width: 40px;
+  height: 40px;
+  position: relative;
+
+  svg {
+    animation: ${loadingCircle} 2s linear infinite;
+    width: 40px;
+    height: 40px;
+  }
+
+  circle {
+    fill: none;
+    stroke: #3b82f6;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 180;
+    transform-origin: center;
+  }
+`;
+
+const LoadingText = styled.p`
+  color: #4b5563;
+  font-size: 0.9rem;
+  text-align: center;
+  margin: 0;
+`;
+
+const StatusText = styled.p`
+  color: #4b5563;
+  font-size: 1rem;
+  text-align: center;
+  margin: 16px 0 0 0;
+  line-height: 1.5;
 `;
 
 const ErrorContainer = styled.div`
-  background-color: #fef2f2;
+  background-color: #fee2e2;
   color: #991b1b;
-  padding: 1rem;
-  border-radius: 0.25rem;
-  margin-top: 1rem;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 16px;
+  width: 100%;
+  text-align: center;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 `;
 
-const API_BASE_URL = "http://localhost:8000"; // NestJS 서버 주소
+const DirectionDisplay = styled.div`
+  background-color: #f3f4f6;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+  width: 100%;
+  font-size: 0.9rem;
+  color: #4b5563;
+
+  @media (max-width: 480px) {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+  }
+`;
+
+const OnlineUsersDisplay = styled.div`
+  background-color: #eef2ff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 12px 0;
+  text-align: center;
+  width: 100%;
+  font-size: 0.9rem;
+  color: #4338ca;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  @media (max-width: 480px) {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    margin: 10px 0;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: #4338ca;
+  }
+`;
 
 const TaxiPage = () => {
   const navigate = useNavigate();
   const { direction } = useOutletContext();
-
-  const [userId, setUserId] = useState(() => {
-    const savedUserId = localStorage.getItem("userId");
-    return savedUserId || "";
-  });
-
+  const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState(null);
   const [error, setError] = useState("");
   const [currentGroupId, setCurrentGroupId] = useState(null);
-  const [redirectTimer, setRedirectTimer] = useState(null);
+  const [searchTimeout, setSearchTimeout] = useState(null);
+  const [remainingTime, setRemainingTime] = useState(60);
+  const [onlineUsers, setOnlineUsers] = useState({ mju: 0, gh: 0 });
 
-  const isUserLoggedIn = () => {
-    const userId = localStorage.getItem("userId");
-    return !!userId; // 로그인 상태를 반환
+  const getUserData = () => {
+    const kakaoUser = JSON.parse(localStorage.getItem("kakaoUser"));
+    const normalUser = JSON.parse(localStorage.getItem("user"));
+    return kakaoUser || normalUser;
   };
 
-  const resetState = () => {
-    setUserId("");
-    setResponse(null);
-    setCurrentGroupId(null);
-  };
+  const userData = getUserData();
 
   useEffect(() => {
-    // userId가 변경될 때마다 localStorage 업데이트
-    if (userId) {
-      localStorage.setItem("userId", userId);
+    if (!userData) {
+      navigate("/login");
+      return;
     }
-  }, [userId]);
+    // WebSocket 연결 설정
+    const socket = io(SERVER_URL, {
+      query: {
+        direction: direction === "giheung-to-mju" ? "mju" : "gh",
+        userId: userData.id,
+      },
+    });
+
+    // 온라인 사용자 수 업데이트 리스너
+    socket.on("onlineUsers", (counts) => {
+      setOnlineUsers(counts);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [userData, direction, navigate]);
+
+  useEffect(() => {
+    let intervalId;
+    if (isLoading) {
+      setRemainingTime(60);
+      intervalId = setInterval(() => {
+        setRemainingTime((prev) => {
+          if (prev <= 1) {
+            clearInterval(intervalId);
+            setIsLoading(false);
+            setError("매칭 시간이 초과되었습니다. 다시 시도해주세요.");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(intervalId);
+  }, [isLoading]);
 
   useEffect(() => {
     let statusCheckInterval = null;
@@ -95,10 +284,9 @@ const TaxiPage = () => {
       if (!currentGroupId) return;
 
       try {
-        const url = `${API_BASE_URL}/taxi/group/${currentGroupId}`;
-        console.log("Polling group status:", url);
-
-        const { data } = await axios.get(url);
+        const { data } = await axios.get(
+          `${SERVER_URL}/taxi/group/${currentGroupId}`
+        );
 
         if (data.success) {
           setResponse((prev) => ({
@@ -111,129 +299,124 @@ const TaxiPage = () => {
                 isFull: data.isFull,
               },
             },
-            message: `${prev.message.split("|")[0]} | 그룹 번호: ${
-              data.groupId
-            } (${data.memberCount}/4명)`,
+            message: `매칭 진행 중... (${data.memberCount}/4명)`,
           }));
 
-          if (data.isFull && !redirectTimer) {
-            setResponse((prev) => ({
-              ...prev,
-              message: `${prev.message} | 3초 후 채팅방으로 이동합니다...`,
-            }));
-
-            const timer = setTimeout(() => {
+          if (data.isFull) {
+            clearInterval(statusCheckInterval);
+            setIsLoading(false);
+            setTimeout(() => {
               navigate(`/chat/room/${currentGroupId}`);
-            }, 3000);
-
-            setRedirectTimer(timer);
+            }, 1000);
           }
         }
       } catch (err) {
-        console.error("그룹 상태 확인 중 오류:", err.response || err);
+        console.error("그룹 상태 확인 중 오류:", err);
+        setError("그룹 상태 확인 중 오류가 발생했습니다.");
+        setIsLoading(false);
       }
     };
 
-    if (currentGroupId) {
+    if (currentGroupId && isLoading) {
       statusCheckInterval = setInterval(checkGroupStatus, 3000);
       checkGroupStatus();
     }
 
     return () => {
       if (statusCheckInterval) clearInterval(statusCheckInterval);
-      if (redirectTimer) clearTimeout(redirectTimer);
+      if (searchTimeout) clearTimeout(searchTimeout);
     };
-  }, [currentGroupId, navigate, redirectTimer]);
+  }, [currentGroupId, navigate, searchTimeout, isLoading]);
 
   const handleSubmit = async () => {
-    if (!isUserLoggedIn()){
-      navigate("/login"); // 로그인 화면으로 이동
-      return;
-    } 
+    if (isLoading) return;
 
-    if (!userId.trim()) {
-      setError("사용자 ID를 입력해주세요.");
-      return;
-    } 
-  
-      try {
-        const userId = localStorage.getItem("userId");
-        const locationData = {
-          userId,
-          to: direction === "giheung-to-mju" ? "mju" : "gh",
-        };
-  
-        console.log("위치 데이터 전송:", locationData);
-        console.log("요청 URL:", `${API_BASE_URL}/taxi/location`);
-  
-        const { data } = await axios.post(
-          `${API_BASE_URL}/taxi/location`,
-          locationData
-        );
-        console.log("서버 응답:", data);
-  
-        //localStorage.setItem("userId", userId);
-  
+    setIsLoading(true);
+    setError("");
+    setResponse(null);
+
+    try {
+      const locationData = {
+        userId: userData.nickname,
+        to: direction === "giheung-to-mju" ? "mju" : "gh",
+      };
+
+      const { data } = await axios.post(
+        `${SERVER_URL}/taxi/location`,
+        locationData
+      );
+
+      if (data.success && data.data.group) {
         setResponse(data);
-  
-        if (data.success && data.data.group) {
-          setCurrentGroupId(data.data.group.groupId);
-  
-          if (data.data.group.isFull && !redirectTimer) {
-            setResponse((prev) => ({
-              ...prev,
-              message: `${prev.message} | 3초 후 채팅방으로 이동합니다...`,
-            }));
-  
-            const timer = setTimeout(() => {
-              navigate(`/chat/room/${data.data.group.groupId}`);
-            }, 3000);
-  
-            setRedirectTimer(timer);
-          }
-        }
-      } catch (err) {
-        console.error("API 요청 상세 오류:", {
-          status: err.response?.status,
-          data: err.response?.data,
-          config: err.config,
-        });
-        setError(
-          "서버 요청 중 오류가 발생했습니다: " +
-            (err.response?.data?.message || err.message)
-        );
+        setCurrentGroupId(data.data.group.groupId);
+
+        const timeout = setTimeout(() => {
+          setIsLoading(false);
+          setError("매칭 시간이 초과되었습니다. 다시 시도해주세요.");
+          setCurrentGroupId(null);
+          setResponse(null);
+        }, 60000);
+
+        setSearchTimeout(timeout);
+      }
+    } catch (err) {
+      console.error("API 요청 오류:", err);
+      setError("매칭 요청 중 오류가 발생했습니다.");
+      setIsLoading(false);
     }
+  };
+
+  const getDirectionText = () => {
+    return direction === "giheung-to-mju"
+      ? "기흥역 → 명지대"
+      : "명지대 → 기흥역";
+  };
+
+  const getCurrentDirectionOnlineUsers = () => {
+    return direction === "giheung-to-mju" ? onlineUsers.mju : onlineUsers.gh;
   };
 
   return (
     <TaxiPageContainer>
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium mb-1">사용자 ID:</label>
-          <Input
-            type="text"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            placeholder="사용자 ID를 입력하세요"
-          />
-        </div>
+      <CardContainer>
+        <DirectionDisplay>{getDirectionText()}</DirectionDisplay>
 
-        <Button onClick={handleSubmit}>택시 모집</Button>
+        <OnlineUsersDisplay>
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+          </svg>
+          현재 {getCurrentDirectionOnlineUsers()}명이 이 방향을 검색중입니다
+        </OnlineUsersDisplay>
 
-        {error && <ErrorContainer>{error}</ErrorContainer>}
+        <ButtonContainer>
+          <MatchButton onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? "매칭 진행 중..." : "택시 매칭 시작하기"}
+          </MatchButton>
+        </ButtonContainer>
 
-        {response && (
-          <ResponseContainer success={response.success}>
-            <p>{response.message}</p>
-            {response.data?.group && (
-              <p className="mt-2">
-                현재 인원: {response.data.group.memberCount}/4
-                {response.data.group.isFull && " (모집 완료)"}
-              </p>
+        {isLoading && (
+          <LoadingWrapper>
+            <LoadingSpinner>
+              <svg viewBox="0 0 50 50">
+                <circle cx="25" cy="25" r="20" />
+              </svg>
+            </LoadingSpinner>
+            <LoadingText>매칭 진행 중... ({remainingTime}초)</LoadingText>
+            {response?.data?.group && (
+              <StatusText>
+                현재 {response.data.group.memberCount}명이 매칭되었습니다
+              </StatusText>
             )}
-          </ResponseContainer>
+          </LoadingWrapper>
         )}
-      </div>
+
+        {error && (
+          <ErrorContainer>
+            <span>⚠️</span>
+            <span>{error}</span>
+          </ErrorContainer>
+        )}
+      </CardContainer>
     </TaxiPageContainer>
   );
 };
