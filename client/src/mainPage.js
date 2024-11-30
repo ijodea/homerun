@@ -195,11 +195,11 @@ const MenuItem = styled(Link)`
 
   &:hover {
     background-color: ${(props) =>
-      props.active
-        ? props.isinfo
-          ? "#005700"
-          : "#fb9403"
-        : "rgba(0, 0, 0, 0.1)"};
+    props.active
+      ? props.isinfo
+        ? "#005700"
+        : "#fb9403"
+      : "rgba(0, 0, 0, 0.1)"};
   }
 
   @media (max-width: 768px) {
@@ -306,9 +306,14 @@ const TimeInfo = styled.div`
     margin-bottom: 5px;
   }
   div:nth-child(2) {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
     color: #0066ff;
+  }
+  div:nth-child(3) {
+    font-size: 18px;
+    font-weight: bold;
+    color: 	#FF0000;
   }
 `;
 
@@ -469,7 +474,7 @@ const MainPage = () => {
     } else {
       navigate("/login");
     }
-  }; 
+  };
 
   const getUserDisplayName = () => {
     const kakaoUser = JSON.parse(localStorage.getItem("kakaoUser"));
@@ -515,17 +520,21 @@ const MainPage = () => {
       };
 
       const processTransports = async (busData, direction) => {
-        const transports = busData.map((bus) => ({
-          type: "bus",
-          number: bus.버스번호,
-          departureTime: parseInt(bus.도착시간) || Infinity,
-          arrivalTime: calculateArrivalTime(
-            parseInt(bus.도착시간),
-            bus.버스번호
-          ),
-          remainingSeats: direction === "mju-to-giheung" ? "공석" : bus.남은좌석수,
-          direction: direction,
-        }));
+        const now = new Date();
+        const transports = busData.map((bus) => {
+          const departureTime = new Date(now.getTime() + parseInt(bus.도착시간) * 60000);
+          return {
+            type: "bus",
+            number: bus.버스번호,
+            departureTime: departureTime,
+            arrivalTime: calculateArrivalTime(
+              parseInt(bus.도착시간),
+              bus.버스번호
+            ),
+            remainingSeats: direction === "mju-to-giheung" ? "공석" : bus.남은좌석수,
+            direction: direction,
+          };
+        });
 
         try {
           const shuttleResponse = await fetch(
@@ -599,14 +608,24 @@ const MainPage = () => {
                   <div>
                     {type === "mju" ? "명지대 → 기흥역" : "기흥역 → 명지대"}
                   </div>
+
                   <div>
-                    {transport.arrivalTime instanceof Date
+                    출발 : {transport.departureTime instanceof Date
+                      ? transport.departureTime.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                      : "정보 없음"}
+                  </div>
+                  <div>
+                    도착 : {transport.arrivalTime instanceof Date
                       ? transport.arrivalTime.toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
                       })
                       : "정보 없음"}
                   </div>
+
                   <Medal>
                     {index === 0 ? "🏅" : index === 1 ? "🥈" : index === 2 ? "🥉" : ""}
                   </Medal>
@@ -627,16 +646,16 @@ const MainPage = () => {
         {isLoggedIn() ? (
           <UserInfo>
             <ProfileContainer>
-                <ProfileImage  
-                    src={profileIcon}
-                    alt="프로필"
-                    style={{marginLeft : "0.5px"}}
-                    onClick={() => setShowLogout(!showLogout)}
-                />
-                <ProfileName>{getUserDisplayName()}님</ProfileName>
-                {showLogout && (
-                    <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
-                )}
+              <ProfileImage
+                src={profileIcon}
+                alt="프로필"
+                style={{ marginLeft: "0.5px" }}
+                onClick={() => setShowLogout(!showLogout)}
+              />
+              <ProfileName>{getUserDisplayName()}님</ProfileName>
+              {showLogout && (
+                <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+              )}
             </ProfileContainer>
           </UserInfo>
         ) : (
@@ -656,9 +675,9 @@ const MainPage = () => {
             active={location.pathname === "/taxi"}
             isinfo={false}
             onClick={handleTaxiClick} // 클릭 이벤트가 올바르게 연결되어 있는지 확인
-            >
-              <img src={taxiIcon} alt="Taxi" />
-              택시
+          >
+            <img src={taxiIcon} alt="Taxi" />
+            택시
           </MenuItem>
 
         </MenuContainer>
@@ -683,9 +702,9 @@ const MainPage = () => {
         />
         <Outlet context={{ direction }} />
       </HeaderContainer>
-      
+
       <FooterContainer>
-      <FeedbackLink to="/feedback">Feedback</FeedbackLink>
+        <FeedbackLink to="/feedback">Feedback</FeedbackLink>
         <TeamName>© 아2조디어 | HomeRun | 백병재 강병수 박영찬 이승현</TeamName>
       </FooterContainer>
     </AppContainer>
