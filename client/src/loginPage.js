@@ -15,7 +15,7 @@ const JoinLink = styled(Link)`
   text-decoration: none;
 
   &:hover {
-    text-decoration: underline;
+    text-decoration: underline; 
   }
 `;
 
@@ -26,6 +26,11 @@ const Container = styled.div`
   justify-content: center;
   height: 100vh;
   margin-top: 0;
+  
+  @media (max-width: 480px){
+    width: 100vw; 
+    overflow: hidden; 
+  }
 `;
 
 const InputContainer = styled.div`
@@ -37,9 +42,15 @@ const Input = styled.input`
   width: 100%;
   margin-top: 7px;
   padding: 10px;
+  align-items: center;
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 16px;
+
+  @media (max-width: 480px) {
+    width: 80%;
+    margin: 2px 20px;
+  }
 `;
 
 const ButtonContainer = styled.div`
@@ -51,24 +62,35 @@ const ButtonContainer = styled.div`
 `;
 
 const LoginBtn = styled.button`
-  width: 13%;
-  padding: 10px;
+  width: 40%; 
+  height: 35px; 
   font-size: 16px;
   color: white;
   background-color: #007bff;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
 
-  &:hover {
-    background-color: #0056b3;
+
+  @media (max-width: 768px) {
+    width: 33%; 
+    font-size: 14px;
+    padding: 6px; 
   }
 `;
 
 const KakaoLoginBtn = styled.img`
-  width: 13%;
+  width: 40%; 
+  height: 30px; 
   cursor: pointer;
   margin-top: 10px;
+
+  
+  @media (max-width: 768px) {
+    width: 33%; 
+  }
 `;
 
 function LoginPage() {
@@ -76,17 +98,6 @@ function LoginPage() {
   const [studentId, setStudentId] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const navigate = useNavigate();
-
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   // 로컬 스토리지에 데이터 저장
-  //   localStorage.setItem("studentName", studentName);
-  //   localStorage.setItem("studentId", studentId);
-  //   localStorage.setItem("phoneNumber", phoneNumber);
-
-  //   //메인 페이지로 이동
-  //   navigate("/", { state: { studentName, studentId, phoneNumber } }); // navigate 사용
-  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -170,7 +181,6 @@ function LoginPage() {
           />
         </InputContainer>
         <ButtonContainer>
-          <JoinLink to="/join">회원가입하기</JoinLink>
           <LoginBtn to="/">로그인</LoginBtn>
           <KakaoLoginBtn src={kakaoLoginImg} onClick={handleKakaoLogin} />
         </ButtonContainer>

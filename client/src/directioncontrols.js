@@ -1,7 +1,5 @@
 import React from "react";
 import styled from "styled-components";
-import mjImage from './assets/mj.png';
-import ghImage from './assets/gh.png';
 
 const DirectionButtonContainer = styled.div`
     display: flex;
@@ -23,7 +21,7 @@ const DirectionButtonContainer = styled.div`
         margin: 0 10px;
 
         @media (max-width: 768px) {
-            display: none; /* 모바일 화면에서 이미지 숨기기 */
+            display: none; 
         }
     }
 `;
@@ -56,11 +54,6 @@ const DirectionControls = ({ show, direction, onDirectionChange }) => {
     return (
         show && (
             <DirectionButtonContainer className={show ? 'show' : ''}>
-                <img 
-                    src={mjImage} 
-                    alt="명지역" 
-                    style={{ marginRight: "10px" }} 
-                />
                 <DirectionButton
                     onClick={() => onDirectionChange("giheung-to-mju")}
                     active={direction === "giheung-to-mju"}
@@ -74,11 +67,6 @@ const DirectionControls = ({ show, direction, onDirectionChange }) => {
                 >
                     기흥역행
                 </DirectionButton>
-                <img 
-                    src={ghImage} 
-                    alt="기흥역" 
-                    style={{ marginLeft: "10px" }} 
-                />
             </DirectionButtonContainer>
         )
     );

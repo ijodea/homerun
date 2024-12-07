@@ -9,11 +9,11 @@ const SERVER_URL = "http://localhost:8000";
 const TaxiPageContainer = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: calc100vh;
-  width: 100%;
-  padding: 20px;
+  align-items: center; 
+  justify-content: center; 
+  width: 100%; 
+  padding: 20px; 
+  box-sizing: border-box; 
 `;
 
 const CardContainer = styled.div`
@@ -111,6 +111,7 @@ const loadingCircle = keyframes`
     stroke-dashoffset: 180;
     transform: rotate(450deg);
   }
+
 `;
 
 const LoadingWrapper = styled.div`

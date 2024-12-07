@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import MainPage from "./mainPage.js";
 import InfoPage from "./infoPage.js";
 import TaxiPage from "./taxiPage.js";
-import BusDetail from "./busDetail.js"; // DetailPage 추가
-import ShuttleDetail from "./shuttleDetail.js"; // DetailBus 추가
+import BusDetail from "./busDetail.js"; 
+import ShuttleDetail from "./shuttleDetail.js"; 
 import Direction from "./directioncontrols.js";
 import LoginPage from "./loginPage.js";
 import ChatRoom from "./chatRoom.js";

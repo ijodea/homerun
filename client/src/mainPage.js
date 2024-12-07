@@ -5,7 +5,6 @@ import DirectionControls from "./directioncontrols";
 import taxiIcon from "./assets/Taxi.png";
 import busInfoIcon from "./assets/Bus.png";
 import profileIcon from "./assets/profile.png"
-import Login from "./loginPage";
 import logo from "./assets/logo.png";
 import "./App.css";
 
@@ -18,51 +17,66 @@ const AppContainer = styled.div`
   width: 100vw;
   min-height: 100vh; 
   overflow-y: auto; 
-  overflow-x: hidden; 
+  overflow-x: hidden;
 `;
 
-const HeaderContainer = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  flex-grow: 1;
-  overflow: hidden;
+const Header = styled.header`
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  padding: 30px 5px 5px 0px; 
+  justify-content: center; 
+  height: 50px; 
 `;
 
 const HomerunLink = styled(Link)`
-  color: #007bff;
-  font-size: 1.5em;
-  font-weight: bold;
-  text-decoration: none;
-  margin: 10px 20px;
   display: flex;
-  align-items: center;
-  gap : 15px;
+  text-decoration: none;
+  flex-direction: column;
+  color: #007bff;
+  margin: 0 auto;
+  padding-left: 70px;
+  text-align: center; 
+  font-size: 1.4em;
+  font-weight: bold;
+
+  @media (max-width: 768px) {
+    padding-left: 5px; 
+    font-size: 1.3em;
+    position: absolute; 
+    left: 10px; 
+  }
+  
   img {
-    height: 60px;
+    height: 52px;
     max-width: 100%;
     object-fit: contain;
     
-    @media (max-width: 400px) {
-      display: none;
+    @media (max-width: 468px) {
+      display: block; 
+      height: 40px; 
+
     }
-    
+
     @media (min-width: 401px) and (max-width: 768px) {
-      height: 30px;
-    }
-    
-    @media (min-width: 769px) {
-      height: 40px;
+      display: block; 
+      height: 40px; 
+      height: 42px;
     }
   }
-`;
+  `;
 
-const UserInfo = styled.div`
+const ProfileContainer = styled.div`
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column; 
+  align-items: center; 
+  gap: 5px; 
+  margin: 0 20px 0 20px; 
+
+  @media (max-width: 768px) {
+    margin-left: auto; 
+  }
 `;
 
 const ProfileImage = styled.img`
@@ -72,22 +86,8 @@ const ProfileImage = styled.img`
   cursor: pointer;
 
   @media (max-width: 768px) {
-    width: 24px; 
-    height: 24px;
-  }
-`;
-
-const ProfileContainer = styled.div`
-  position: relative;
-  display: flex;
-  flex-direction: column; 
-  align-items: center; 
-  gap: 5px; 
-  margin-top: 0px; 
-
-  @media (max-width: 768px) {
-    gap: 4px; 
-    margin: 2px 0px 0px 5px;
+    width: 28px; 
+    height: 28px;
   }
 `;
 
@@ -96,7 +96,7 @@ const ProfileName = styled.div`
   font-weight: bold;
 
   @media (max-width: 768px) {
-    font-size: 0.5em; 
+    font-size: 0.7em; 
   }
 `;
 
@@ -113,6 +113,7 @@ const EfficientCard = styled.div`
 `;
 
 const LogoutButton = styled.button`
+  margin-left: auto; 
   position: absolute;
   top: 40px;
   right: 0;
@@ -124,20 +125,26 @@ const LogoutButton = styled.button`
   padding: 5px 10px;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
   &:hover {
     background: #f0f0f0;
   }
 `;
 
-
 const LoginLink = styled(Link)`
+  margin-left: auto; 
   color: black;
   font-size: 0.9em;
   text-decoration: none;
+  align-items: center; 
   margin: 10px 20px;
   display: flex;
-  align-items: center;
   gap : 15px;
+
+  @media (max-width: 768px) {
+    margin-left : auto;
+  }
+
   img {
     height: 60px;
     max-width: 100%;
@@ -213,14 +220,19 @@ const MenuItem = styled(Link)`
 
 const TimeContainer = styled.div`
   background: white;
-  padding: 10px 20px;
+  width: 80%;
+  padding: 8px 0;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin: 10px 0;
+  margin: 15px auto 30px;
   text-align: center;
   font-size: 16px;
   font-weight: bold;
   border: 2px solid #007bff;
+
+  @media (min-width: 768px) {
+    max-width: 400px; 
+  }
 `;
 
 const CardContainer = styled.div`
@@ -249,6 +261,17 @@ const DirectionColumn = styled.div`
   }
 `;
 
+const DirectionTitle = styled.div`
+  font-size: 20px;
+  color: #444;
+  font-weight: bold;
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  height: 100%; 
+  text-align: center; 
+`;
+
 const EfficientCardViewport = styled.div`
   width: 90%;
   max-width: 400px;
@@ -267,18 +290,6 @@ const EfficientCardContainer = styled.div`
   transform: translateY(${(props) => props.offset}px);
   will-change: transform;
   user-select: none;
-`;
-
-const TransportCard = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 
-              0 2px 4px rgba(0, 0, 0, 0.19);
-  border: ${(props) => props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
-  height: 160px;
-  box-sizing: border-box;
 `;
 
 const TransportInfo = styled.div`
@@ -300,8 +311,10 @@ const BusNumber = styled.div`
 const TimeInfo = styled.div`
   text-align: right;
   position: relative;
+
   div:first-child {
     color: #666;
+    font-weight: bold;
     font-size: 14px;
     margin-bottom: 5px;
   }
@@ -327,19 +340,6 @@ const Medal = styled.span`
 const SeatInfo = styled.div`
   color: #0066ff;
   font-size: 14px;
-`;
-
-const SectionTitle = styled.h2`
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 16px;
-  text-align: center;
-  position: ${(props) => (props.isMobile ? "static" : "sticky")};
-  top: 0;
-  background: ${(props) => (props.isMobile ? "none" : "#f0f0f0")};
-  padding: ${(props) => (props.isMobile ? "0" : "10px 0")};
-  z-index: 1;
 `;
 
 const FooterContainer = styled.div`
@@ -380,8 +380,6 @@ const TeamName = styled.div`
   color: #fff;
   font-size: 0.9em;
 `;
-
-
 
 const MainPage = () => {
   const [currentTime, setCurrentTime] = useState(
@@ -587,6 +585,11 @@ const MainPage = () => {
 
   const renderTransportCards = (type) => (
     <DirectionColumn>
+
+      <DirectionTitle>
+      {type === "mju" ? "명지대 → 기흥역" : "기흥역 → 명지대"}
+    </DirectionTitle>
+
       <EfficientCardViewport
         onTouchStart={(e) => handleDragStart(e, type)}
         onTouchMove={(e) => handleDragMove(e, type)}
@@ -640,75 +643,73 @@ const MainPage = () => {
   );
 
   return (
-    <AppContainer>
-      <HeaderContainer>
-        <HomerunLink to="/"><img src={logo} alt="logo" />Homerun</HomerunLink>
-        {isLoggedIn() ? (
-          <UserInfo>
-            <ProfileContainer>
-              <ProfileImage
-                src={profileIcon}
-                alt="프로필"
-                style={{ marginLeft: "0.5px" }}
-                onClick={() => setShowLogout(!showLogout)}
-              />
-              <ProfileName>{getUserDisplayName()}님</ProfileName>
-              {showLogout && (
-                <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
-              )}
-            </ProfileContainer>
-          </UserInfo>
-        ) : (
-          <LoginLink to="/login">Longin</LoginLink>
-        )}
-        <MenuContainer>
-          <MenuItem
-            to={`/info?direction=${direction}`}
-            active={location.pathname === "/info"}
-            isinfo={true}
-          >
-            <img src={busInfoIcon} alt="Info" />
-            정보
-          </MenuItem>
-          <MenuItem
-            to="/taxi"
-            active={location.pathname === "/taxi"}
-            isinfo={false}
-            onClick={handleTaxiClick} // 클릭 이벤트가 올바르게 연결되어 있는지 확인
-          >
-            <img src={taxiIcon} alt="Taxi" />
-            택시
-          </MenuItem>
-
-        </MenuContainer>
-
-        {location.pathname === "/" && (
-          <>
-            <TimeContainer>현재 시간 : {currentTime}</TimeContainer>
-            {loading ? (
-              <div>로딩 중...</div>
+      <>
+          <Header>
+            <HomerunLink to="/"><img src={logo} alt="logo" />Homerun</HomerunLink>
+            {isLoggedIn() ? (
+                <ProfileContainer>
+                  <ProfileImage
+                    src={profileIcon}
+                    alt="프로필"
+                    style={{ marginLeft: "0.5px" }}
+                    onClick={() => setShowLogout(!showLogout)}
+                  />
+                  <ProfileName>{getUserDisplayName()}님</ProfileName>
+                  {showLogout && (
+                    <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+                  )}
+                </ProfileContainer>
             ) : (
-              <CardContainer>
-                {renderTransportCards("gih")}
-                {renderTransportCards("mju")}
-              </CardContainer>
+              <LoginLink to="/login">Longin</LoginLink>
             )}
-          </>
-        )}
-        <DirectionControls
-          show={location.pathname === "/info" || location.pathname === "/taxi"}
-          direction={direction}
-          onDirectionChange={handleDirectionChange}
-        />
-        <Outlet context={{ direction }} />
-      </HeaderContainer>
-
-      <FooterContainer>
-        <FeedbackLink to="/feedback">Feedback</FeedbackLink>
-        <TeamName>© 아2조디어 | HomeRun | 백병재 강병수 박영찬 이승현</TeamName>
-      </FooterContainer>
-    </AppContainer>
-  );
+          </Header>
+          <MenuContainer>
+            <MenuItem
+              to={`/info?direction=${direction}`}
+              active={location.pathname === "/info"}
+              isinfo={true}
+            >
+              <img src={busInfoIcon} alt="Info" />
+              정보
+            </MenuItem>
+            <MenuItem
+              to="/taxi"
+              active={location.pathname === "/taxi"}
+              isinfo={false}
+              onClick={handleTaxiClick}
+            >
+              <img src={taxiIcon} alt="Taxi" />
+              택시
+            </MenuItem>
+          </MenuContainer>
+          <AppContainer>
+          {location.pathname === "/" && (
+            <>
+              <TimeContainer>현재 시간 : {currentTime}</TimeContainer>
+              {loading ? (
+                <div>로딩 중...</div>
+              ) : (
+                <CardContainer>
+                  {renderTransportCards("gih")}
+                  {renderTransportCards("mju")}
+                </CardContainer>
+              )}
+            </>
+          )}
+          <DirectionControls
+            show={location.pathname === "/info" || location.pathname === "/taxi"}
+            direction={direction}
+            onDirectionChange={handleDirectionChange}
+          />
+          <Outlet context={{ direction }} />
+        </AppContainer>
+        
+        <FooterContainer>
+          <FeedbackLink to="/feedback">Feedback</FeedbackLink>
+          <TeamName>© 아2조디어 | HomeRun | 백병재 강병수 박영찬 이승현</TeamName>
+        </FooterContainer>
+      </>
+    );    
 };
 
 export default MainPage; 
