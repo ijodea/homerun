@@ -215,22 +215,34 @@ function ChatRoom() {
       if (!groupId || !userData) return;
 
       try {
+        console.log(`Attempting to create chat room for groupId: ${groupId}`);
         const createResponse = await axios.post(
           `${SERVER_URL}/chat/room/${groupId}`
         );
+
+        console.log("Create chat room response:", createResponse.data);
 
         if (createResponse.data.success) {
           setRoomInfo(createResponse.data.data);
           setMessages(createResponse.data.data.messages);
         } else {
+          console.log(
+            `Chat room creation failed, trying to get existing room for groupId: ${groupId}`
+          );
           const getResponse = await axios.get(
             `${SERVER_URL}/chat/room/${groupId}`
           );
+
+          console.log("Get chat room response:", getResponse.data);
 
           if (getResponse.data.success) {
             setRoomInfo(getResponse.data.data);
             setMessages(getResponse.data.data.messages);
           } else {
+            console.error(
+              "Failed to retrieve chat room:",
+              getResponse.data.message
+            );
             setError(getResponse.data.message || "채팅방을 불러올 수 없습니다");
           }
         }

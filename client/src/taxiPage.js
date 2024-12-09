@@ -9,11 +9,11 @@ const SERVER_URL = "http://localhost:8000";
 const TaxiPageContainer = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center; 
-  justify-content: center; 
-  width: 100%; 
-  padding: 20px; 
-  box-sizing: border-box; 
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
 `;
 
 const CardContainer = styled.div`
@@ -288,6 +288,7 @@ const TaxiPage = () => {
         const { data } = await axios.get(
           `${SERVER_URL}/taxi/group/${currentGroupId}`
         );
+        console.log("Group status response:", data);
 
         if (data.success) {
           setResponse((prev) => ({
@@ -307,6 +308,9 @@ const TaxiPage = () => {
             clearInterval(statusCheckInterval);
             setIsLoading(false);
             setTimeout(() => {
+              console.log(
+                `Navigating to chat room with groupId: ${currentGroupId}`
+              );
               navigate(`/chat/room/${currentGroupId}`);
             }, 1000);
           }

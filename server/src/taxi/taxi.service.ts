@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   LocationData,
@@ -12,16 +12,22 @@ import {
 export class TaxiService {
   private readonly mjuGPS: GPSBounds;
   private readonly ghGPS: GPSBounds;
-  private activeGroups: Map<string, TaxiGroup> = new Map();
-  private readonly MAX_GROUP_SIZE = 4;
+  private readonly MAX_GROUP_SIZE = 2;
+  private readonly GROUP_EXPIRY = 30 * 60 * 1000;
 
   private groups: {
     group: TaxiGroup;
     priority: number;
   }[] = [];
 
-  constructor(private readonly configService: ConfigService) {
-    // 기존 GPS 설정 코드는 동일하게 유지
+  constructor(
+    private readonly configService: ConfigService,
+    @Inject('GROUP_STORAGE')
+    private readonly groupStorage: {
+      activeGroups: Map<string, TaxiGroup>;
+      completedGroups: Map<string, TaxiGroup>;
+    },
+  ) {
     const mjuBounds = this.configService.get<string>('MJU_BOUNDS');
     const mjuCoords = mjuBounds
       .split(',')
@@ -40,10 +46,61 @@ export class TaxiService {
       ne: { lat: ghCoords[1], lng: ghCoords[3] },
     };
 
-    // 주기적으로 오래된 그룹 정리 (5분마다)
-    setInterval(() => this.cleanupOldGroups(), 5 * 60 * 1000);
-    // 주기적으로 우선순위 업데이트 하기
-    setInterval(() => this.updatePriorities(), 60 * 1000);
+    // 주기적으로 오래된 그룹 정리 및 우선순위 업데이트
+    // setInterval(() => this.cleanupIncompleteGroups(), 5 * 60 * 1000);
+    setInterval(() => this.cleanupIncompleteGroups(), 5 * 60 * 1000);
+  }
+
+  private cleanupIncompleteGroups() {
+    const now = Date.now();
+    const groupsToRemove: string[] = [];
+
+    for (const group of this.groupStorage.activeGroups.values()) {
+      const groupAge = now - group.createdAt.getTime();
+      if (!group.isFull && groupAge > this.GROUP_EXPIRY) {
+        groupsToRemove.push(group.id);
+      }
+    }
+
+    groupsToRemove.forEach((groupId) => {
+      // console.log(`Cleaning up incomplete group: ${groupId}`);
+      this.groupStorage.activeGroups.delete(groupId);
+    });
+  }
+
+  private findMatchableGroup(destination: 'mju' | 'gh'): TaxiGroup | null {
+    let bestGroup: TaxiGroup | null = null;
+    let mostRecent = 0;
+
+    for (const group of this.groupStorage.activeGroups.values()) {
+      if (
+        group.destination === destination &&
+        !group.isFull &&
+        group.members.length < this.MAX_GROUP_SIZE &&
+        group.status === 'waiting'
+      ) {
+        const groupTime = group.createdAt.getTime();
+        if (groupTime > mostRecent) {
+          mostRecent = groupTime;
+          bestGroup = group;
+        }
+      }
+    }
+
+    return bestGroup;
+  }
+
+  private generateSessionId(userId: string): string {
+    return `${userId}_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+  }
+
+  private findUserActiveGroup(userId: string): TaxiGroup | null {
+    for (const group of this.groupStorage.activeGroups.values()) {
+      if (group.members.some((member) => member.userId === userId)) {
+        return group;
+      }
+    }
+    return null;
   }
 
   // 가중치를 줘서 (기다린 시간 7, 멤버 수 3) 우선순위 큐 우선순위 적용
@@ -61,31 +118,53 @@ export class TaxiService {
     );
   }
 
+  private findBestAvailableGroup(
+    destination: 'mju' | 'gh',
+    userId: string,
+  ): TaxiGroup | null {
+    let bestGroup: TaxiGroup | null = null;
+    let mostRecent = 0;
+
+    for (const group of this.groupStorage.activeGroups.values()) {
+      // 이미 해당 유저가 있는 그룹은 건너뛰기
+      if (group.members.some((member) => member.userId === userId)) {
+        continue;
+      }
+
+      if (
+        group.destination === destination &&
+        !group.isFull &&
+        group.members.length < this.MAX_GROUP_SIZE &&
+        group.status === 'waiting'
+      ) {
+        const groupTime = group.createdAt.getTime();
+        if (groupTime > mostRecent) {
+          mostRecent = groupTime;
+          bestGroup = group;
+        }
+      }
+    }
+
+    return bestGroup;
+  }
+
   // 우선순위 큐에 그룹 enqueue
   private enqueueGroup(group: TaxiGroup): void {
     const priority = this.calculatePriority(group);
     const queueElement = { group, priority };
 
-    let added = false;
-    for (let i = 0; i < this.groups.length; i++) {
-      if (priority < this.groups[i].priority) {
-        this.groups.splice(i, 0, queueElement);
-        added = true;
-        break;
-      }
-    }
-
-    if (!added) {
+    const index = this.groups.findIndex((item) => item.priority > priority);
+    if (index === -1) {
       this.groups.push(queueElement);
+    } else {
+      this.groups.splice(index, 0, queueElement);
     }
   }
-
   // 우선순위 업데이트
   private updatePriorities(): void {
     this.groups.forEach((item) => {
       item.priority = this.calculatePriority(item.group);
     });
-
     this.groups.sort((a, b) => a.priority - b.priority);
   }
 
@@ -110,13 +189,26 @@ export class TaxiService {
   }
 
   async getGroupStatus(groupId: string): Promise<GroupStatus> {
-    const group = this.activeGroups.get(groupId);
+    const group =
+      this.groupStorage.activeGroups.get(groupId) ||
+      this.groupStorage.completedGroups.get(groupId);
+
     if (!group) {
+      console.warn(`Group not found: ${groupId}`);
       return {
         success: false,
         message: '그룹을 찾을 수 없습니다.',
       };
     }
+
+    console.log(`Found group ${groupId}:`, {
+      memberCount: group.members.length,
+      isFull: group.isFull,
+      createdAt: group.createdAt,
+      age: Date.now() - group.createdAt.getTime(),
+      members: group.members.map((m) => `${m.userId}(${m.sessionId})`),
+      isCompleted: this.groupStorage.completedGroups.has(groupId),
+    });
 
     return {
       success: true,
@@ -128,120 +220,148 @@ export class TaxiService {
     };
   }
 
+  private async moveToCompletedGroups(group: TaxiGroup) {
+    this.groupStorage.activeGroups.delete(group.id);
+    const completedGroup: TaxiGroup = {
+      ...group,
+      completedAt: new Date(),
+      status: 'completed',
+      isActive: false,
+    };
+    this.groupStorage.completedGroups.set(group.id, completedGroup);
+    console.log(
+      `Moved group ${group.id} to completed groups. Members: ${group.members
+        .map((m) => m.userId)
+        .join(', ')}`,
+    );
+    return completedGroup;
+  }
+
   private generateGroupId(): string {
     // 랜덤 4자리 숫자 생성
     return Math.floor(1000 + Math.random() * 9000).toString();
   }
 
-  private findAvailableGroup(destination: string): TaxiGroup | null {
+  private findAvailableGroup(destination: 'mju' | 'gh'): TaxiGroup | null {
     const availableGroup = this.groups.find(
       (item) =>
         item.group.destination === destination &&
         !item.group.isFull &&
-        item.group.members.length < this.MAX_GROUP_SIZE,
+        item.group.members.length < this.MAX_GROUP_SIZE &&
+        item.group.status === 'waiting',
     );
 
     return availableGroup ? availableGroup.group : null;
   }
 
-  private createNewGroup(destination: string, userId: string): TaxiGroup {
-    const groupId = this.generateGroupId();
+  private createNewGroup(
+    destination: 'mju' | 'gh',
+    userId: string,
+    sessionId: string,
+  ): TaxiGroup {
+    const groupId = Math.floor(1000 + Math.random() * 9000).toString();
     const newGroup: TaxiGroup = {
       id: groupId,
       destination,
-      members: [{ userId, joinedAt: new Date() }],
+      members: [
+        {
+          userId,
+          sessionId,
+          joinedAt: new Date(),
+        },
+      ],
       createdAt: new Date(),
       isFull: false,
+      isActive: true,
+      status: 'waiting',
     };
-    this.activeGroups.set(groupId, newGroup);
-    this.enqueueGroup(newGroup);
+
+    this.groupStorage.activeGroups.set(groupId, newGroup);
     return newGroup;
   }
 
-  private cleanupOldGroups() {
-    const fiveMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
-    for (const [groupId, group] of this.activeGroups.entries()) {
-      if (group.createdAt < fiveMinutesAgo) {
-        this.activeGroups.delete(groupId);
-        const index = this.groups.findIndex(
-          (item) => item.group.id === groupId,
-        );
-        if (index !== -1) {
-          this.groups.splice(index, 1);
-        }
-      }
-    }
-  }
+  // private cleanupOldGroups() {
+  //   const now = Date.now();
+  //   const groupsToRemove: string[] = [];
+
+  //   for (const [groupId, group] of this.activeGroups.entries()) {
+  //     // Only cleanup groups that are either:
+  //     // 1. Older than GROUP_TIMEOUT
+  //     // 2. Full and completed (you might want to add a completedAt field)
+  //     const groupAge = now - group.createdAt.getTime();
+
+  //     if (groupAge > this.GROUP_TIMEOUT && !group.isFull) {
+  //       groupsToRemove.push(groupId);
+  //     }
+  //   }
+
+  //   // Remove groups and update priorities
+  //   groupsToRemove.forEach((groupId) => {
+  //     this.activeGroups.delete(groupId);
+  //     const index = this.groups.findIndex((item) => item.group.id === groupId);
+  //     if (index !== -1) {
+  //       this.groups.splice(index, 1);
+  //     }
+  //   });
+
+  //   if (groupsToRemove.length > 0) {
+  //     console.log(`Cleaned up ${groupsToRemove.length} inactive groups`);
+  //   }
+  // }
 
   async processLocation(
     locationData: LocationData,
   ): Promise<LocationUpdateResponse> {
     console.log('받은 위치 정보:', locationData);
 
-    let isInValidLocation = false;
-    let message = '';
+    // 각 요청마다 고유한 세션 ID 생성
+    const sessionId = this.generateSessionId(locationData.userId);
 
-    // 위치 검증
-    if (locationData.to.toLowerCase() === 'mju') {
-      isInValidLocation = this.isLocationInBounds(
-        locationData.latitude,
-        locationData.longitude,
-        this.ghGPS,
+    // 매칭 가능한 그룹 찾기
+    let group = this.findMatchableGroup(locationData.to);
+
+    if (!group) {
+      // 적합한 그룹이 없으면 새 그룹 생성
+      group = this.createNewGroup(
+        locationData.to,
+        locationData.userId,
+        sessionId,
       );
-      message = isInValidLocation
-        ? '기흥역 택시구역입니다'
-        : '기흥역 택시구역에 있지 않습니다';
-    } else if (locationData.to.toLowerCase() === 'gh') {
-      isInValidLocation = this.isLocationInBounds(
-        locationData.latitude,
-        locationData.longitude,
-        this.mjuGPS,
+      console.log(
+        `Created new group ${group.id} for user ${locationData.userId} (Session: ${sessionId})`,
       );
-      message = isInValidLocation
-        ? '명지대 택시구역입니다'
-        : '명지대 택시구역에 있지 않습니다';
     } else {
-      message = '목적지가 올바르지 않습니다. (mju 또는 gh만 가능)';
-      isInValidLocation = false;
-    }
+      // 기존 그룹에 사용자 추가
+      group.members.push({
+        userId: locationData.userId,
+        sessionId,
+        joinedAt: new Date(),
+      });
+      console.log(
+        `Added user ${locationData.userId} (Session: ${sessionId}) to existing group ${group.id}`,
+      );
 
-    // 위치가 유효한 경우에만 그룹 매칭 진행
-    let groupInfo = null;
-    if (isInValidLocation) {
-      let group = this.findAvailableGroup(locationData.to);
-      if (!group) {
-        group = this.createNewGroup(locationData.to, locationData.userId);
-      } else {
-        group.members.push({
-          userId: locationData.userId,
-          joinedAt: new Date(),
-        });
-        if (group.members.length >= this.MAX_GROUP_SIZE) {
-          group.isFull = true;
-        }
+      // 그룹이 가득 찼는지 확인
+      if (group.members.length >= this.MAX_GROUP_SIZE) {
+        group.isFull = true;
+        group.status = 'matched';
+        await this.moveToCompletedGroups(group);
       }
-      groupInfo = {
-        groupId: group.id,
-        memberCount: group.members.length,
-        isFull: group.isFull,
-      };
-      message += ` | 그룹 번호: ${group.id} (${group.members.length}/4명)`;
     }
 
-    const result = {
-      success: isInValidLocation,
-      message,
+    return {
+      success: true,
+      message: `${locationData.to === 'mju' ? '기흥역 → 명지대' : '명지대 → 기흥역'} | 그룹 번호: ${group.id} (${group.members.length}/${this.MAX_GROUP_SIZE}명)`,
       data: {
         ...locationData,
-        isValidLocation: isInValidLocation,
-        group: groupInfo,
+        isValidLocation: true,
+        group: {
+          groupId: group.id,
+          memberCount: group.members.length,
+          isFull: group.isFull,
+          status: group.status,
+        },
       },
     };
-
-    // console.log('=== 위치 판별 및 그룹 매칭 결과 ===');
-    // console.log(JSON.stringify(result, null, 2));
-    // console.log('================================\n');
-
-    return result;
   }
 }
