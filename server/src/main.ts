@@ -6,7 +6,7 @@ async function bootstrap() {
     logger: ['error', 'warn', 'debug', 'log', 'verbose'],
   });
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: 'https://ijodea.github.io',
     credentials: true,
   });
   await app.listen(8000);
