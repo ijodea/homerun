@@ -104,12 +104,12 @@ const EfficientCard = styled.div`
   background: white;
   border-radius: 10px;
   padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 
-              0 2px 4px rgba(0, 0, 0, 0.19);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   border: ${(props) => props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
   height: 160px;
   box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 20px;  // 카드 사이 간격 추가
 `;
 
 const LogoutButton = styled.button`
@@ -297,38 +297,40 @@ const TransportInfo = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+  padding: 0 10px;
 `;
 
 const BusNumber = styled.div`
-  font-size: clamp(0.9rem, 3.8vw, 1.2rem);
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
   font-weight: bold;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  @media (max-width: 768px) {
-    font-size: 18px;
-  }
+  flex: 1;
+  margin-right: 10px;
 `;
 
 const TimeInfo = styled.div`
   text-align: right;
   position: relative;
-
+  
   div:first-child {
     color: #666;
     font-weight: bold;
-    font-size: 14px;
+    font-size: clamp(0.8rem, 2vw, 1rem);
     margin-bottom: 5px;
   }
+  
   div:nth-child(2) {
-    font-size: 18px;
+    font-size: clamp(0.9rem, 2.2vw, 1.2rem);
     font-weight: bold;
     color: #0066ff;
   }
+  
   div:nth-child(3) {
-    font-size: 18px;
+    font-size: clamp(0.9rem, 2.2vw, 1.2rem);
     font-weight: bold;
-    color: 	#FF0000;
+    color: #FF0000;
   }
 `;
 
