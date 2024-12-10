@@ -300,11 +300,13 @@ const TransportInfo = styled.div`
 `;
 
 const BusNumber = styled.div`
-  font-size: clamp(1rem, 4.8vw, 1.35rem);
+  font-size: clamp(0.9rem, 3.8vw, 1.2rem);
   font-weight: bold;
-
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   @media (max-width: 768px) {
-    font-size: 20px;
+    font-size: 18px;
   }
 `;
 
@@ -520,15 +522,15 @@ const MainPage = () => {
       const processTransports = async (busData, direction) => {
         const now = new Date();
         const transports = busData.map((bus) => {
-          const departureTime = new Date(now.getTime() + parseInt(bus.도착시간) * 60000);
+          // 도착시간을 숫자로 변환하여 확실히 처리
+          const minutesToArrival = parseInt(bus.도착시간);
+          const departureTime = new Date(now.getTime() + minutesToArrival * 60000);
+          
           return {
             type: "bus",
             number: bus.버스번호,
             departureTime: departureTime,
-            arrivalTime: calculateArrivalTime(
-              parseInt(bus.도착시간),
-              bus.버스번호
-            ),
+            arrivalTime: calculateArrivalTime(minutesToArrival, bus.버스번호),
             remainingSeats: direction === "mju-to-giheung" ? "공석" : bus.남은좌석수,
             direction: direction,
           };
@@ -540,14 +542,12 @@ const MainPage = () => {
           );
           const shuttleData = await shuttleResponse.json();
           if (shuttleData?.time) {
+            const shuttleDepartureTime = new Date(now.getTime() + parseInt(shuttleData.time) * 60000);
             transports.push({
               type: "shuttle",
               number: shuttleData.nextShuttle || "셔틀",
-              departureTime: parseInt(shuttleData.time),
-              arrivalTime: calculateArrivalTime(
-                parseInt(shuttleData.time),
-                "셔틀"
-              ),
+              departureTime: shuttleDepartureTime,
+              arrivalTime: calculateArrivalTime(parseInt(shuttleData.time), "셔틀"),
               remainingSeats: "탑승 가능",
               direction: direction,
             });
@@ -587,8 +587,8 @@ const MainPage = () => {
     <DirectionColumn>
 
       <DirectionTitle>
-      {type === "mju" ? "명지대 → 기흥역" : "기흥역 → 명지대"}
-    </DirectionTitle>
+        {type === "mju" ? "명지대 → 기흥역" : "기흥역 → 명지대"}
+      </DirectionTitle>
 
       <EfficientCardViewport
         onTouchStart={(e) => handleDragStart(e, type)}
@@ -613,20 +613,17 @@ const MainPage = () => {
                   </div>
 
                   <div>
-                    출발 : {transport.departureTime instanceof Date
-                      ? transport.departureTime.toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                      : "정보 없음"}
-                  </div>
-                  <div>
-                    도착 : {transport.arrivalTime instanceof Date
-                      ? transport.arrivalTime.toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                      : "정보 없음"}
+                    출발 : {transport.departureTime instanceof Date ? transport.departureTime.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false
+                    }) : "정보 없음"}
+                  </div><div>
+                    도착 : {transport.arrivalTime instanceof Date ? transport.arrivalTime.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false
+                    }) : "정보 없음"}
                   </div>
 
                   <Medal>
@@ -643,73 +640,73 @@ const MainPage = () => {
   );
 
   return (
-      <>
-          <Header>
-            <HomerunLink to="/"><img src={logo} alt="logo" />Homerun</HomerunLink>
-            {isLoggedIn() ? (
-                <ProfileContainer>
-                  <ProfileImage
-                    src={profileIcon}
-                    alt="프로필"
-                    style={{ marginLeft: "0.5px" }}
-                    onClick={() => setShowLogout(!showLogout)}
-                  />
-                  <ProfileName>{getUserDisplayName()}님</ProfileName>
-                  {showLogout && (
-                    <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
-                  )}
-                </ProfileContainer>
-            ) : (
-              <LoginLink to="/login">Longin</LoginLink>
+    <>
+      <Header>
+        <HomerunLink to="/"><img src={logo} alt="logo" />Homerun</HomerunLink>
+        {isLoggedIn() ? (
+          <ProfileContainer>
+            <ProfileImage
+              src={profileIcon}
+              alt="프로필"
+              style={{ marginLeft: "0.5px" }}
+              onClick={() => setShowLogout(!showLogout)}
+            />
+            <ProfileName>{getUserDisplayName()}님</ProfileName>
+            {showLogout && (
+              <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
             )}
-          </Header>
-          <MenuContainer>
-            <MenuItem
-              to={`/info?direction=${direction}`}
-              active={location.pathname === "/info"}
-              isinfo={true}
-            >
-              <img src={busInfoIcon} alt="Info" />
-              정보
-            </MenuItem>
-            <MenuItem
-              to="/taxi"
-              active={location.pathname === "/taxi"}
-              isinfo={false}
-              onClick={handleTaxiClick}
-            >
-              <img src={taxiIcon} alt="Taxi" />
-              택시
-            </MenuItem>
-          </MenuContainer>
-          <AppContainer>
-          {location.pathname === "/" && (
-            <>
-              <TimeContainer>현재 시간 : {currentTime}</TimeContainer>
-              {loading ? (
-                <div>로딩 중...</div>
-              ) : (
-                <CardContainer>
-                  {renderTransportCards("gih")}
-                  {renderTransportCards("mju")}
-                </CardContainer>
-              )}
-            </>
-          )}
-          <DirectionControls
-            show={location.pathname === "/info" || location.pathname === "/taxi"}
-            direction={direction}
-            onDirectionChange={handleDirectionChange}
-          />
-          <Outlet context={{ direction }} />
-        </AppContainer>
-        
-        <FooterContainer>
-          <FeedbackLink to="/feedback">Feedback</FeedbackLink>
-          <TeamName>© 아2조디어 | HomeRun | 백병재 강병수 박영찬 이승현</TeamName>
-        </FooterContainer>
-      </>
-    );    
+          </ProfileContainer>
+        ) : (
+          <LoginLink to="/login">Longin</LoginLink>
+        )}
+      </Header>
+      <MenuContainer>
+        <MenuItem
+          to={`/info?direction=${direction}`}
+          active={location.pathname === "/info"}
+          isinfo={true}
+        >
+          <img src={busInfoIcon} alt="Info" />
+          정보
+        </MenuItem>
+        <MenuItem
+          to="/taxi"
+          active={location.pathname === "/taxi"}
+          isinfo={false}
+          onClick={handleTaxiClick}
+        >
+          <img src={taxiIcon} alt="Taxi" />
+          택시
+        </MenuItem>
+      </MenuContainer>
+      <AppContainer>
+        {location.pathname === "/" && (
+          <>
+            <TimeContainer>현재 시간 : {currentTime}</TimeContainer>
+            {loading ? (
+              <div>로딩 중...</div>
+            ) : (
+              <CardContainer>
+                {renderTransportCards("gih")}
+                {renderTransportCards("mju")}
+              </CardContainer>
+            )}
+          </>
+        )}
+        <DirectionControls
+          show={location.pathname === "/info" || location.pathname === "/taxi"}
+          direction={direction}
+          onDirectionChange={handleDirectionChange}
+        />
+        <Outlet context={{ direction }} />
+      </AppContainer>
+
+      <FooterContainer>
+        <FeedbackLink to="/feedback">Feedback</FeedbackLink>
+        <TeamName>© 아2조디어 | HomeRun | 백병재 강병수 박영찬 이승현</TeamName>
+      </FooterContainer>
+    </>
+  );
 };
 
 export default MainPage; 
