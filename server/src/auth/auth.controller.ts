@@ -14,17 +14,18 @@ import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 
-const URL = 'http://localhost:3000';
-
 @Controller()
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
   private codeProcessingMap = new Map<string, boolean>();
+  private readonly frontUrl: string;
 
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    this.frontUrl = this.configService.get<string>('FRONT_URL');
+  }
 
   // 일반 로그인
   @Post('login')
@@ -44,7 +45,7 @@ export class AuthController {
   @Header('Content-Type', 'text/html')
   async kakaoRedirect(@Res() res: Response): Promise<void> {
     const REST_API_KEY = this.configService.get<string>('KAKAO_REST_API_KEY');
-    const REDIRECT_URI = `${URL}/oauth/callback`;
+    const REDIRECT_URI = `${this.frontUrl}/oauth/callback`;
 
     this.logger.debug(`REST_API_KEY: ${REST_API_KEY}`);
     this.logger.debug(`REDIRECT_URI: ${REDIRECT_URI}`);
@@ -77,7 +78,7 @@ export class AuthController {
       this.logger.debug(`Processing code: ${code}`);
 
       const REST_API_KEY = this.configService.get<string>('KAKAO_REST_API_KEY');
-      const REDIRECT_URI = `${URL}/oauth/callback`;
+      const REDIRECT_URI = `${this.frontUrl}/oauth/callback`;
 
       const userData = await this.authService.kakaoLogin(
         REST_API_KEY,
@@ -86,7 +87,7 @@ export class AuthController {
       );
 
       // CORS 헤더 설정
-      res.header('Access-Control-Allow-Origin', `${URL}`);
+      res.header('Access-Control-Allow-Origin', `${this.frontUrl}`);
       res.header('Access-Control-Allow-Credentials', 'true');
       res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
       res.header(

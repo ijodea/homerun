@@ -10,7 +10,7 @@ export class ChatController {
   async createRoom(
     @Param('groupId') groupId: string,
   ): Promise<ChatRoomResponse> {
-    console.log(`[ChatController] createRoom - groupId: ${groupId}`);
+    // console.log(`[ChatController] createRoom - groupId: ${groupId}`);
     const room = await this.chatService.createChatRoom(groupId);
     if (!room) {
       console.error(
