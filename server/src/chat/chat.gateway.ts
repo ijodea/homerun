@@ -1,7 +1,7 @@
 import {
   WebSocketGateway,
   WebSocketServer,
-  ConnectedSocket,
+  // ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatMessage } from './Interfaces/chat.interface';

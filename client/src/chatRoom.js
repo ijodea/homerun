@@ -323,7 +323,9 @@ function ChatRoom() {
       <ChatArea ref={messageContainerRef}>
         <MessagesContainer>
           {messages.map((message) => {
-            const isMyMessage = message.userId;
+            // 현재 사용자의 ID와 메시지 작성자의 ID를 비교
+            const isMyMessage = message.userId === userData?.nickname;
+
             return (
               <MessageWrapper key={message.id} isMyMessage={isMyMessage}>
                 <MessageContent>
@@ -343,7 +345,6 @@ function ChatRoom() {
       </ChatArea>
 
       <InputArea>
-        å
         <InputForm onSubmit={handleSendMessage}>
           <MessageInput
             type="text"

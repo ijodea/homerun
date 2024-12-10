@@ -5,7 +5,7 @@ import {
   SendMessageDto,
   ChatRoomResponse,
 } from './Interfaces/chat.interface';
-import { TaxiGroup, GroupMember } from '../taxi/Interfaces/taxi.interface';
+import { TaxiGroup, GroupMember } from '../taxi/interfaces/taxi.interface';
 import { TaxiService } from '../taxi/taxi.service';
 import { ChatGateway } from './chat.gateway';
 
@@ -59,9 +59,9 @@ export class ChatService {
       );
 
       if (existingRoom) {
-        console.log(
-          `[ChatService] Found existing chat room for group ${groupId}`,
-        );
+        // console.log(
+        //   `[ChatService] Found existing chat room for group ${groupId}`,
+        // );
         return existingRoom;
       }
 
