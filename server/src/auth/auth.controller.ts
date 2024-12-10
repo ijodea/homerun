@@ -45,8 +45,7 @@ export class AuthController {
   @Header('Content-Type', 'text/html')
   async kakaoRedirect(@Res() res: Response): Promise<void> {
     const REST_API_KEY = this.configService.get<string>('KAKAO_REST_API_KEY');
-    const REDIRECT_URI = `${this.frontUrl}/oauth/callback`;
-
+    const REDIRECT_URI = this.configService.get<string>('KAKAO_REDIRECT_URI');
     this.logger.debug(`REST_API_KEY: ${REST_API_KEY}`);
     this.logger.debug(`REDIRECT_URI: ${REDIRECT_URI}`);
 
