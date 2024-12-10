@@ -283,13 +283,18 @@ const EfficientCardViewport = styled.div`
 `;
 
 const EfficientCardContainer = styled.div`
-  position: absolute;
   width: 100%;
-  transition: ${(props) =>
-    props.isDragging ? "none" : "transform 0.3s ease-out"};
-  transform: translateY(${(props) => props.offset}px);
-  will-change: transform;
-  user-select: none;
+  max-width: 2400px;
+  margin: 0 auto 10px;
+  height: 400px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 20px;
+  border: 1px solid #ccc;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 5px;
+  }
 `;
 
 const TransportInfo = styled.div`
