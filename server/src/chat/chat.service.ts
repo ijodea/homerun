@@ -5,7 +5,7 @@ import {
   SendMessageDto,
   ChatRoomResponse,
 } from './Interfaces/chat.interface';
-import { TaxiGroup, GroupMember } from '../taxi/interfaces/taxi.interface';
+import { TaxiGroup } from '../taxi/interfaces/taxi.interface';
 import { TaxiService } from '../taxi/taxi.service';
 import { ChatGateway } from './chat.gateway';
 
