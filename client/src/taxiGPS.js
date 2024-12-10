@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
-const SERVER_URL = "http://localhost:8000";
+const SERVER_URL =
+  "https://port-0-homerun-server-m3me4q5sa42dec9d.sel4.cloudtype.app";
 
 function App() {
   const [location, setLocation] = useState(null);

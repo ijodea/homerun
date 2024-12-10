@@ -2,7 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
-const SERVER_URL = "http://localhost:8000";
+const SERVER_URL =
+  "https://port-0-homerun-server-m3me4q5sa42dec9d.sel4.cloudtype.app";
 
 const KakaoRedirect = () => {
   const navigate = useNavigate();

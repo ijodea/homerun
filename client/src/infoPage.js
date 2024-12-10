@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useOutletContext } from "react-router-dom";
 
-const SERVER_URL = "http://localhost:8000";
+const SERVER_URL =
+  "https://port-0-homerun-server-m3me4q5sa42dec9d.sel4.cloudtype.app";
 
 const ScrollContainer = styled.div`
   width: 100%;
@@ -130,13 +131,13 @@ const RideButton = styled.button`
   width: 50px;
   height: 50px;
   font-size: 1.5em;
-  background-color: #001C4A;
+  background-color: #001c4a;
   color: white;
   border: none;
   border-radius: 50%;
   cursor: pointer;
   &:hover {
-    background-color: #00123D;
+    background-color: #00123d;
   }
 `;
 
@@ -156,13 +157,13 @@ const Popup = styled.div`
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  border: 4px solid #001C4A;
+  border: 4px solid #001c4a;
   width: 300px;
   text-align: center;
 `;
 
 const PopupButton = styled.button`
-  background-color: #001C4A;
+  background-color: #001c4a;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -174,7 +175,7 @@ const PopupButton = styled.button`
 `;
 
 const CancelButton = styled(PopupButton)`
-  background-color: #C00305;
+  background-color: #c00305;
 `;
 
 const PopupContent = ({ onConfirm, onCancel }) => (
@@ -228,12 +229,16 @@ const Info = () => {
         const filteredBusInfo = data.map((bus) => {
           const departureMinutes = bus.도착시간 ? parseInt(bus.도착시간) : 0;
           const departureTime = calculateTime(departureMinutes);
-          const arrivalTime = calculateArrivalTime(departureMinutes, bus.버스번호);
+          const arrivalTime = calculateArrivalTime(
+            departureMinutes,
+            bus.버스번호
+          );
           return {
             busNumber: bus.버스번호,
             departureTime,
             arrivalTime,
-            remainingSeats: direction === "mju-to-giheung" ? "공석" : bus.남은좌석수,
+            remainingSeats:
+              direction === "mju-to-giheung" ? "공석" : bus.남은좌석수,
             type: "bus",
           };
         });
@@ -252,21 +257,25 @@ const Info = () => {
       if (!response.ok) throw new Error("운행 종료");
       const data = await response.json();
       if (!data?.time) throw new Error("운행 종료");
-      setShuttleInfo([{
-        busNumber: data.nextShuttle || "셔틀",
-        departureTime: calculateTime(parseInt(data.time)),
-        arrivalTime: calculateArrivalTime(parseInt(data.time), "셔틀"),
-        remainingSeats: "탑승 가능",
-        type: "shuttle",
-      }]);
+      setShuttleInfo([
+        {
+          busNumber: data.nextShuttle || "셔틀",
+          departureTime: calculateTime(parseInt(data.time)),
+          arrivalTime: calculateArrivalTime(parseInt(data.time), "셔틀"),
+          remainingSeats: "탑승 가능",
+          type: "shuttle",
+        },
+      ]);
     } catch (error) {
-      setShuttleInfo([{
-        busNumber: "셔틀",
-        departureTime: "운행 종료",
-        arrivalTime: "운행 종료",
-        remainingSeats: "-",
-        type: "shuttle",
-      }]);
+      setShuttleInfo([
+        {
+          busNumber: "셔틀",
+          departureTime: "운행 종료",
+          arrivalTime: "운행 종료",
+          remainingSeats: "-",
+          type: "shuttle",
+        },
+      ]);
     }
   };
 
@@ -311,7 +320,7 @@ const Info = () => {
     if (b.arrivalTime === "운행 종료") return -1;
     const [aHours, aMinutes] = a.arrivalTime.split(":").map(Number);
     const [bHours, bMinutes] = b.arrivalTime.split(":").map(Number);
-    return (aHours * 60 + aMinutes) - (bHours * 60 + bMinutes);
+    return aHours * 60 + aMinutes - (bHours * 60 + bMinutes);
   });
 
   return (
@@ -345,12 +354,19 @@ const Info = () => {
         <RefreshButton onClick={fetchData}>↺</RefreshButton>
       </ButtonContainer>
 
-      {showPopup && <Popup>
-        <PopupContent onConfirm={handlePopupConfirm} onCancel={handlePopupCancel} />
-      </Popup>}
-      {showThankYouPopup && <Popup>
-        <ThankYouPopup onClose={handleThankYouClose} />
-      </Popup>}
+      {showPopup && (
+        <Popup>
+          <PopupContent
+            onConfirm={handlePopupConfirm}
+            onCancel={handlePopupCancel}
+          />
+        </Popup>
+      )}
+      {showThankYouPopup && (
+        <Popup>
+          <ThankYouPopup onClose={handleThankYouClose} />
+        </Popup>
+      )}
     </>
   );
 };

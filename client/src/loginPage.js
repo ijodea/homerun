@@ -5,7 +5,8 @@ import HomerunLink from "./homeRunLink";
 import kakaoLoginImg from "./assets/kakao_login.png";
 import axios from "axios";
 
-const SERVER_URL = "http://localhost:8000";
+const SERVER_URL =
+  "https://port-0-homerun-server-m3me4q5sa42dec9d.sel4.cloudtype.app";
 
 const JoinLink = styled(Link)`
   margin: 10px 0;
@@ -15,7 +16,7 @@ const JoinLink = styled(Link)`
   text-decoration: none;
 
   &:hover {
-    text-decoration: underline; 
+    text-decoration: underline;
   }
 `;
 
@@ -26,10 +27,10 @@ const Container = styled.div`
   justify-content: center;
   height: 100vh;
   margin-top: 0;
-  
-  @media (max-width: 480px){
-    width: 100vw; 
-    overflow: hidden; 
+
+  @media (max-width: 480px) {
+    width: 100vw;
+    overflow: hidden;
   }
 `;
 
@@ -62,8 +63,8 @@ const ButtonContainer = styled.div`
 `;
 
 const LoginBtn = styled.button`
-  width: 40%; 
-  height: 35px; 
+  width: 40%;
+  height: 35px;
   font-size: 16px;
   color: white;
   background-color: #007bff;
@@ -73,23 +74,21 @@ const LoginBtn = styled.button`
   text-align: center;
   white-space: nowrap;
 
-
   @media (max-width: 768px) {
-    width: 33%; 
+    width: 33%;
     font-size: 14px;
-    padding: 6px; 
+    padding: 6px;
   }
 `;
 
 const KakaoLoginBtn = styled.img`
-  width: 40%; 
-  height: 30px; 
+  width: 40%;
+  height: 30px;
   cursor: pointer;
   margin-top: 10px;
 
-  
   @media (max-width: 768px) {
-    width: 33%; 
+    width: 33%;
   }
 `;
 

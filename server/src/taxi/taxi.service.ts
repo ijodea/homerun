@@ -12,7 +12,7 @@ import {
 export class TaxiService {
   private readonly mjuGPS: GPSBounds;
   private readonly ghGPS: GPSBounds;
-  private readonly MAX_GROUP_SIZE = 2;
+  private readonly MAX_GROUP_SIZE = 4;
   private readonly GROUP_EXPIRY = 30 * 60 * 1000;
 
   private groups: {

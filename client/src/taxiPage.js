@@ -4,7 +4,8 @@ import styled, { keyframes, css } from "styled-components";
 import axios from "axios";
 import io from "socket.io-client";
 
-const SERVER_URL = "http://localhost:8000";
+const SERVER_URL =
+  "https://port-0-homerun-server-m3me4q5sa42dec9d.sel4.cloudtype.app";
 
 const TaxiPageContainer = styled.div`
   display: flex;

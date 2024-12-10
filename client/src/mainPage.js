@@ -4,29 +4,30 @@ import styled from "styled-components";
 import DirectionControls from "./directioncontrols";
 import taxiIcon from "./assets/Taxi.png";
 import busInfoIcon from "./assets/Bus.png";
-import profileIcon from "./assets/profile.png"
+import profileIcon from "./assets/profile.png";
 import logo from "./assets/logo.png";
 import "./App.css";
 
-const SERVER_URL = "http://localhost:8000";
+const SERVER_URL =
+  "https://port-0-homerun-server-m3me4q5sa42dec9d.sel4.cloudtype.app";
 
 const AppContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: stretch;
   width: 100vw;
-  min-height: 100vh; 
-  overflow-y: auto; 
+  min-height: 100vh;
+  overflow-y: auto;
   overflow-x: hidden;
 `;
 
 const Header = styled.header`
-  display: flex; 
-  align-items: center; 
-  justify-content: space-between; 
-  padding: 30px 5px 5px 0px; 
-  justify-content: center; 
-  height: 50px; 
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30px 5px 5px 0px;
+  justify-content: center;
+  height: 50px;
 `;
 
 const HomerunLink = styled(Link)`
@@ -36,46 +37,45 @@ const HomerunLink = styled(Link)`
   color: #007bff;
   margin: 0 auto;
   padding-left: 70px;
-  text-align: center; 
+  text-align: center;
   font-size: 1.4em;
   font-weight: bold;
 
   @media (max-width: 768px) {
-    padding-left: 5px; 
+    padding-left: 5px;
     font-size: 1.3em;
-    position: absolute; 
-    left: 10px; 
+    position: absolute;
+    left: 10px;
   }
-  
+
   img {
     height: 52px;
     max-width: 100%;
     object-fit: contain;
-    
-    @media (max-width: 468px) {
-      display: block; 
-      height: 40px; 
 
+    @media (max-width: 468px) {
+      display: block;
+      height: 40px;
     }
 
     @media (min-width: 401px) and (max-width: 768px) {
-      display: block; 
-      height: 40px; 
+      display: block;
+      height: 40px;
       height: 42px;
     }
   }
-  `;
+`;
 
 const ProfileContainer = styled.div`
   position: relative;
   display: flex;
-  flex-direction: column; 
-  align-items: center; 
-  gap: 5px; 
-  margin: 0 20px 0 20px; 
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin: 0 20px 0 20px;
 
   @media (max-width: 768px) {
-    margin-left: auto; 
+    margin-left: auto;
   }
 `;
 
@@ -86,7 +86,7 @@ const ProfileImage = styled.img`
   cursor: pointer;
 
   @media (max-width: 768px) {
-    width: 28px; 
+    width: 28px;
     height: 28px;
   }
 `;
@@ -96,7 +96,7 @@ const ProfileName = styled.div`
   font-weight: bold;
 
   @media (max-width: 768px) {
-    font-size: 0.7em; 
+    font-size: 0.7em;
   }
 `;
 
@@ -105,15 +105,15 @@ const EfficientCard = styled.div`
   border-radius: 10px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 
-              0 2px 4px rgba(0, 0, 0, 0.19);
-  border: ${(props) => props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.19);
+  border: ${(props) =>
+    props.type === "shuttle" ? "6px solid #001C4A" : "6px solid #C00305"};
   height: 160px;
   box-sizing: border-box;
 `;
 
 const LogoutButton = styled.button`
-  margin-left: auto; 
+  margin-left: auto;
   position: absolute;
   top: 40px;
   right: 0;
@@ -132,32 +132,32 @@ const LogoutButton = styled.button`
 `;
 
 const LoginLink = styled(Link)`
-  margin-left: auto; 
+  margin-left: auto;
   color: black;
   font-size: 0.9em;
   text-decoration: none;
-  align-items: center; 
+  align-items: center;
   margin: 10px 20px;
   display: flex;
-  gap : 15px;
+  gap: 15px;
 
   @media (max-width: 768px) {
-    margin-left : auto;
+    margin-left: auto;
   }
 
   img {
     height: 60px;
     max-width: 100%;
     object-fit: contain;
-    
+
     @media (max-width: 400px) {
       display: none;
     }
-    
+
     @media (min-width: 401px) and (max-width: 768px) {
       height: 30px;
     }
-    
+
     @media (min-width: 769px) {
       height: 40px;
     }
@@ -202,11 +202,11 @@ const MenuItem = styled(Link)`
 
   &:hover {
     background-color: ${(props) =>
-    props.active
-      ? props.isinfo
-        ? "#005700"
-        : "#fb9403"
-      : "rgba(0, 0, 0, 0.1)"};
+      props.active
+        ? props.isinfo
+          ? "#005700"
+          : "#fb9403"
+        : "rgba(0, 0, 0, 0.1)"};
   }
 
   @media (max-width: 768px) {
@@ -215,7 +215,7 @@ const MenuItem = styled(Link)`
     img {
       height: 35px;
     }
-}
+  }
 `;
 
 const TimeContainer = styled.div`
@@ -231,7 +231,7 @@ const TimeContainer = styled.div`
   border: 2px solid #007bff;
 
   @media (min-width: 768px) {
-    max-width: 400px; 
+    max-width: 400px;
   }
 `;
 
@@ -242,7 +242,7 @@ const CardContainer = styled.div`
   width: 100%;
   padding: 0 10px;
   box-sizing: border-box;
-  
+
   @media (min-width: 768px) {
     flex-direction: row;
     justify-content: space-around;
@@ -254,7 +254,7 @@ const CardContainer = styled.div`
 const DirectionColumn = styled.div`
   width: 100%;
   margin-bottom: 20px;
-  
+
   @media (min-width: 768px) {
     width: 45%;
     margin-bottom: 0;
@@ -265,17 +265,17 @@ const DirectionTitle = styled.div`
   font-size: 20px;
   color: #444;
   font-weight: bold;
-  display: flex; 
-  justify-content: center; 
-  align-items: center; 
-  height: 100%; 
-  text-align: center; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
 `;
 
 const EfficientCardViewport = styled.div`
   width: 90%;
   max-width: 400px;
-  height: 200px; 
+  height: 200px;
   overflow: hidden;
   position: relative;
   margin: 10px auto;
@@ -326,7 +326,7 @@ const TimeInfo = styled.div`
   div:nth-child(3) {
     font-size: 18px;
     font-weight: bold;
-    color: 	#FF0000;
+    color: #ff0000;
   }
 `;
 
@@ -343,32 +343,32 @@ const SeatInfo = styled.div`
 `;
 
 const FooterContainer = styled.div`
-  display: flex; 
+  display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  background-color: #333; 
+  background-color: #333;
   padding: 20px;
-  box-sizing: border-box; 
+  box-sizing: border-box;
 
   @media (max-width: 768px) {
-    position: fixed; 
+    position: fixed;
     bottom: 0;
     left: 0;
     padding: 10px;
     z-index: 10;
     width: 100%;
-    height: auto; 
+    height: auto;
     font-size: 0.8em;
-    flex-direction: column; 
+    flex-direction: column;
     align-items: center;
-    gap: 5px; 
+    gap: 5px;
   }
 `;
 
 const FeedbackLink = styled(Link)`
-  color: #fff; 
-  font-size: 0.9em; 
+  color: #fff;
+  font-size: 0.9em;
   text-decoration: none;
 
   &:hover {
@@ -415,42 +415,42 @@ const MainPage = () => {
   }, [location]);
 
   const handleDragStart = (e, type) => {
-    setIsDragging(prev => ({ ...prev, [type]: true }));
-    setStartY(prev => ({
+    setIsDragging((prev) => ({ ...prev, [type]: true }));
+    setStartY((prev) => ({
       ...prev,
-      [type]: e.type === 'touchstart' ? e.touches[0].clientY : e.clientY
+      [type]: e.type === "touchstart" ? e.touches[0].clientY : e.clientY,
     }));
-    setPrevTranslate(prev => ({ ...prev, [type]: currentTranslate[type] }));
+    setPrevTranslate((prev) => ({ ...prev, [type]: currentTranslate[type] }));
   };
 
   const handleDragMove = (e, type) => {
     if (!isDragging[type]) return;
     e.preventDefault();
 
-    const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+    const currentY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
     const diff = currentY - startY[type];
     const newTranslate = prevTranslate[type] + diff;
 
     if (newTranslate > 0) {
-      setCurrentTranslate(prev => ({ ...prev, [type]: 0 }));
+      setCurrentTranslate((prev) => ({ ...prev, [type]: 0 }));
     } else if (newTranslate < -(fastestTransports[type].length - 1) * 180) {
-      setCurrentTranslate(prev => ({
+      setCurrentTranslate((prev) => ({
         ...prev,
-        [type]: -(fastestTransports[type].length - 1) * 180
+        [type]: -(fastestTransports[type].length - 1) * 180,
       }));
     } else {
-      setCurrentTranslate(prev => ({ ...prev, [type]: newTranslate }));
+      setCurrentTranslate((prev) => ({ ...prev, [type]: newTranslate }));
     }
   };
 
   const handleDragEnd = (type) => {
-    setIsDragging(prev => ({ ...prev, [type]: false }));
+    setIsDragging((prev) => ({ ...prev, [type]: false }));
     const cardHeight = 180;
     const newIndex = Math.round(Math.abs(currentTranslate[type]) / cardHeight);
-    setCurrentCardIndex(prev => ({ ...prev, [type]: newIndex }));
-    setCurrentTranslate(prev => ({
+    setCurrentCardIndex((prev) => ({ ...prev, [type]: newIndex }));
+    setCurrentTranslate((prev) => ({
       ...prev,
-      [type]: -newIndex * cardHeight
+      [type]: -newIndex * cardHeight,
     }));
   };
 
@@ -520,7 +520,9 @@ const MainPage = () => {
       const processTransports = async (busData, direction) => {
         const now = new Date();
         const transports = busData.map((bus) => {
-          const departureTime = new Date(now.getTime() + parseInt(bus.도착시간) * 60000);
+          const departureTime = new Date(
+            now.getTime() + parseInt(bus.도착시간) * 60000
+          );
           return {
             type: "bus",
             number: bus.버스번호,
@@ -529,7 +531,8 @@ const MainPage = () => {
               parseInt(bus.도착시간),
               bus.버스번호
             ),
-            remainingSeats: direction === "mju-to-giheung" ? "공석" : bus.남은좌석수,
+            remainingSeats:
+              direction === "mju-to-giheung" ? "공석" : bus.남은좌석수,
             direction: direction,
           };
         });
@@ -585,10 +588,9 @@ const MainPage = () => {
 
   const renderTransportCards = (type) => (
     <DirectionColumn>
-
       <DirectionTitle>
-      {type === "mju" ? "명지대 → 기흥역" : "기흥역 → 명지대"}
-    </DirectionTitle>
+        {type === "mju" ? "명지대 → 기흥역" : "기흥역 → 명지대"}
+      </DirectionTitle>
 
       <EfficientCardViewport
         onTouchStart={(e) => handleDragStart(e, type)}
@@ -613,24 +615,32 @@ const MainPage = () => {
                   </div>
 
                   <div>
-                    출발 : {transport.departureTime instanceof Date
+                    출발 :{" "}
+                    {transport.departureTime instanceof Date
                       ? transport.departureTime.toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                       : "정보 없음"}
                   </div>
                   <div>
-                    도착 : {transport.arrivalTime instanceof Date
+                    도착 :{" "}
+                    {transport.arrivalTime instanceof Date
                       ? transport.arrivalTime.toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                       : "정보 없음"}
                   </div>
 
                   <Medal>
-                    {index === 0 ? "🏅" : index === 1 ? "🥈" : index === 2 ? "🥉" : ""}
+                    {index === 0
+                      ? "🏅"
+                      : index === 1
+                      ? "🥈"
+                      : index === 2
+                      ? "🥉"
+                      : ""}
                   </Medal>
                 </TimeInfo>
               </TransportInfo>
@@ -643,73 +653,76 @@ const MainPage = () => {
   );
 
   return (
-      <>
-          <Header>
-            <HomerunLink to="/"><img src={logo} alt="logo" />Homerun</HomerunLink>
-            {isLoggedIn() ? (
-                <ProfileContainer>
-                  <ProfileImage
-                    src={profileIcon}
-                    alt="프로필"
-                    style={{ marginLeft: "0.5px" }}
-                    onClick={() => setShowLogout(!showLogout)}
-                  />
-                  <ProfileName>{getUserDisplayName()}님</ProfileName>
-                  {showLogout && (
-                    <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
-                  )}
-                </ProfileContainer>
-            ) : (
-              <LoginLink to="/login">Longin</LoginLink>
+    <>
+      <Header>
+        <HomerunLink to="/">
+          <img src={logo} alt="logo" />
+          Homerun
+        </HomerunLink>
+        {isLoggedIn() ? (
+          <ProfileContainer>
+            <ProfileImage
+              src={profileIcon}
+              alt="프로필"
+              style={{ marginLeft: "0.5px" }}
+              onClick={() => setShowLogout(!showLogout)}
+            />
+            <ProfileName>{getUserDisplayName()}님</ProfileName>
+            {showLogout && (
+              <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
             )}
-          </Header>
-          <MenuContainer>
-            <MenuItem
-              to={`/info?direction=${direction}`}
-              active={location.pathname === "/info"}
-              isinfo={true}
-            >
-              <img src={busInfoIcon} alt="Info" />
-              정보
-            </MenuItem>
-            <MenuItem
-              to="/taxi"
-              active={location.pathname === "/taxi"}
-              isinfo={false}
-              onClick={handleTaxiClick}
-            >
-              <img src={taxiIcon} alt="Taxi" />
-              택시
-            </MenuItem>
-          </MenuContainer>
-          <AppContainer>
-          {location.pathname === "/" && (
-            <>
-              <TimeContainer>현재 시간 : {currentTime}</TimeContainer>
-              {loading ? (
-                <div>로딩 중...</div>
-              ) : (
-                <CardContainer>
-                  {renderTransportCards("gih")}
-                  {renderTransportCards("mju")}
-                </CardContainer>
-              )}
-            </>
-          )}
-          <DirectionControls
-            show={location.pathname === "/info" || location.pathname === "/taxi"}
-            direction={direction}
-            onDirectionChange={handleDirectionChange}
-          />
-          <Outlet context={{ direction }} />
-        </AppContainer>
-        
-        <FooterContainer>
-          <FeedbackLink to="/feedback">Feedback</FeedbackLink>
-          <TeamName>© 아2조디어 | HomeRun | 백병재 강병수 박영찬 이승현</TeamName>
-        </FooterContainer>
-      </>
-    );    
+          </ProfileContainer>
+        ) : (
+          <LoginLink to="/login">Longin</LoginLink>
+        )}
+      </Header>
+      <MenuContainer>
+        <MenuItem
+          to={`/info?direction=${direction}`}
+          active={location.pathname === "/info"}
+          isinfo={true}
+        >
+          <img src={busInfoIcon} alt="Info" />
+          정보
+        </MenuItem>
+        <MenuItem
+          to="/taxi"
+          active={location.pathname === "/taxi"}
+          isinfo={false}
+          onClick={handleTaxiClick}
+        >
+          <img src={taxiIcon} alt="Taxi" />
+          택시
+        </MenuItem>
+      </MenuContainer>
+      <AppContainer>
+        {location.pathname === "/" && (
+          <>
+            <TimeContainer>현재 시간 : {currentTime}</TimeContainer>
+            {loading ? (
+              <div>로딩 중...</div>
+            ) : (
+              <CardContainer>
+                {renderTransportCards("gih")}
+                {renderTransportCards("mju")}
+              </CardContainer>
+            )}
+          </>
+        )}
+        <DirectionControls
+          show={location.pathname === "/info" || location.pathname === "/taxi"}
+          direction={direction}
+          onDirectionChange={handleDirectionChange}
+        />
+        <Outlet context={{ direction }} />
+      </AppContainer>
+
+      <FooterContainer>
+        <FeedbackLink to="/feedback">Feedback</FeedbackLink>
+        <TeamName>© 아2조디어 | HomeRun | 백병재 강병수 박영찬 이승현</TeamName>
+      </FooterContainer>
+    </>
+  );
 };
 
-export default MainPage; 
+export default MainPage;
