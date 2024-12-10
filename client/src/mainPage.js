@@ -274,8 +274,8 @@ const DirectionTitle = styled.div`
 
 const EfficientCardViewport = styled.div`
   width: 90%;
-  max-width: 400px;
-  height: 200px; 
+  max-width: 600px;
+  height: 600px; 
   overflow: hidden;
   position: relative;
   margin: 10px auto;
@@ -283,7 +283,7 @@ const EfficientCardViewport = styled.div`
 `;
 
 const EfficientCardContainer = styled.div`
-  width: 100%;
+  width: 110%;
   max-width: 2400px;
   margin: 0 auto 10px;
   height: 400px;
