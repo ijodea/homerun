@@ -317,35 +317,70 @@ export class TaxiService {
     // 각 요청마다 고유한 세션 ID 생성
     const sessionId = this.generateSessionId(locationData.userId);
 
+    // 사용자가 이미 활성 그룹에 참여하고 있는지 확인
+    const existingGroup = this.findUserActiveGroup(locationData.userId);
+    if (existingGroup) {
+      console.log(`User ${locationData.userId} is already in group ${existingGroup.id}`);
+      return {
+        success: true,
+        message: '이미 그룹에 참여하고 있습니다.',
+        data: {
+          ...locationData,
+          isValidLocation: true,
+          group: {
+            groupId: existingGroup.id,
+            memberCount: existingGroup.members.length,
+            isFull: existingGroup.isFull,
+            status: existingGroup.status,
+          },
+        },
+      };
+    }
+
     // 매칭 가능한 그룹 찾기
     let group = this.findMatchableGroup(locationData.to);
 
     if (!group) {
-      // 적합한 그룹이 없으면 새 그룹 생성
-      group = this.createNewGroup(
-        locationData.to,
-        locationData.userId,
-        sessionId,
-      );
-      console.log(
-        `Created new group ${group.id} for user ${locationData.userId} (Session: ${sessionId})`,
-      );
+      // 새로운 그룹 생성
+      group = this.createNewGroup(locationData.to, locationData.userId, sessionId);
+      // 그룹을 우선순위 큐에 추가
+      this.enqueueGroup(group);
+      console.log(`Created new group ${group.id} for user ${locationData.userId} (Session: ${sessionId})`);
     } else {
-      // 기존 그룹에 사용자 추가
-      group.members.push({
-        userId: locationData.userId,
-        sessionId,
-        joinedAt: new Date(),
-      });
-      console.log(
-        `Added user ${locationData.userId} (Session: ${sessionId}) to existing group ${group.id}`,
-      );
+      // 그룹에 사용자 추가 전에 중복 여부 확인
+      const userAlreadyInGroup = group.members.some(member => member.userId === locationData.userId);
+      if (!userAlreadyInGroup) {
+        group.members.push({
+          userId: locationData.userId,
+          sessionId,
+          joinedAt: new Date(),
+        });
+        console.log(`Added user ${locationData.userId} (Session: ${sessionId}) to existing group ${group.id}`);
+      } else {
+        console.log(`User ${locationData.userId} is already a member of group ${group.id}`);
+        return {
+          success: true,
+          message: '이미 그룹에 참여하고 있습니다.',
+          data: {
+            ...locationData,
+            isValidLocation: true,
+            group: {
+              groupId: group.id,
+              memberCount: group.members.length,
+              isFull: group.isFull,
+              status: group.status,
+            },
+          },
+        };
+      }
 
       // 그룹이 가득 찼는지 확인
       if (group.members.length >= this.MAX_GROUP_SIZE) {
         group.isFull = true;
         group.status = 'matched';
+        // 활성 그룹에서 제거하고 완료된 그룹으로 이동
         await this.moveToCompletedGroups(group);
+        console.log(`Moved group ${group.id} to completed groups. Members: ${group.members.map(m => m.userId).join(', ')}`);
       }
     }
 

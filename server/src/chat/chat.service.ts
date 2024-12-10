@@ -65,13 +65,19 @@ export class ChatService {
         return existingRoom;
       }
 
-      // 직접 그룹 스토리지에서 확인
+      // 그룹 스토리지에서 그룹 정보 가져오기
       const group =
         this.groupStorage.activeGroups.get(groupId) ||
         this.groupStorage.completedGroups.get(groupId);
 
       if (!group) {
         console.log(`[ChatService] Group ${groupId} not found in storage`);
+        return null;
+      }
+
+      // 그룹의 상태가 'matched' 또는 'completed'인지 확인
+      if (group.status !== 'matched' && group.status !== 'completed') {
+        console.log(`[ChatService] Group ${groupId} is not ready for chat. Status: ${group.status}`);
         return null;
       }
 
